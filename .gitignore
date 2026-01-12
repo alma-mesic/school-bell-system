@@ -416,3 +416,9 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Arduino / ESP32
+*.elf
+*.hex
+*.bin
+*.map
