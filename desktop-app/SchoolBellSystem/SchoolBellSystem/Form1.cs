@@ -10,11 +10,26 @@ using System.Windows.Forms;
 
 namespace SchoolBellSystem
 {
-    public partial class Form1 : Form
+    public partial class ETSbell : Form
     {
-        public Form1()
+        public ETSbell()
         {
             InitializeComponent();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            //kad se pritisne dugme da treperi led matrica
+        }
+
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        private void ETSbell_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

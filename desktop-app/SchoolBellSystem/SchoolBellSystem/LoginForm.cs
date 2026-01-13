@@ -24,7 +24,7 @@ namespace SchoolBellSystem
 
             if (textBox1.Text == adminUser && textBox2.Text == adminPass)
             {
-                Form1 mainForm = new Form1();
+                ETSbell mainForm = new ETSbell();
                 mainForm.Show();
                 this.Hide();
             }
@@ -32,6 +32,11 @@ namespace SchoolBellSystem
             {
                 MessageBox.Show("Pogrešan username ili lozinka!", "Greška", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void LoginForm_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }
