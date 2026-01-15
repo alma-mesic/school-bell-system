@@ -132,5 +132,10 @@ namespace SchoolBellSystem
            
 
         }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            listBox1.Items.Remove(listBox1.SelectedItem);
+        }
     }
 }
