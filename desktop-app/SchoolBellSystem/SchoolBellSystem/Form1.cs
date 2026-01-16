@@ -9,12 +9,26 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 using System.IO;
-
+using System.IO.Ports;
 
 namespace SchoolBellSystem
 {
     public partial class ETSbell : Form
     {
+        SerialPort serialPort;
+
+        void SendToESP(string json)// funkcija za slanje podataka preko JSON na ESP32
+        {
+            if (serialPort != null && serialPort.IsOpen)
+            {
+                serialPort.WriteLine(json);
+            }
+            else
+            {
+                MessageBox.Show("Serial port nije otvoren!");
+            }
+        }
+
         public ETSbell()
         {
             InitializeComponent();
@@ -29,6 +43,8 @@ namespace SchoolBellSystem
             jsonObjekat["stanje"] = "ukljuceno";
 
             string json = JsonConvert.SerializeObject(jsonObjekat);
+
+            SendToESP(json);
 
             MessageBox.Show(json);
         }
@@ -71,6 +87,23 @@ namespace SchoolBellSystem
             dataGridView2.Rows.Add(11, "13:50", "14:20");
             dataGridView2.Rows.Add(12, "14:25", "14:55");
             dataGridView2.Rows.Add(13, "15:00", "15:30");
+
+            try
+            {
+                serialPort = new SerialPort("COM7", 115200); // PROMIJENI COM
+                serialPort.NewLine = "\n";
+
+                serialPort.Open();
+                System.Threading.Thread.Sleep(1000);
+
+                MessageBox.Show("ESP32 povezan!");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Greska pri spajanju na ESP32:\n" + ex.Message);
+            }
+            serialPort.ReadTimeout = 1000;
+            serialPort.WriteTimeout = 1000;
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -117,6 +150,8 @@ namespace SchoolBellSystem
             // 4. Pretvaranje u JSON tekst
             string json = JsonConvert.SerializeObject(jsonObjekat, Formatting.Indented);
 
+            SendToESP(json);
+
             // 5. Za sada samo prikaz (kasnije ide slanje na ESP32)
             MessageBox.Show(json);
         }
@@ -135,6 +170,8 @@ namespace SchoolBellSystem
 
             // 4. Pretvaranje u JSON tekst
             string json = JsonConvert.SerializeObject(jsonObjekat, Formatting.Indented);
+
+            SendToESP(json);
 
             // 5. Prikaz (test)
             MessageBox.Show(json);
@@ -205,8 +242,10 @@ namespace SchoolBellSystem
             // 4. Pretvaranje u JSON tekst
             string json = JsonConvert.SerializeObject(jsonObjekat, Formatting.Indented);
 
+            SendToESP(json);
+
             // 5. Za sad samo prikaz (kasnije ide na ESP32)
-            MessageBox.Show(json);
+            MessageBox.Show("Raspored je poslan!");
         }
 
         private void button5_Click(object sender, EventArgs e)
@@ -232,6 +271,8 @@ namespace SchoolBellSystem
             jsonObjekat["lista"] = dogadjaji;
 
             string json = JsonConvert.SerializeObject(jsonObjekat, Formatting.Indented);
+            
+            SendToESP(json);
 
             MessageBox.Show(json);
         }
@@ -293,7 +334,17 @@ namespace SchoolBellSystem
 
             string json = JsonConvert.SerializeObject(jsonObjekat, Formatting.Indented);
 
+            SendToESP(json);
+
             MessageBox.Show(json);
+        }
+
+        private void ETSbell_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (serialPort != null && serialPort.IsOpen)
+            {
+                serialPort.Close();
+            }
         }
     }
 }
