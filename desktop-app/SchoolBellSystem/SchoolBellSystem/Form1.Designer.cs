@@ -49,6 +49,8 @@
             this.bellstart = new System.Windows.Forms.Button();
             this.label8 = new System.Windows.Forms.Label();
             this.Obavijesti = new System.Windows.Forms.TabPage();
+            this.button5 = new System.Windows.Forms.Button();
+            this.button4 = new System.Windows.Forms.Button();
             this.dateTimePicker2 = new System.Windows.Forms.DateTimePicker();
             this.label7 = new System.Windows.Forms.Label();
             this.dateTimePicker1 = new System.Windows.Forms.DateTimePicker();
@@ -78,8 +80,6 @@
             this.label1 = new System.Windows.Forms.Label();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.tabControl1 = new System.Windows.Forms.TabControl();
-            this.button4 = new System.Windows.Forms.Button();
-            this.button5 = new System.Windows.Forms.Button();
             this.Postavke.SuspendLayout();
             this.Testiranje.SuspendLayout();
             this.Obavijesti.SuspendLayout();
@@ -124,6 +124,7 @@
             this.editWifi.TabIndex = 13;
             this.editWifi.Text = "Sačuvaj";
             this.editWifi.UseVisualStyleBackColor = true;
+            this.editWifi.Click += new System.EventHandler(this.editWifi_Click);
             // 
             // editAdmin
             // 
@@ -133,6 +134,7 @@
             this.editAdmin.TabIndex = 12;
             this.editAdmin.Text = "Sačuvaj";
             this.editAdmin.UseVisualStyleBackColor = true;
+            this.editAdmin.Click += new System.EventHandler(this.editAdmin_Click);
             // 
             // label15
             // 
@@ -296,6 +298,26 @@
             this.Obavijesti.Text = "Obavjesti";
             this.Obavijesti.UseVisualStyleBackColor = true;
             // 
+            // button5
+            // 
+            this.button5.Location = new System.Drawing.Point(563, 360);
+            this.button5.Name = "button5";
+            this.button5.Size = new System.Drawing.Size(104, 23);
+            this.button5.TabIndex = 10;
+            this.button5.Text = "pošalji na esp32";
+            this.button5.UseVisualStyleBackColor = true;
+            this.button5.Click += new System.EventHandler(this.button5_Click);
+            // 
+            // button4
+            // 
+            this.button4.Location = new System.Drawing.Point(563, 315);
+            this.button4.Name = "button4";
+            this.button4.Size = new System.Drawing.Size(160, 23);
+            this.button4.TabIndex = 9;
+            this.button4.Text = "obriši označenu stavku liste ";
+            this.button4.UseVisualStyleBackColor = true;
+            this.button4.Click += new System.EventHandler(this.button4_Click);
+            // 
             // dateTimePicker2
             // 
             this.dateTimePicker2.Format = System.Windows.Forms.DateTimePickerFormat.Time;
@@ -422,6 +444,7 @@
             this.button3.TabIndex = 2;
             this.button3.Text = "pošalji na esp";
             this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // dataGridView2
             // 
@@ -563,25 +586,6 @@
             this.tabControl1.SelectedIndex = 0;
             this.tabControl1.Size = new System.Drawing.Size(944, 501);
             this.tabControl1.TabIndex = 0;
-            // 
-            // button4
-            // 
-            this.button4.Location = new System.Drawing.Point(563, 315);
-            this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(160, 23);
-            this.button4.TabIndex = 9;
-            this.button4.Text = "obriši označenu stavku liste ";
-            this.button4.UseVisualStyleBackColor = true;
-            this.button4.Click += new System.EventHandler(this.button4_Click);
-            // 
-            // button5
-            // 
-            this.button5.Location = new System.Drawing.Point(563, 360);
-            this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(104, 23);
-            this.button5.TabIndex = 10;
-            this.button5.Text = "pošalji na esp32";
-            this.button5.UseVisualStyleBackColor = true;
             // 
             // ETSbell
             // 

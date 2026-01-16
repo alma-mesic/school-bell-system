@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace SchoolBellSystem
 {
@@ -20,8 +22,21 @@ namespace SchoolBellSystem
         private void button1_Click(object sender, EventArgs e)
         {
             string adminUser = "admin";
-            string adminPass = "1234"; // kasnije ovo mozemo spremiti u config ili enkriptovati
+            string adminPass = "1234";
 
+            // ako postoji admin.json, ucitaj podatke iz njega
+            if (File.Exists("admin.json"))
+            {
+                string json = File.ReadAllText("admin.json");
+
+                Dictionary<string, string> adminData =
+                    JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+
+                adminUser = adminData["username"];
+                adminPass = adminData["password"];
+            }
+
+            // provjera unosa
             if (textBox1.Text == adminUser && textBox2.Text == adminPass)
             {
                 ETSbell mainForm = new ETSbell();
@@ -30,7 +45,12 @@ namespace SchoolBellSystem
             }
             else
             {
-                MessageBox.Show("Pogrešan username ili lozinka!", "Greška", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Pogrešan username ili lozinka!",
+                    "Greška",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
             }
         }
 

@@ -16,7 +16,7 @@ namespace SchoolBellSystem
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new ETSbell());
+            Application.Run(new LoginForm());
         }
     }
 }
