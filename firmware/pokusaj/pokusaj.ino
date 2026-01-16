@@ -49,6 +49,8 @@ int classCount = 0;
 bool sosActive = false;
 unsigned long sosStartTime = 0;
 bool scheduleUpdated = false; // flag da je stigao novi raspored
+int notifIndex = 0;   // indeks trenutne obavijesti
+
 
 String currentNotification = ""; // Tekst obavijesti koji se prikazuje
 unsigned long notificationStartTime = 0;
@@ -190,9 +192,11 @@ void handleJson(String json) {
     }
   }
   else if (tip == "obavijesti") {
-    JsonArray lista = doc["lista"].as<JsonArray>();
-    if (lista.size() > 0) {
-      showNotification(lista[0]["naziv"].as<String>()); // non-blocking prikaz
+  JsonArray lista = doc["lista"].as<JsonArray>();
+  notifIndex = 0;
+  if (lista.size() > 0) {
+    showNotification(lista[notifIndex]["naziv"].as<String>());
+    notifIndex = (notifIndex + 1) % lista.size();  // prelaz na sljedeću
     }
   }
   else {

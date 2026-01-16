@@ -90,7 +90,7 @@ namespace SchoolBellSystem
 
             try
             {
-                serialPort = new SerialPort("COM7", 115200); // PROMIJENI COM
+                serialPort = new SerialPort("COM3", 115200); // PROMIJENI COM
                 serialPort.NewLine = "\n";
 
                 serialPort.Open();
@@ -148,7 +148,8 @@ namespace SchoolBellSystem
             jsonObjekat["akcija"] = "start";
 
             // 4. Pretvaranje u JSON tekst
-            string json = JsonConvert.SerializeObject(jsonObjekat, Formatting.Indented);
+            string json = JsonConvert.SerializeObject(jsonObjekat);
+
 
             SendToESP(json);
 
@@ -169,7 +170,8 @@ namespace SchoolBellSystem
             jsonObjekat["akcija"] = "stop";
 
             // 4. Pretvaranje u JSON tekst
-            string json = JsonConvert.SerializeObject(jsonObjekat, Formatting.Indented);
+            string json = JsonConvert.SerializeObject(jsonObjekat);
+
 
             SendToESP(json);
 
@@ -240,7 +242,8 @@ namespace SchoolBellSystem
             jsonObjekat["casovi"] = casovi;
 
             // 4. Pretvaranje u JSON tekst
-            string json = JsonConvert.SerializeObject(jsonObjekat, Formatting.Indented);
+            string json = JsonConvert.SerializeObject(jsonObjekat);
+
 
             SendToESP(json);
 
@@ -270,8 +273,9 @@ namespace SchoolBellSystem
             jsonObjekat["tip"] = "obavijesti";
             jsonObjekat["lista"] = dogadjaji;
 
-            string json = JsonConvert.SerializeObject(jsonObjekat, Formatting.Indented);
-            
+            string json = JsonConvert.SerializeObject(jsonObjekat);
+
+
             SendToESP(json);
 
             MessageBox.Show(json);
@@ -332,7 +336,8 @@ namespace SchoolBellSystem
             jsonObjekat["ssid"] = textBox5.Text;
             jsonObjekat["password"] = textBox6.Text;
 
-            string json = JsonConvert.SerializeObject(jsonObjekat, Formatting.Indented);
+            string json = JsonConvert.SerializeObject(jsonObjekat);
+
 
             SendToESP(json);
 
