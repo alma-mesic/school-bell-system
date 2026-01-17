@@ -16,18 +16,55 @@ namespace SchoolBellSystem
     public partial class ETSbell : Form
     {
         SerialPort serialPort;
+        Timer obavijestiTimer;
 
-        void SendToESP(string json)// funkcija za slanje podataka preko JSON na ESP32
+        void SendToESP(string json)
         {
             if (serialPort != null && serialPort.IsOpen)
             {
-                serialPort.WriteLine(json);
+                serialPort.Write(json + "\n"); // OBAVEZNO \n
+                serialPort.BaseStream.Flush(); // forsira slanje
             }
             else
             {
                 MessageBox.Show("Serial port nije otvoren!");
             }
         }
+
+        private void ObavijestiTimer_Tick(object sender, EventArgs e)
+        {
+            DateTime sada = DateTime.Now;
+
+            List<string> zaBrisanje = new List<string>();
+
+            foreach (string item in listBox1.Items)
+            {
+                // format: yyyyMMddHHmm NAZIV dd.MM.yyyy. HH:mm
+                string[] dijelovi = item.Split(' ');
+
+                if (dijelovi.Length < 4) continue;
+
+                // uzmi vrijeme događaja
+                DateTime vrijemeDogadjaja = DateTime.ParseExact(
+                    dijelovi[2] + " " + dijelovi[3],
+                    "dd.MM.yyyy. HH:mm",
+                    System.Globalization.CultureInfo.InvariantCulture
+                );
+
+                // dozvoli da se prikazuje još 1 min nakon događaja
+                if (sada > vrijemeDogadjaja.AddMinutes(1))
+                {
+                    zaBrisanje.Add(item);
+                }
+            }
+
+            // brisanje iz listboxa
+            foreach (string item in zaBrisanje)
+            {
+                listBox1.Items.Remove(item);
+            }
+        }
+
 
         public ETSbell()
         {
@@ -56,6 +93,13 @@ namespace SchoolBellSystem
 
         private void ETSbell_Load(object sender, EventArgs e)
         {
+            textBox3.UseSystemPasswordChar = true;
+            textBox4.UseSystemPasswordChar = true;
+            checkBox1.Checked = false;
+
+            textBox6.UseSystemPasswordChar = true;
+            checkBox2.Checked = false;
+
             dataGridView1.Rows.Clear();
 
             dataGridView1.Rows.Add(1, "07:30", "08:15");
@@ -90,7 +134,7 @@ namespace SchoolBellSystem
 
             try
             {
-                serialPort = new SerialPort("COM3", 115200); // PROMIJENI COM
+                serialPort = new SerialPort("COM7", 115200); // PROMIJENI COM
                 serialPort.NewLine = "\n";
 
                 serialPort.Open();
@@ -104,6 +148,12 @@ namespace SchoolBellSystem
             }
             serialPort.ReadTimeout = 1000;
             serialPort.WriteTimeout = 1000;
+
+            obavijestiTimer = new Timer();
+            obavijestiTimer.Interval = 60 * 1000; // 1 minuta
+            obavijestiTimer.Tick += ObavijestiTimer_Tick;
+            obavijestiTimer.Start();
+
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -129,6 +179,7 @@ namespace SchoolBellSystem
             string stavka = puniDatum.ToString("yyyyMMddHHmm") + " " + naziv + " " + puniDatum.ToString("dd.MM.yyyy. HH:mm");
 
             listBox1.Items.Add(stavka); //popravit ovo da se ne vidi kod naprijed gdje sastavi datum i vrijeme u svrhu sortiranja
+            textBox1.Clear();
         }
 
             
@@ -264,7 +315,14 @@ namespace SchoolBellSystem
 
                 Dictionary<string, string> dogadjaj = new Dictionary<string, string>();
                 dogadjaj["naziv"] = dijelovi[1];
-                dogadjaj["datumVrijeme"] = dijelovi[2] + " " + dijelovi[3];
+                DateTime puniDatum = DateTime.ParseExact(
+                    dijelovi[2] + " " + dijelovi[3],
+                    "dd.MM.yyyy. HH:mm",
+                    System.Globalization.CultureInfo.InvariantCulture
+                );
+
+                dogadjaj["datumVrijeme"] = puniDatum.ToString("yyyy-MM-dd HH:mm");
+
 
                 dogadjaji.Add(dogadjaj);
             }
@@ -349,6 +407,40 @@ namespace SchoolBellSystem
             if (serialPort != null && serialPort.IsOpen)
             {
                 serialPort.Close();
+            }
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            // ako je checkbox cekiran -> prikazi password
+            // ako nije cekiran -> sakrij password (*)
+
+            if (checkBox1.Checked)
+            {
+                textBox3.UseSystemPasswordChar = false; // stari password VIDLJIV
+                textBox4.UseSystemPasswordChar = false; // novi password VIDLJIV
+            }
+            else
+            {
+                textBox3.UseSystemPasswordChar = true;  // stari password SKRIVEN
+                textBox4.UseSystemPasswordChar = true;  // novi password SKRIVEN
+            }
+        }
+
+        private void checkBox2_CheckedChanged(object sender, EventArgs e)
+        {
+            // ako je checkbox cekiran -> prikazi password
+            // ako nije cekiran -> sakrij password (*)
+
+            if (checkBox2.Checked)
+            {
+                textBox6.UseSystemPasswordChar = false; // password VIDLJIV
+                
+            }
+            else
+            {
+                textBox6.UseSystemPasswordChar = true;  //password SKRIVEN
+               
             }
         }
     }

@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 using System.IO;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
 
 namespace SchoolBellSystem
 {
@@ -50,13 +52,31 @@ namespace SchoolBellSystem
                     "Greška",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error
+
                 );
+                textBox1.Clear();
+                textBox2.Clear();
             }
         }
 
         private void LoginForm_Load(object sender, EventArgs e)
         {
+            textBox2.UseSystemPasswordChar = true;
+            checkBox1.Checked = false;
+        }
 
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBox1.Checked)
+            {
+                textBox2.UseSystemPasswordChar = false; // password VIDLJIV
+
+            }
+            else
+            {
+                textBox2.UseSystemPasswordChar = true;  //password SKRIVEN
+
+            }
         }
     }
 }
