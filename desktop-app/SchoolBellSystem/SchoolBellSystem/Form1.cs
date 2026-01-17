@@ -134,7 +134,7 @@ namespace SchoolBellSystem
 
             try
             {
-                serialPort = new SerialPort("COM7", 115200); // PROMIJENI COM
+                serialPort = new SerialPort("COM3", 115200); // PROMIJENI COM
                 serialPort.NewLine = "\n";
 
                 serialPort.Open();
@@ -442,6 +442,37 @@ namespace SchoolBellSystem
                 textBox6.UseSystemPasswordChar = true;  //password SKRIVEN
                
             }
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            //klik na button6 treba da ocisti kompletan eeprom esp32
+            string adminPass = textBox3.Text; // ADMIN PASSWORD
+
+            if (string.IsNullOrWhiteSpace(adminPass))
+            {
+                MessageBox.Show("Unesite admin password!");
+                return;
+            }
+
+            DialogResult r = MessageBox.Show(
+                "DA LI STE SIGURNI?\nOvo briše SVE sa ESP32!",
+                "UPOZORENJE",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning
+            );
+
+            if (r != DialogResult.Yes) return;
+
+            Dictionary<string, string> jsonObjekat = new Dictionary<string, string>();
+            jsonObjekat["tip"] = "clear_eeprom";
+            jsonObjekat["password"] = adminPass;
+
+            string json = JsonConvert.SerializeObject(jsonObjekat);
+
+            SendToESP(json);
+
+            MessageBox.Show("EEPROM komanda poslana ESP32!");
         }
     }
 }

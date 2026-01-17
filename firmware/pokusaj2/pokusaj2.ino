@@ -27,6 +27,9 @@ int16_t text_width;
 
 bool bellTestMode = false;
 
+String adminPassword = "1234";  // isto kao u admin.json
+
+
 // ================== SOS ==================
 bool sosActive = false;
 unsigned long sosStartTime = 0;
@@ -131,18 +134,22 @@ void scrollText() {
 
 void drawMainScreen() {
   display->fillScreen(0);
+  display->setTextSize(1);
+  display->setTextWrap(false);
 
   if (bellTestMode) {
     display->setTextColor(display->color565(255, 255, 0));
     display->setCursor(x, 4);
     display->print("TESTIRANJE ZVONA");
+
     x--;
-    if (x < -32) x = 64;
+    if (x < -100) x = display->width();
   } else {
     showTime();
     scrollText();
   }
 }
+
 
 // ================== RASPORED ==================
 void checkSchedule() {
@@ -259,6 +266,17 @@ void loadSavedData() {
   if (obavijestiJson.length() > 0) handleJson(obavijestiJson);
 }
 
+void clearEEPROM() {
+  prefs.clear();  // briše SVE iz namespace "schoolbell"
+  Serial.println("EEPROM obrisan!");
+
+  // reset stanja u RAM-u
+  classCount = 0;
+  notificationCount = 0;
+  text = "EEPROM obrisan";
+}
+
+
 // ================== JSON ==================
 void handleJson(String json) {
   StaticJsonDocument<2048> doc;
@@ -309,7 +327,19 @@ void handleJson(String json) {
     sosStartTime = millis();
     sosBellTimer = millis();
     sosStep = 0;
+  } 
+  
+  else if (tip == "clear_eeprom") {
+  String pass = doc["password"] | "";
+
+  if (pass == adminPassword) {
+    clearEEPROM();
+    Serial.println("EEPROM obrisan - ADMIN OK");
+  } else {
+    Serial.println("POKUSAJ BRISANJA - POGRESAN PASSWORD");
   }
+}
+
 }
 
 
