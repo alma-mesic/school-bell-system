@@ -179,12 +179,41 @@ void buildMainText() {
 
   // Cas u toku
   String nowTime = getTimeString();
+  bool classInProgress = false;
+
   for (int i = 0; i < classCount; i++) {
     if (nowTime >= classes[i].start && nowTime < classes[i].end) {
       newText = String(classes[i].number) + ". cas u toku";
+      classInProgress = true;
       break;
     }
   }
+
+  // Ako nema časa u toku, proveri da li je pauza između dva časa (5 min)
+  if (!classInProgress && classCount > 0) {
+    for (int i = 0; i < classCount - 1; i++) {
+      // trenutni kraj časa
+      String kraj = classes[i].end;
+      int krajH = kraj.substring(0,2).toInt();
+      int krajM = kraj.substring(3,5).toInt();
+      int krajMin = krajH*60 + krajM;
+
+      // sledeći početak časa
+      String start = classes[i+1].start;
+      int startH = start.substring(0,2).toInt();
+      int startM = start.substring(3,5).toInt();
+      int startMin = startH*60 + startM;
+
+      int sadaMin = now.tm_hour*60 + now.tm_min;
+
+      // proveri da li smo u pauzi između dva časa
+      if (sadaMin >= krajMin && sadaMin < startMin) {
+        newText = "ODMOR";
+        break;
+      }
+    }
+  }
+
   if (newText == "") newText = "Nema casa";
 
   // Današnji datum
@@ -234,6 +263,7 @@ void buildMainText() {
     x = 32;
   }
 }
+
 
 // ================== ROTACIJA OBAVJESTI ==================
 void rotateNotifications() {

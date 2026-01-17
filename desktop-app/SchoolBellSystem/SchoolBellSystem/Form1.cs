@@ -65,6 +65,39 @@ namespace SchoolBellSystem
             }
         }
 
+        private void LoadSavedNotifications()
+        {
+            // pokušaj učitati obavijesti iz ESP32 (pretpostavljam da ih čitaš iz file ili seriala)
+            try
+            {
+                string path = "obavijesti.json"; // možeš koristiti isti path koji šalješ na ESP32
+                if (!File.Exists(path)) return;
+
+                string json = File.ReadAllText(path);
+
+                dynamic doc = JsonConvert.DeserializeObject(json);
+
+                listBox1.Items.Clear();
+
+                foreach (var o in doc.lista)
+                {
+                    string naziv = o.naziv;
+                    DateTime dt = DateTime.ParseExact((string)o.datumVrijeme, "yyyy-MM-dd HH:mm",
+                        System.Globalization.CultureInfo.InvariantCulture);
+
+                    string stavka = dt.ToString("yyyyMMddHHmm") + " " + naziv + " " + dt.ToString("dd.MM.yyyy. HH:mm");
+
+                    listBox1.Items.Add(stavka);
+                }
+
+                listBox1.Sorted = true;
+            }
+            catch
+            {
+                // ignoriraj greške pri čitanju
+            }
+        }
+
 
         public ETSbell()
         {
@@ -153,6 +186,9 @@ namespace SchoolBellSystem
             obavijestiTimer.Interval = 60 * 1000; // 1 minuta
             obavijestiTimer.Tick += ObavijestiTimer_Tick;
             obavijestiTimer.Start();
+
+            // učitaj prethodno sačuvane obavijesti u listBox
+            LoadSavedNotifications();
 
         }
 
@@ -310,7 +346,6 @@ namespace SchoolBellSystem
 
             foreach (string item in listBox1.Items)
             {
-                // format: yyyyMMddHHmm NAZIV dd.MM.yyyy. HH:mm
                 string[] dijelovi = item.Split(' ');
 
                 Dictionary<string, string> dogadjaj = new Dictionary<string, string>();
@@ -323,7 +358,6 @@ namespace SchoolBellSystem
 
                 dogadjaj["datumVrijeme"] = puniDatum.ToString("yyyy-MM-dd HH:mm");
 
-
                 dogadjaji.Add(dogadjaj);
             }
 
@@ -333,8 +367,10 @@ namespace SchoolBellSystem
 
             string json = JsonConvert.SerializeObject(jsonObjekat);
 
-
             SendToESP(json);
+
+            // Spremi i lokalno u obavijesti.json
+            File.WriteAllText("obavijesti.json", json);
 
             MessageBox.Show(json);
         }
@@ -446,12 +482,29 @@ namespace SchoolBellSystem
 
         private void button6_Click(object sender, EventArgs e)
         {
-            //klik na button6 treba da ocisti kompletan eeprom esp32
-            string adminPass = textBox3.Text; // ADMIN PASSWORD
+            // klik na button6 treba da ocisti kompletan eeprom esp32
+            string adminPass = textBox3.Text.Trim(); // ADMIN PASSWORD
 
             if (string.IsNullOrWhiteSpace(adminPass))
             {
                 MessageBox.Show("Unesite admin password!");
+                return;
+            }
+
+            // Učitavanje podataka o adminu iz admin.json
+            string trenutniPass = "1234"; // default
+            if (File.Exists("admin.json"))
+            {
+                string jsonRead = File.ReadAllText("admin.json");
+                Dictionary<string, string> adminData =
+                    JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonRead);
+                trenutniPass = adminData.ContainsKey("password") ? adminData["password"] : "1234";
+            }
+
+            // provjera unesenog passworda
+            if (adminPass != trenutniPass)
+            {
+                MessageBox.Show("Neispravan admin password!");
                 return;
             }
 
@@ -471,6 +524,9 @@ namespace SchoolBellSystem
             string json = JsonConvert.SerializeObject(jsonObjekat);
 
             SendToESP(json);
+
+            // Očisti i listBox lokalno
+            listBox1.Items.Clear();
 
             MessageBox.Show("EEPROM komanda poslana ESP32!");
         }
