@@ -28,6 +28,7 @@ int16_t text_width;
 bool bellTestMode = false;
 
 String adminPassword = "1234";  // isto kao u admin.json
+String lastText = "";
 
 
 // ================== SOS ==================
@@ -68,9 +69,27 @@ int classCount = 0;
 // ================== OBAVIJESTI ==================
 struct Notification {
   String text;
-  String time;  // HH:MM
-  String date;  // YYYY-MM-DD
+  int year;
+  int month;
+  int day;
+  int hour;
+  int minute;
 };
+
+int dayOfYear(int y, int m, int d) {
+  struct tm t = {};
+  t.tm_year = y - 1900;
+  t.tm_mon  = m - 1;
+  t.tm_mday = d;
+  mktime(&t);
+  return t.tm_yday;
+}
+
+bool isTodayOrTomorrow(Notification &n, struct tm &now) {
+  int notifDay = dayOfYear(n.year, n.month, n.day);
+  return notifDay == now.tm_yday || notifDay == now.tm_yday + 1;
+}
+
 
 Notification notifications[10];
 int notificationCount = 0;
@@ -152,103 +171,140 @@ void drawMainScreen() {
 
 
 // ================== RASPORED ==================
-void checkSchedule() {
-  String now = getTimeString();
+void buildMainText() {
+  struct tm now;
+  if (!getLocalTime(&now)) return;
 
-  // 1. Aktivni čas
-  bool classFound = false;
+  String newText = "";
+
+  // Cas u toku
+  String nowTime = getTimeString();
   for (int i = 0; i < classCount; i++) {
-    if (now >= classes[i].start && now < classes[i].end) {
-      text = String(classes[i].number) + ". cas u toku";
-      classFound = true;
+    if (nowTime >= classes[i].start && nowTime < classes[i].end) {
+      newText = String(classes[i].number) + ". cas u toku";
       break;
     }
   }
-  if (!classFound) text = "Cekam raspored";
+  if (newText == "") newText = "Nema casa";
 
-  // 2. Rotacija obavijesti za danas i sutra
-  struct tm t;
-  if (!getLocalTime(&t)) return;
-  char buf[11];
-  strftime(buf, 11, "%Y-%m-%d", &t);
-  String today = String(buf);
+  // Današnji datum
+  int todayYear  = now.tm_year + 1900;
+  int todayMonth = now.tm_mon + 1;
+  int todayDay   = now.tm_mday;
 
-  t.tm_mday += 1;  // sutrašnji datum
-  mktime(&t);
-  strftime(buf, 11, "%Y-%m-%d", &t);
-  String tomorrow = String(buf);
+  // Sutrašnji datum
+  time_t t_now = mktime(&now) + 24*3600;
+  struct tm tm_tomorrow;
+  localtime_r(&t_now, &tm_tomorrow);
+  int tomorrowYear  = tm_tomorrow.tm_year + 1900;
+  int tomorrowMonth = tm_tomorrow.tm_mon + 1;
+  int tomorrowDay   = tm_tomorrow.tm_mday;
 
-  // Skupi sve relevantne obavijesti
-  int relevantCount = 0;
-  Notification relevant[10];
-
+  // Obavijesti
   for (int i = 0; i < notificationCount; i++) {
-    if (notifications[i].date == today || notifications[i].date == tomorrow) {
-      relevant[relevantCount++] = notifications[i];
-    }
+    bool isToday = notifications[i].year == todayYear &&
+                   notifications[i].month == todayMonth &&
+                   notifications[i].day == todayDay;
+
+    bool isTomorrow = notifications[i].year == tomorrowYear &&
+                      notifications[i].month == tomorrowMonth &&
+                      notifications[i].day == tomorrowDay;
+
+    if (!isToday && !isTomorrow) continue;
+
+    newText += " | ";
+    if (isTomorrow) newText += "sutra ";
+
+    newText += notifications[i].text;
+    newText += " u ";
+
+    if (notifications[i].hour < 10) newText += "0";
+    newText += notifications[i].hour;
+    newText += ":";
+
+    if (notifications[i].minute < 10) newText += "0";
+    newText += notifications[i].minute;
   }
 
-  // Ako imamo relevantne obavijesti, rotiraj ih
-  if (relevantCount > 0) {
-    if (millis() - lastNotifSwitch > notifInterval) {
-      currentNotifIndex = (currentNotifIndex + 1) % relevantCount;
-      lastNotifSwitch = millis();
-    }
-
-    text += " | " + relevant[currentNotifIndex].text + " u " + relevant[currentNotifIndex].time;
+  // Reset scrolla samo ako se promijenio tekst
+  if (newText != lastText) {
+    text = newText;
+    lastText = newText;
+    text_width = text.length() * 6;
+    x = 32;
   }
-
-  x = 32;  // reset scroll kad se text promijeni
-  text_width = text.length() * 6;
 }
 
+// ================== ROTACIJA OBAVJESTI ==================
+void rotateNotifications() {
+  if (notificationCount == 0) return;
+
+  if (millis() - lastNotifSwitch > notifInterval) {
+    currentNotifIndex++;
+    if (currentNotifIndex >= notificationCount)
+      currentNotifIndex = 0;
+    lastNotifSwitch = millis();
+  }
+}
 
 // ================== BRISANJE OBAVJESTI ==================
 void removePastNotifications() {
-  struct tm t;
-  if (!getLocalTime(&t)) return;
-
-  int nowHour = t.tm_hour;
-  int nowMin = t.tm_min;
-  char buf[11];
-  strftime(buf, 11, "%Y-%m-%d", &t);
-  String today = String(buf);
+  struct tm now;
+  if (!getLocalTime(&now)) return;
 
   bool changed = false;
 
   for (int i = 0; i < notificationCount;) {
-    int notifHour = notifications[i].time.substring(0, 2).toInt();
-    int notifMin = notifications[i].time.substring(3, 5).toInt();
-
-    // briši samo ako je obavijest za danas i prošlo je vrijeme
-    if (notifications[i].date == today && (notifHour < nowHour || (notifHour == nowHour && notifMin < nowMin))) {
-      for (int j = i; j < notificationCount - 1; j++)
-        notifications[j] = notifications[j + 1];
-      notificationCount--;
-      changed = true;
-    } else {
+    // ako NIJE danas → preskoči
+    if (notifications[i].year != now.tm_year + 1900 ||
+        notifications[i].month != now.tm_mon + 1 ||
+        notifications[i].day != now.tm_mday) {
       i++;
+      continue;
     }
+
+    // ako je danas, ali vrijeme još NIJE prošlo → preskoči
+    if (notifications[i].hour > now.tm_hour ||
+        (notifications[i].hour == now.tm_hour &&
+         notifications[i].minute > now.tm_min)) {
+      i++;
+      continue;
+    }
+
+    // prošla obavijest → briši
+    for (int j = i; j < notificationCount - 1; j++) {
+      notifications[j] = notifications[j + 1];
+    }
+    notificationCount--;
+    changed = true;
   }
 
-  // Ako smo obrisali neku obavijest, spremi novi niz u Preferences
+  // Snimi novo stanje u Preferences
   if (changed) {
     StaticJsonDocument<1024> doc;
     JsonArray arr = doc.createNestedArray("lista");
+
     for (int i = 0; i < notificationCount; i++) {
       JsonObject o = arr.createNestedObject();
       o["naziv"] = notifications[i].text;
-      o["datumVrijeme"] = notifications[i].date + " " + notifications[i].time;  // <- ovdje ide
+
+      char buf[20];
+      sprintf(buf, "%04d-%02d-%02d %02d:%02d",
+              notifications[i].year,
+              notifications[i].month,
+              notifications[i].day,
+              notifications[i].hour,
+              notifications[i].minute);
+      o["datumVrijeme"] = buf;
     }
+
     doc["tip"] = "obavijesti";
 
-    String jsonStr;
-    serializeJson(doc, jsonStr);
-    saveData("obavijesti", jsonStr);
+    String json;
+    serializeJson(doc, json);
+    saveData("obavijesti", json);
   }
 }
-
-
 
 // ================== EEPROM ==================
 void saveData(const String& tip, const String& json) {
@@ -295,19 +351,25 @@ void handleJson(String json) {
   }
 
   else if (tip == "obavijesti") {
-    notificationCount = 0;
-    for (JsonObject o : doc["lista"].as<JsonArray>()) {
-      String dt = o["datumVrijeme"].as<String>();  // format: YYYY-MM-DD HH:MM
-      if (dt.length() >= 16) {
-        notifications[notificationCount++] = {
-          o["naziv"],
-          dt.substring(11, 16),  // HH:MM
-          dt.substring(0, 10)    // YYYY-MM-DD
-        };
-      }
-    }
-    saveData("obavijesti", json);
+  notificationCount = 0;
+
+  for (JsonObject o : doc["lista"].as<JsonArray>()) {
+    String dt = o["datumVrijeme"]; // YYYY-MM-DD HH:MM
+
+    if (dt.length() < 16 || notificationCount >= 10) continue;
+
+    notifications[notificationCount++] = {
+      o["naziv"].as<String>(),
+      dt.substring(0,4).toInt(),   // year
+      dt.substring(5,7).toInt(),   // month
+      dt.substring(8,10).toInt(),  // day
+      dt.substring(11,13).toInt(), // hour
+      dt.substring(14,16).toInt()  // minute
+    };
   }
+
+  saveData("obavijesti", json);
+}
 
   else if (tip == "zvono") {
     String a = doc["akcija"];
@@ -327,19 +389,12 @@ void handleJson(String json) {
     sosStartTime = millis();
     sosBellTimer = millis();
     sosStep = 0;
-  } 
-  
-  else if (tip == "clear_eeprom") {
-  String pass = doc["password"] | "";
-
-  if (pass == adminPassword) {
-    clearEEPROM();
-    Serial.println("EEPROM obrisan - ADMIN OK");
-  } else {
-    Serial.println("POKUSAJ BRISANJA - POGRESAN PASSWORD");
   }
-}
 
+  else if (tip == "clear_eeprom") {
+    if (doc["password"] == adminPassword)
+      clearEEPROM();
+  }
 }
 
 
@@ -370,8 +425,11 @@ void loop() {
   if (Serial.available())
     handleJson(Serial.readStringUntil('\n'));
 
-  if (notificationCount > 0) {
+  static unsigned long lastCleanup = 0;
+
+  if (millis() - lastCleanup > 60000) {  // svaku 1 min
     removePastNotifications();
+    lastCleanup = millis();
   }
 
   if (startup) {
@@ -381,13 +439,12 @@ void loop() {
   }
 
   if (sosActive) {
-    display->fillScreen(
-      ((millis() / 300) % 2) ? 0 : display->color565(255, 0, 0));
+    display->fillScreen(((millis() / 300) % 2) ? 0 : display->color565(255, 0, 0));
 
     if (millis() - sosBellTimer > sosPattern[sosStep]) {
       sosBellTimer = millis();
       digitalWrite(RELAY_PIN, !digitalRead(RELAY_PIN));
-      sosStep++;
+      sosStep = (sosStep + 1) % sosLen;
     }
 
     if (millis() - sosStartTime > 10000) {
@@ -397,8 +454,7 @@ void loop() {
     }
     return;
   }
-
-  checkSchedule();
+  buildMainText();
   drawMainScreen();
   delay(80);
 }
