@@ -113,6 +113,13 @@ String getTimeString() {
   return String(buf);
 }
 
+int timeToMinutes(const String& t) {
+  int h = t.substring(0, 2).toInt();
+  int m = t.substring(3, 5).toInt();
+  return h * 60 + m;
+}
+
+
 // ================== MATRIX CONFIG ==================
 void configuration() {
   mxconfig.gpio.r1 = 25;
@@ -178,16 +185,28 @@ void buildMainText() {
   String newText = "";
 
   // Cas u toku
-  String nowTime = getTimeString();
-  bool classInProgress = false;
+String nowTime = getTimeString();
+int nowMin = now.tm_hour * 60 + now.tm_min;
+bool classInProgress = false;
 
-  for (int i = 0; i < classCount; i++) {
-    if (nowTime >= classes[i].start && nowTime < classes[i].end) {
-      newText = String(classes[i].number) + ". cas u toku";
-      classInProgress = true;
-      break;
-    }
+for (int i = 0; i < classCount; i++) {
+  int startMin = timeToMinutes(classes[i].start);
+  int endMin   = timeToMinutes(classes[i].end);
+
+  if (nowMin >= startMin && nowMin < endMin) {
+    int remaining = endMin - nowMin;
+
+    newText =
+      String(classes[i].number) + ". cas u toku, zavrsava se u " +
+      classes[i].end +
+      ", ostalo jos " +
+      remaining + " min";
+
+    classInProgress = true;
+    break;
   }
+}
+
 
   // Ako nema časa u toku, proveri da li je pauza između dva časa (5 min)
   if (!classInProgress && classCount > 0) {

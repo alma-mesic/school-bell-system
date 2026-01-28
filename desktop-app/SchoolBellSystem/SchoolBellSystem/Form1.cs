@@ -167,7 +167,7 @@ namespace SchoolBellSystem
 
             try
             {
-                serialPort = new SerialPort("COM7", 115200); // PROMIJENI COM
+                serialPort = new SerialPort("COM3", 115200); // PROMIJENI COM
                 serialPort.NewLine = "\n";
 
                 serialPort.Open();
