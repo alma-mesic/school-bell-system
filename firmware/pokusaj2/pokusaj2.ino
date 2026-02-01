@@ -7,7 +7,9 @@
 
 Preferences prefs;  // globalni objekat za spremanje u flash
 
-// ================== PANEL ==================
+// ---------------- KONFIGURACIJA ---------------------
+
+// =========== PANEL ============
 #define PANEL_RES_X 32
 #define PANEL_RES_Y 16
 #define PANEL_CHAIN 1
@@ -15,10 +17,27 @@ Preferences prefs;  // globalni objekat za spremanje u flash
 MatrixPanel_I2S_DMA* display;
 HUB75_I2S_CFG mxconfig(PANEL_RES_X, PANEL_RES_Y, PANEL_CHAIN);
 
-// ================== BELL ==================
+// =========== BELL =============
 #define RELAY_PIN 18
 
-// ================== GLOBAL ==================
+// ======= MATRIX CONFIG ========
+void configuration() {
+  mxconfig.gpio.r1 = 25;
+  mxconfig.gpio.g1 = 27;
+  mxconfig.gpio.b1 = 26;
+  mxconfig.gpio.r2 = 14;
+  mxconfig.gpio.g2 = 13;
+  mxconfig.gpio.b2 = 12;
+  mxconfig.gpio.a = 23;
+  mxconfig.gpio.b = 19;
+  mxconfig.gpio.c = 5;
+  mxconfig.gpio.clk = 16;
+  mxconfig.gpio.lat = 4;
+  mxconfig.gpio.oe = 15;
+}
+
+// ---------------- GLOBAL --------------------
+
 bool startup = true;
 unsigned long startTime;
 
@@ -26,12 +45,12 @@ int x = 32;
 int16_t text_width;
 
 bool bellTestMode = false;
+int lastBellMinute = -1;
 
 String adminPassword = "1234";  // isto kao u admin.json
 String lastText = "";
 
-
-// ================== SOS ==================
+// =========== SOS ===========
 bool sosActive = false;
 unsigned long sosStartTime = 0;
 unsigned long sosBellTimer = 0;
@@ -46,17 +65,18 @@ const int sosPattern[] = {
 };
 const int sosLen = 11;
 
-// ================== TEXT ==================
+// ======== TEXT ===========
 String text = "Cekam raspored";
 
-// ================== WIFI + TIME ==================
-const char* ssid = "59588d";
-const char* password = "273370344";
+// ====== WIFI + TIME =======
+String ssid = "";
+String wifiPassword = "";
+
 const char* ntpServer = "pool.ntp.org";
 const long gmtOffset_sec = 3600;
 const int daylightOffset_sec = 3600;
 
-// ================== RASPORED ==================
+// ======== RASPORED =========
 struct ClassTime {
   int number;
   String start;
@@ -66,7 +86,7 @@ struct ClassTime {
 ClassTime classes[20];
 int classCount = 0;
 
-// ================== OBAVIJESTI ==================
+// ======== OBAVIJESTI ========
 struct Notification {
   String text;
   int year;
@@ -79,17 +99,16 @@ struct Notification {
 int dayOfYear(int y, int m, int d) {
   struct tm t = {};
   t.tm_year = y - 1900;
-  t.tm_mon  = m - 1;
+  t.tm_mon = m - 1;
   t.tm_mday = d;
   mktime(&t);
   return t.tm_yday;
 }
 
-bool isTodayOrTomorrow(Notification &n, struct tm &now) {
+bool isTodayOrTomorrow(Notification& n, struct tm& now) {
   int notifDay = dayOfYear(n.year, n.month, n.day);
   return notifDay == now.tm_yday || notifDay == now.tm_yday + 1;
 }
-
 
 Notification notifications[10];
 int notificationCount = 0;
@@ -98,10 +117,17 @@ int currentNotifIndex = 0;
 unsigned long lastNotifSwitch = 0;
 const unsigned long notifInterval = 5000;  // 5 sekundi po obavijesti
 
-// ================== WIFI ==================
+// ---------------- FUNKCIJE --------------------
+// =========== WIFI =============
 void connectWiFi() {
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) delay(500);
+  WiFi.begin(ssid.c_str(), wifiPassword.c_str());
+
+  int tries = 0;
+
+  while (WiFi.status() != WL_CONNECTED && tries < 20) {
+    delay(500);
+    tries++;
+  }
 }
 
 // ================== TIME ==================
@@ -119,24 +145,7 @@ int timeToMinutes(const String& t) {
   return h * 60 + m;
 }
 
-
-// ================== MATRIX CONFIG ==================
-void configuration() {
-  mxconfig.gpio.r1 = 25;
-  mxconfig.gpio.g1 = 27;
-  mxconfig.gpio.b1 = 26;
-  mxconfig.gpio.r2 = 14;
-  mxconfig.gpio.g2 = 13;
-  mxconfig.gpio.b2 = 12;
-  mxconfig.gpio.a = 23;
-  mxconfig.gpio.b = 19;
-  mxconfig.gpio.c = 5;
-  mxconfig.gpio.clk = 16;
-  mxconfig.gpio.lat = 4;
-  mxconfig.gpio.oe = 15;
-}
-
-// ================== DISPLAY ==================
+// ============ DISPLAY =============
 void showStartupScreen() {
   display->fillScreen(0);
   display->setTextColor(display->color565(255, 0, 0));
@@ -177,7 +186,7 @@ void drawMainScreen() {
 }
 
 
-// ================== RASPORED ==================
+// ============= RASPORED ===============
 void buildMainText() {
   struct tm now;
   if (!getLocalTime(&now)) return;
@@ -185,45 +194,40 @@ void buildMainText() {
   String newText = "";
 
   // Cas u toku
-String nowTime = getTimeString();
-int nowMin = now.tm_hour * 60 + now.tm_min;
-bool classInProgress = false;
+  String nowTime = getTimeString();
+  int nowMin = now.tm_hour * 60 + now.tm_min;
+  bool classInProgress = false;
 
-for (int i = 0; i < classCount; i++) {
-  int startMin = timeToMinutes(classes[i].start);
-  int endMin   = timeToMinutes(classes[i].end);
+  for (int i = 0; i < classCount; i++) {
+    int startMin = timeToMinutes(classes[i].start);
+    int endMin = timeToMinutes(classes[i].end);
 
-  if (nowMin >= startMin && nowMin < endMin) {
-    int remaining = endMin - nowMin;
+    if (nowMin >= startMin && nowMin < endMin) {  // ispis na matricu (BROJ CASA, ZAVRSAVANJE, PREOSTALE MINUTE)
+      int remaining = endMin - nowMin;
 
-    newText =
-      String(classes[i].number) + ". cas u toku, zavrsava se u " +
-      classes[i].end +
-      ", ostalo jos " +
-      remaining + " min";
+      newText = String(classes[i].number) + ". cas u toku | Cas zavrsava u " + classes[i].end + " | Ostalo jos " + remaining + " min";
 
-    classInProgress = true;
-    break;
+      classInProgress = true;
+      break;
+    }
   }
-}
-
 
   // Ako nema časa u toku, proveri da li je pauza između dva časa (5 min)
   if (!classInProgress && classCount > 0) {
     for (int i = 0; i < classCount - 1; i++) {
       // trenutni kraj časa
       String kraj = classes[i].end;
-      int krajH = kraj.substring(0,2).toInt();
-      int krajM = kraj.substring(3,5).toInt();
-      int krajMin = krajH*60 + krajM;
+      int krajH = kraj.substring(0, 2).toInt();
+      int krajM = kraj.substring(3, 5).toInt();
+      int krajMin = krajH * 60 + krajM;
 
       // sledeći početak časa
-      String start = classes[i+1].start;
-      int startH = start.substring(0,2).toInt();
-      int startM = start.substring(3,5).toInt();
-      int startMin = startH*60 + startM;
+      String start = classes[i + 1].start;
+      int startH = start.substring(0, 2).toInt();
+      int startM = start.substring(3, 5).toInt();
+      int startMin = startH * 60 + startM;
 
-      int sadaMin = now.tm_hour*60 + now.tm_min;
+      int sadaMin = now.tm_hour * 60 + now.tm_min;
 
       // proveri da li smo u pauzi između dva časa
       if (sadaMin >= krajMin && sadaMin < startMin) {
@@ -236,27 +240,23 @@ for (int i = 0; i < classCount; i++) {
   if (newText == "") newText = "Nema casa";
 
   // Današnji datum
-  int todayYear  = now.tm_year + 1900;
+  int todayYear = now.tm_year + 1900;
   int todayMonth = now.tm_mon + 1;
-  int todayDay   = now.tm_mday;
+  int todayDay = now.tm_mday;
 
   // Sutrašnji datum
-  time_t t_now = mktime(&now) + 24*3600;
+  time_t t_now = mktime(&now) + 24 * 3600;
   struct tm tm_tomorrow;
   localtime_r(&t_now, &tm_tomorrow);
-  int tomorrowYear  = tm_tomorrow.tm_year + 1900;
+  int tomorrowYear = tm_tomorrow.tm_year + 1900;
   int tomorrowMonth = tm_tomorrow.tm_mon + 1;
-  int tomorrowDay   = tm_tomorrow.tm_mday;
+  int tomorrowDay = tm_tomorrow.tm_mday;
 
   // Obavijesti
   for (int i = 0; i < notificationCount; i++) {
-    bool isToday = notifications[i].year == todayYear &&
-                   notifications[i].month == todayMonth &&
-                   notifications[i].day == todayDay;
+    bool isToday = notifications[i].year == todayYear && notifications[i].month == todayMonth && notifications[i].day == todayDay;
 
-    bool isTomorrow = notifications[i].year == tomorrowYear &&
-                      notifications[i].month == tomorrowMonth &&
-                      notifications[i].day == tomorrowDay;
+    bool isTomorrow = notifications[i].year == tomorrowYear && notifications[i].month == tomorrowMonth && notifications[i].day == tomorrowDay;
 
     if (!isToday && !isTomorrow) continue;
 
@@ -283,8 +283,7 @@ for (int i = 0; i < classCount; i++) {
   }
 }
 
-
-// ================== ROTACIJA OBAVJESTI ==================
+// ============ ROTACIJA OBAVJESTI ==============
 void rotateNotifications() {
   if (notificationCount == 0) return;
 
@@ -296,7 +295,7 @@ void rotateNotifications() {
   }
 }
 
-// ================== BRISANJE OBAVJESTI ==================
+// =========== BRISANJE OBAVJESTI ==============
 void removePastNotifications() {
   struct tm now;
   if (!getLocalTime(&now)) return;
@@ -305,17 +304,13 @@ void removePastNotifications() {
 
   for (int i = 0; i < notificationCount;) {
     // ako NIJE danas → preskoči
-    if (notifications[i].year != now.tm_year + 1900 ||
-        notifications[i].month != now.tm_mon + 1 ||
-        notifications[i].day != now.tm_mday) {
+    if (notifications[i].year != now.tm_year + 1900 || notifications[i].month != now.tm_mon + 1 || notifications[i].day != now.tm_mday) {
       i++;
       continue;
     }
 
     // ako je danas, ali vrijeme još NIJE prošlo → preskoči
-    if (notifications[i].hour > now.tm_hour ||
-        (notifications[i].hour == now.tm_hour &&
-         notifications[i].minute > now.tm_min)) {
+    if (notifications[i].hour > now.tm_hour || (notifications[i].hour == now.tm_hour && notifications[i].minute > now.tm_min)) {
       i++;
       continue;
     }
@@ -355,7 +350,31 @@ void removePastNotifications() {
   }
 }
 
-// ================== EEPROM ==================
+// ============== ZVONJAVA ===============
+void checkBell() {
+  struct tm now;
+  if (!getLocalTime(&now)) return;
+
+  int nowMin = now.tm_hour * 60 + now.tm_min;
+
+  if (nowMin == lastBellMinute) return;
+
+  for (int i = 0; i < classCount; i++) {
+    int startMin = timeToMinutes(classes[i].start);
+    int endMin = timeToMinutes(classes[i].end);
+
+    if (nowMin == startMin || nowMin == endMin) {
+      digitalWrite(RELAY_PIN, HIGH);
+      delay(2000);  // zvoni 2 sekunde
+      digitalWrite(RELAY_PIN, LOW);
+
+      lastBellMinute = nowMin;
+      break;
+    }
+  }
+}
+
+// ============ EEPROM ==============
 void saveData(const String& tip, const String& json) {
   prefs.putString(tip.c_str(), json);  // tip = "raspored" ili "obavijesti"
   Serial.println("Podaci sacuvani u Preferences: " + tip);
@@ -381,8 +400,7 @@ void clearEEPROM() {
   text = "EEPROM obrisan";
 }
 
-
-// ================== JSON ==================
+// ============== JSON ===============
 void handleJson(String json) {
   StaticJsonDocument<2048> doc;
   if (deserializeJson(doc, json)) return;
@@ -400,25 +418,25 @@ void handleJson(String json) {
   }
 
   else if (tip == "obavijesti") {
-  notificationCount = 0;
+    notificationCount = 0;
 
-  for (JsonObject o : doc["lista"].as<JsonArray>()) {
-    String dt = o["datumVrijeme"]; // YYYY-MM-DD HH:MM
+    for (JsonObject o : doc["lista"].as<JsonArray>()) {
+      String dt = o["datumVrijeme"];  // YYYY-MM-DD HH:MM
 
-    if (dt.length() < 16 || notificationCount >= 10) continue;
+      if (dt.length() < 16 || notificationCount >= 10) continue;
 
-    notifications[notificationCount++] = {
-      o["naziv"].as<String>(),
-      dt.substring(0,4).toInt(),   // year
-      dt.substring(5,7).toInt(),   // month
-      dt.substring(8,10).toInt(),  // day
-      dt.substring(11,13).toInt(), // hour
-      dt.substring(14,16).toInt()  // minute
-    };
+      notifications[notificationCount++] = {
+        o["naziv"].as<String>(),
+        dt.substring(0, 4).toInt(),    // year
+        dt.substring(5, 7).toInt(),    // month
+        dt.substring(8, 10).toInt(),   // day
+        dt.substring(11, 13).toInt(),  // hour
+        dt.substring(14, 16).toInt()   // minute
+      };
+    }
+
+    saveData("obavijesti", json);
   }
-
-  saveData("obavijesti", json);
-}
 
   else if (tip == "zvono") {
     String a = doc["akcija"];
@@ -444,10 +462,26 @@ void handleJson(String json) {
     if (doc["password"] == adminPassword)
       clearEEPROM();
   }
+
+  else if (tip == "wifi") {
+    ssid = doc["ssid"].as<String>();
+    wifiPassword = doc["password"].as<String>();
+
+    prefs.putString("ssid", ssid);
+    prefs.putString("wifiPass", wifiPassword);
+
+    connectWiFi();
+  }
+
+  else if (tip == "admin") {
+    String newPass = doc["password"].as<String>();
+    adminPassword = newPass;
+    prefs.putString("adminPass", newPass);
+  }
 }
 
-
-// ================== SETUP ==================
+// ---------------- SETUP I LOOP --------------------
+// ============ SETUP ============
 void setup() {
   Serial.begin(115200);
   pinMode(RELAY_PIN, OUTPUT);
@@ -457,18 +491,26 @@ void setup() {
   display->begin();
   display->setBrightness8(120);
   display->setTextWrap(false);
-
-  connectWiFi();
-  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-
+  
   startTime = millis();
   text_width = text.length() * 6;
 
   prefs.begin("schoolbell", false);  // namespace: schoolbell, read/write
-  loadSavedData();                   // učitaj prethodni raspored i obavijesti
+
+  adminPassword = prefs.getString("adminPass", "1234");
+  ssid = prefs.getString("ssid", "");
+  wifiPassword = prefs.getString("wifiPass", "");
+  if (ssid == "" || wifiPassword == "") {
+    ssid = "59588d";
+    wifiPassword = "273370344";
+  }
+
+  connectWiFi();
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  loadSavedData();  // učitaj prethodni raspored i obavijesti
 }
 
-// ================== LOOP ==================
+// ============= LOOP =============
 void loop() {
 
   if (Serial.available())
@@ -503,6 +545,8 @@ void loop() {
     }
     return;
   }
+
+  checkBell();
   buildMainText();
   drawMainScreen();
   delay(80);

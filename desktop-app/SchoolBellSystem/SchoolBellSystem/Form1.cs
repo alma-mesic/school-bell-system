@@ -18,7 +18,8 @@ namespace SchoolBellSystem
         SerialPort serialPort;
         Timer obavijestiTimer;
 
-        void SendToESP(string json)
+        // -------------------- FUNCTIONS -----------------------
+        void SendToESP(string json) // slanje podataka na ESP32
         {
             if (serialPort != null && serialPort.IsOpen)
             {
@@ -31,7 +32,7 @@ namespace SchoolBellSystem
             }
         }
 
-        private void ObavijestiTimer_Tick(object sender, EventArgs e)
+        private void ObavijestiTimer_Tick(object sender, EventArgs e) // uskladjivanje notifikacija s vremenom
         {
             DateTime sada = DateTime.Now;
 
@@ -65,12 +66,11 @@ namespace SchoolBellSystem
             }
         }
 
-        private void LoadSavedNotifications()
+        private void LoadSavedNotifications() // ucitavanje sacuvanih notifikacija
         {
-            // pokušaj učitati obavijesti iz ESP32 (pretpostavljam da ih čitaš iz file ili seriala)
             try
             {
-                string path = "obavijesti.json"; // možeš koristiti isti path koji šalješ na ESP32
+                string path = "obavijesti.json";
                 if (!File.Exists(path)) return;
 
                 string json = File.ReadAllText(path);
@@ -94,37 +94,16 @@ namespace SchoolBellSystem
             }
             catch
             {
-                // ignoriraj greške pri čitanju
+                // ignorisi greške pri čitanju
             }
         }
 
-
+        // ------------------------ GLAVNI KOD --------------------------
         public ETSbell()
         {
             InitializeComponent();
         }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            //kad se pritisne dugme da treperi led matrica i oglasi se zvono prema morseovom kodu sos
-
-            Dictionary<string, string> jsonObjekat = new Dictionary<string, string>();
-            jsonObjekat["tip"] = "emergency";
-            jsonObjekat["stanje"] = "ukljuceno";
-
-            string json = JsonConvert.SerializeObject(jsonObjekat);
-
-            SendToESP(json);
-
-            MessageBox.Show(json);
-        }
-
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
-        private void ETSbell_Load(object sender, EventArgs e)
+        private void ETSbell_Load(object sender, EventArgs e) // LOAD
         {
             textBox3.UseSystemPasswordChar = true;
             textBox4.UseSystemPasswordChar = true;
@@ -192,9 +171,24 @@ namespace SchoolBellSystem
 
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        // ----------------------------- HOME ------------------------------------
+        private void button1_Click(object sender, EventArgs e) // emergency dugme
         {
-            //ovaj button sluzi da dodam na listu neku obavezu ili dogadjaj koji imam
+            Dictionary<string, string> jsonObjekat = new Dictionary<string, string>();
+            jsonObjekat["tip"] = "emergency";
+            jsonObjekat["stanje"] = "ukljuceno";
+
+            string json = JsonConvert.SerializeObject(jsonObjekat);
+
+            SendToESP(json);
+
+            MessageBox.Show(json);
+        }
+
+
+        // ---------------------------- OBAVJESTENJA -------------------------------
+        private void button2_Click(object sender, EventArgs e) // Add na listbox za obavjestenja
+        {
             listBox1.Sorted = true;
             string naziv = textBox1.Text;
 
@@ -217,131 +211,13 @@ namespace SchoolBellSystem
             listBox1.Items.Add(stavka); //popravit ovo da se ne vidi kod naprijed gdje sastavi datum i vrijeme u svrhu sortiranja
             textBox1.Clear();
         }
-
-            
-        
-
-        private void bellstart_Click(object sender, EventArgs e)
-        {
-            //testira zvono i treba pocet zvonit
-
-            // 1. Pravimo jednostavan JSON objekat
-            Dictionary<string, string> jsonObjekat = new Dictionary<string, string>();
-
-            // 2. Tip poruke - znamo da je vezano za zvono
-            jsonObjekat["tip"] = "zvono";
-
-            // 3. Akcija - start (pocni zvoniti)
-            jsonObjekat["akcija"] = "start";
-
-            // 4. Pretvaranje u JSON tekst
-            string json = JsonConvert.SerializeObject(jsonObjekat);
-
-
-            SendToESP(json);
-
-            // 5. Za sada samo prikaz (kasnije ide slanje na ESP32)
-            MessageBox.Show(json);
-        }
-
-        private void bellstop_Click(object sender, EventArgs e)
-        {
-            //testira zvono i zaustavlja ga ako zboni ako ne onda nista se ne desi
-            // 1. Pravimo JSON objekat
-            Dictionary<string, string> jsonObjekat = new Dictionary<string, string>();
-
-            // 2. Tip poruke
-            jsonObjekat["tip"] = "zvono";
-
-            // 3. Akcija - stop (prestani zvoniti)
-            jsonObjekat["akcija"] = "stop";
-
-            // 4. Pretvaranje u JSON tekst
-            string json = JsonConvert.SerializeObject(jsonObjekat);
-
-
-            SendToESP(json);
-
-            // 5. Prikaz (test)
-            MessageBox.Show(json);
-        }
-
-        private void label13_Click(object sender, EventArgs e)
-        {
-           
-        }
-
-        private void Postavke_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void tableLayoutPanel1_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void Raspored_Click(object sender, EventArgs e)
-        {
-           
-
-        }
-
-        private void button4_Click(object sender, EventArgs e)
+        private void button4_Click(object sender, EventArgs e) // Remove sa listboxa1
         {
             listBox1.Items.Remove(listBox1.SelectedItem);
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void button5_Click(object sender, EventArgs e) //salje obavijesti i dogadjaje iz listboxa na esp32
         {
-            //salje raspored iz datagridview na esp eeprom i gleda da li je selektan radiobuttn 1 ili 2
-            //i na osnovu toga bira po kojem rasporedu ce zvoniti zvono (datagridview1 ili datagridview2
-
-
-            // 1. Odabir rasporeda (redovni ili skraceni)
-            DataGridView aktivniGrid;
-
-            if (radioButton1.Checked) // pretpostavka: radioButton1 = redovni
-                aktivniGrid = dataGridView1;
-            else
-                aktivniGrid = dataGridView2;
-
-            // 2. Lista casova (ovo ce u JSON ici kao niz)
-            List<Dictionary<string, string>> casovi = new List<Dictionary<string, string>>();
-
-            foreach (DataGridViewRow row in aktivniGrid.Rows)
-            {
-                if (row.Cells[0].Value == null) continue;
-
-                // jedan cas
-                Dictionary<string, string> cas = new Dictionary<string, string>();
-                cas["cas"] = row.Cells[0].Value.ToString();
-                cas["pocetak"] = row.Cells[1].Value.ToString();
-                cas["kraj"] = row.Cells[2].Value.ToString();
-
-                casovi.Add(cas);
-            }
-
-            // 3. Glavni JSON objekat
-            Dictionary<string, object> jsonObjekat = new Dictionary<string, object>();
-            jsonObjekat["tip"] = "raspored";
-            jsonObjekat["nacin"] = radioButton1.Checked ? "redovni" : "skraceni";
-            jsonObjekat["casovi"] = casovi;
-
-            // 4. Pretvaranje u JSON tekst
-            string json = JsonConvert.SerializeObject(jsonObjekat);
-
-
-            SendToESP(json);
-
-            // 5. Za sad samo prikaz (kasnije ide na ESP32)
-            MessageBox.Show("Raspored je poslan!");
-        }
-
-        private void button5_Click(object sender, EventArgs e)
-        {
-            //salje obavijesti i dogadjaje iz listboxa na esp32
-
             List<Dictionary<string, string>> dogadjaji = new List<Dictionary<string, string>>();
 
             foreach (string item in listBox1.Items)
@@ -375,12 +251,78 @@ namespace SchoolBellSystem
             MessageBox.Show(json);
         }
 
-        private void editAdmin_Click(object sender, EventArgs e)
+
+        // ------------------------------- RASPORED ---------------------------------
+        private void button3_Click(object sender, EventArgs e) //salje raspored iz datagridview na esp eeprom i gleda da li je selektan radiobuttn 1 ili 2
+        {                                                       //i na osnovu toga bira po kojem rasporedu ce zvoniti zvono (datagridview1 ili datagridview2
+
+            DataGridView aktivniGrid;
+
+            if (radioButton1.Checked) // pretpostavka: radioButton1 = redovni
+                aktivniGrid = dataGridView1;
+            else
+                aktivniGrid = dataGridView2;
+
+            List<Dictionary<string, string>> casovi = new List<Dictionary<string, string>>();
+
+            foreach (DataGridViewRow row in aktivniGrid.Rows)
+            {
+                if (row.Cells[0].Value == null) continue;
+
+                Dictionary<string, string> cas = new Dictionary<string, string>();
+                cas["cas"] = row.Cells[0].Value.ToString();
+                cas["pocetak"] = row.Cells[1].Value.ToString();
+                cas["kraj"] = row.Cells[2].Value.ToString();
+
+                casovi.Add(cas);
+            }
+
+            Dictionary<string, object> jsonObjekat = new Dictionary<string, object>();
+            jsonObjekat["tip"] = "raspored";
+            jsonObjekat["nacin"] = radioButton1.Checked ? "redovni" : "skraceni";
+            jsonObjekat["casovi"] = casovi;
+
+            string json = JsonConvert.SerializeObject(jsonObjekat);
+
+            SendToESP(json);
+            MessageBox.Show("Raspored je poslan!");
+        }
+
+
+        // --------------------------- TESTIRANJE -------------------------------
+        private void bellstart_Click(object sender, EventArgs e) // test zvona (pocinje zvoniti)
         {
-            //kupi vrijednosti iz textbox2(username),textbox3(stari password) i textbox4(novi password)
-            //i sacuva te info o adminu jer trebaju za login formu
+
+            Dictionary<string, string> jsonObjekat = new Dictionary<string, string>();
+
+            jsonObjekat["tip"] = "zvono";
+            jsonObjekat["akcija"] = "start";
+            string json = JsonConvert.SerializeObject(jsonObjekat);
+
+            SendToESP(json);
+
+            MessageBox.Show(json);
+        }
+        private void bellstop_Click(object sender, EventArgs e) // test zvona (prestaje zvoniti)
+        {
+
+            Dictionary<string, string> jsonObjekat = new Dictionary<string, string>();
+
+            jsonObjekat["tip"] = "zvono";
+            jsonObjekat["akcija"] = "stop";
+            string json = JsonConvert.SerializeObject(jsonObjekat);
+
+            SendToESP(json);
+
+            MessageBox.Show(json);
+        }
 
 
+        // ------------------------------- POSTAVKE --------------------------------
+
+        // ************* KORISNIK ***************
+        private void editAdmin_Click(object sender, EventArgs e) // informacije o adminu (postavljanje novog passworda)
+        {
             string noviUsername = textBox2.Text;
             string stariPassword = textBox3.Text;
             string noviPassword = textBox4.Text;
@@ -417,13 +359,25 @@ namespace SchoolBellSystem
 
             MessageBox.Show("Admin podaci su uspješno promijenjeni!");
         }
+        private void checkBox1_CheckedChanged(object sender, EventArgs e) // vidljivost passworda
+        {
+            if (checkBox1.Checked)
+            {
+                textBox3.UseSystemPasswordChar = false;
+                textBox4.UseSystemPasswordChar = false;
+            }
+            else
+            {
+                textBox3.UseSystemPasswordChar = true;
+                textBox4.UseSystemPasswordChar = true;
+            }
+        }
 
-        private void editWifi_Click(object sender, EventArgs e)
+        // **************** WIFI *******************
+        private void editWifi_Click(object sender, EventArgs e) // informacije o wifi mrezi (promjena naziva i passworda)
         {
             //kupi vrijednosti iz textbox5(naziv wifi) i textbox6(sifra wifi) i sacuva te
             //info o wifi te sluzi da promjeni na arduino fajlu kako bi radio esp odnosno rtc
-
-           
 
             Dictionary<string, string> jsonObjekat = new Dictionary<string, string>();
             jsonObjekat["tip"] = "wifi";
@@ -437,52 +391,23 @@ namespace SchoolBellSystem
 
             MessageBox.Show(json);
         }
-
-        private void ETSbell_FormClosing(object sender, FormClosingEventArgs e)
+        private void checkBox2_CheckedChanged(object sender, EventArgs e) // vidljivost passworda
         {
-            if (serialPort != null && serialPort.IsOpen)
-            {
-                serialPort.Close();
-            }
-        }
-
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
-        {
-            // ako je checkbox cekiran -> prikazi password
-            // ako nije cekiran -> sakrij password (*)
-
-            if (checkBox1.Checked)
-            {
-                textBox3.UseSystemPasswordChar = false; // stari password VIDLJIV
-                textBox4.UseSystemPasswordChar = false; // novi password VIDLJIV
-            }
-            else
-            {
-                textBox3.UseSystemPasswordChar = true;  // stari password SKRIVEN
-                textBox4.UseSystemPasswordChar = true;  // novi password SKRIVEN
-            }
-        }
-
-        private void checkBox2_CheckedChanged(object sender, EventArgs e)
-        {
-            // ako je checkbox cekiran -> prikazi password
-            // ako nije cekiran -> sakrij password (*)
-
             if (checkBox2.Checked)
             {
-                textBox6.UseSystemPasswordChar = false; // password VIDLJIV
-                
+                textBox6.UseSystemPasswordChar = false;
+
             }
             else
             {
-                textBox6.UseSystemPasswordChar = true;  //password SKRIVEN
-               
+                textBox6.UseSystemPasswordChar = true;
+
             }
         }
 
-        private void button6_Click(object sender, EventArgs e)
+        // ************* CISCENJE MEMORIJE *****************
+        private void button6_Click(object sender, EventArgs e) // ciscenje kompletnog eeproma na ESP32
         {
-            // klik na button6 treba da ocisti kompletan eeprom esp32
             string adminPass = textBox3.Text.Trim(); // ADMIN PASSWORD
 
             if (string.IsNullOrWhiteSpace(adminPass))
@@ -529,6 +454,42 @@ namespace SchoolBellSystem
             listBox1.Items.Clear();
 
             MessageBox.Show("EEPROM komanda poslana ESP32!");
+        }
+
+
+        // ------------------------ ZATVARANJE FORME -------------------------------
+        private void ETSbell_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (serialPort != null && serialPort.IsOpen)
+            {
+                serialPort.Close();
+            }
+        }
+
+        // ------------------------ SLUCAJNO PRITISNUTO -----------------------------
+        private void label13_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Postavke_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void tableLayoutPanel1_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void Raspored_Click(object sender, EventArgs e)
+        {
+
+
+        }
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
         }
     }
 }
