@@ -96,6 +96,17 @@ struct Notification {
   int minute;
 };
 
+Notification notifications[10];
+int notificationCount = 0;
+
+// ====== PROTOTIPOVI FUNKCIJA ======
+void saveData(const String& tip, const String& json);
+void handleJson(String json);
+
+int currentNotifIndex = 0;
+unsigned long lastNotifSwitch = 0;
+const unsigned long notifInterval = 5000;  // 5 sekundi po obavijesti
+
 int dayOfYear(int y, int m, int d) {
   struct tm t = {};
   t.tm_year = y - 1900;
@@ -105,17 +116,11 @@ int dayOfYear(int y, int m, int d) {
   return t.tm_yday;
 }
 
-bool isTodayOrTomorrow(Notification& n, struct tm& now) {
+bool isTodayOrTomorrow(Notification &n, struct tm &now) {
   int notifDay = dayOfYear(n.year, n.month, n.day);
   return notifDay == now.tm_yday || notifDay == now.tm_yday + 1;
 }
 
-Notification notifications[10];
-int notificationCount = 0;
-
-int currentNotifIndex = 0;
-unsigned long lastNotifSwitch = 0;
-const unsigned long notifInterval = 5000;  // 5 sekundi po obavijesti
 
 // ---------------- FUNKCIJE --------------------
 // =========== WIFI =============
