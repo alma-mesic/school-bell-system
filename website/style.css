@@ -1,0 +1,68 @@
+/* RESET */
+* { margin:0; padding:0; box-sizing:border-box; font-family: Arial, sans-serif; }
+
+/* HEADER */
+header {
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background: #2C3E50;
+    color: white;
+    position: relative;
+}
+header h1 { font-size: 1.5rem; }
+.burger { font-size: 1.8rem; cursor: pointer; }
+nav ul { list-style: none; display: flex; gap: 20px; }
+nav ul li a { color:white; text-decoration: none; font-weight: bold; }
+
+/* BURGER MENU RESPONSIVE */
+@media (max-width: 768px) {
+    nav { display:none; position:absolute; top:50px; right:20px; background:#34495E; padding:10px; border-radius:5px; }
+    nav ul { flex-direction: column; gap:10px; }
+    nav.show { display:block; }
+}
+
+/* HOME PAGE CARDS */
+main#homePage {
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:20px;
+    padding:20px;
+}
+.card {
+    flex:1 1 200px;
+    min-width: 150px;
+    max-width: 250px;
+    height: 120px;
+    background:#3498DB;
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:1.2rem;
+    font-weight:bold;
+    border-radius:10px;
+    cursor:pointer;
+    transition:0.3s;
+    text-align:center;
+}
+.card:hover { background:#2980B9; }
+
+/* PODSTRANICE */
+.subPage {
+    display:none;
+    padding:20px;
+}
+.subPage.active { display:block; }
+.backBtn {
+    margin-bottom:15px;
+    padding:5px 10px;
+    background:#e74c3c;
+    color:white;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+}
+.backBtn:hover { background:#c0392b; }

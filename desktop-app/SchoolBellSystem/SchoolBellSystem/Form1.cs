@@ -529,9 +529,7 @@ namespace SchoolBellSystem
 
         private void button7_Click(object sender, EventArgs e)
         {
-            // odredi koji grid je aktivan
-            DataGridView aktivniGrid = radioButton1.Checked ? dataGridView1 : dataGridView2;
-
+            
             // trenutni dan u sedmici (0 = pon, 4 = pet)
             int danIndex = (int)DateTime.Now.DayOfWeek - 1; // Monday = 0
             if (danIndex < 0 || danIndex > 4) // subota/nedjelja
@@ -549,7 +547,7 @@ namespace SchoolBellSystem
             int sadaMin = DateTime.Now.Hour * 60 + DateTime.Now.Minute;
             string dezurniTrenutno = "";
 
-            foreach (DataGridViewRow row in aktivniGrid.Rows)
+            foreach (DataGridViewRow row in dataGridView3.Rows)
             {
                 if (row.Cells[0].Value == null) continue;
 

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Bell System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Burger meni -->
+    <header>
+        <div class="burger" id="burger">&#9776;</div>
+        <h1>ETS Bell System</h1>
+        <nav id="navMenu">
+            <ul>
+                <li><a href="#" id="profileLink">Profil</a></li>
+                <li><a href="#" id="settingsLink">Postavke</a></li>
+                <li><a href="#" id="logoutLink">Log Out</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Home stranica -->
+    <main id="homePage">
+        <div class="card" id="notificationsCard">Obavještenja</div>
+        <div class="card" id="scheduleCard">Raspored zvonjenja</div>
+        <div class="card" id="dutyCard">Dežurstvo</div>
+        <div class="card" id="testBellCard">Testiranje zvona</div>
+    </main>
+
+    <!-- Podstranice -->
+    <section id="notificationsPage" class="subPage">
+        <button class="backBtn">&larr; Nazad</button>
+        <h2>Obavještenja</h2>
+        <div id="notificationsContent"></div>
+    </section>
+
+    <section id="schedulePage" class="subPage">
+        <button class="backBtn">&larr; Nazad</button>
+        <h2>Raspored zvonjenja</h2>
+        <div id="scheduleContent"></div>
+    </section>
+
+    <section id="dutyPage" class="subPage">
+        <button class="backBtn">&larr; Nazad</button>
+        <h2>Dežurstvo</h2>
+        <div id="dutyContent"></div>
+    </section>
+
+    <section id="testBellPage" class="subPage">
+        <button class="backBtn">&larr; Nazad</button>
+        <h2>Testiranje zvona</h2>
+        <button id="startBell">Start</button>
+        <button id="stopBell">Stop</button>
+        <div id="bellStatus"></div>
+    </section>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -213,10 +213,14 @@ void buildMainText() {
       int remaining = endMin - nowMin;
 
       newText = String(classes[i].number) + ". cas u toku | Cas zavrsava u " + classes[i].end + " | Ostalo jos " + remaining + " min";
-
+      
+      if (classes[i].dezurni != "") {
+            newText += " | Dezurni: " + classes[i].dezurni;
+      }
+      
       classInProgress = true;
       break;
-    }
+    } 
   }
 
   // Ako nema časa u toku, proveri da li je pauza između dva časa (5 min)
