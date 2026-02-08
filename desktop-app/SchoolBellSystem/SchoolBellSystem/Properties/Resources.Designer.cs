@@ -63,9 +63,29 @@ namespace SchoolBellSystem.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap _4k_Abstract_Gradient_Wave_Digital_Art_Wallpaper {
+            get {
+                object obj = ResourceManager.GetObject("4k-Abstract-Gradient-Wave-Digital-Art-Wallpaper", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap _4k_Bright_Gradient_Wave_Art_4K_Wallpaper {
             get {
                 object obj = ResourceManager.GetObject("4k-Bright-Gradient-Wave-Art-4K-Wallpaper", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap _4k_Flow_Of_Vibrant_Colors_Smooth_Waves_4K_Wallpaper {
+            get {
+                object obj = ResourceManager.GetObject("4k-Flow-Of-Vibrant-Colors-Smooth-Waves-4K-Wallpaper", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
