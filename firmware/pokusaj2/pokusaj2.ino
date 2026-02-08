@@ -78,9 +78,11 @@ const int daylightOffset_sec = 3600;
 
 // ======== RASPORED =========
 struct ClassTime {
+  String day;
   int number;
   String start;
   String end;
+  String dezurni;
 };
 
 ClassTime classes[20];
@@ -116,11 +118,11 @@ int dayOfYear(int y, int m, int d) {
   return t.tm_yday;
 }
 
-bool isTodayOrTomorrow(Notification &n, struct tm &now) {
+/*bool isTodayOrTomorrow(Notification &n, struct tm &now) {
   int notifDay = dayOfYear(n.year, n.month, n.day);
   return notifDay == now.tm_yday || notifDay == now.tm_yday + 1;
 }
-
+*/
 
 // ---------------- FUNKCIJE --------------------
 // =========== WIFI =============
@@ -416,7 +418,11 @@ void handleJson(String json) {
     classCount = 0;
     for (JsonObject c : doc["casovi"].as<JsonArray>()) {
       classes[classCount++] = {
-        c["cas"], c["pocetak"], c["kraj"]
+        c["dan"].as<String>(),
+        c["cas"].as<int>(),
+        c["pocetak"].as<String>(),
+        c["kraj"].as<String>(),
+        c["dezurni"].as<String>()
       };
     }
     saveData("raspored", json);
@@ -496,7 +502,7 @@ void setup() {
   display->begin();
   display->setBrightness8(120);
   display->setTextWrap(false);
-  
+
   startTime = millis();
   text_width = text.length() * 6;
 

@@ -105,6 +105,7 @@ namespace SchoolBellSystem
         }
         private void ETSbell_Load(object sender, EventArgs e) // LOAD
         {
+            pictureBox1.BackColor = Color.Transparent;
             textBox3.UseSystemPasswordChar = true;
             textBox4.UseSystemPasswordChar = true;
             checkBox1.Checked = false;
@@ -128,6 +129,16 @@ namespace SchoolBellSystem
             dataGridView1.Rows.Add(12, "17:10", "17:55");
             dataGridView1.Rows.Add(13, "18:00", "18:45");
 
+            // popuni SVE ostale kolone razmakom (da se vide)
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                for (int c = 3; c < dataGridView1.Columns.Count; c++)
+                {
+                    row.Cells[c].Value = " ";
+                }
+            }
+
+
             dataGridView2.Rows.Clear();
 
             dataGridView2.Rows.Add(1, "07:30", "08:00");
@@ -143,6 +154,15 @@ namespace SchoolBellSystem
             dataGridView2.Rows.Add(11, "13:50", "14:20");
             dataGridView2.Rows.Add(12, "14:25", "14:55");
             dataGridView2.Rows.Add(13, "15:00", "15:30");
+
+            foreach (DataGridViewRow row in dataGridView2.Rows)
+            {
+                for (int c = 3; c < dataGridView2.Columns.Count; c++)
+                {
+                    row.Cells[c].Value = " ";
+                }
+            }
+
 
             try
             {
@@ -168,6 +188,8 @@ namespace SchoolBellSystem
 
             // učitaj prethodno sačuvane obavijesti u listBox
             LoadSavedNotifications();
+
+
 
         }
 
@@ -265,17 +287,30 @@ namespace SchoolBellSystem
 
             List<Dictionary<string, string>> casovi = new List<Dictionary<string, string>>();
 
+            string[] dani = { "Ponedjeljak", "Utorak", "Srijeda", "Četvrtak", "Petak" };
+
             foreach (DataGridViewRow row in aktivniGrid.Rows)
             {
                 if (row.Cells[0].Value == null) continue;
 
-                Dictionary<string, string> cas = new Dictionary<string, string>();
-                cas["cas"] = row.Cells[0].Value.ToString();
-                cas["pocetak"] = row.Cells[1].Value.ToString();
-                cas["kraj"] = row.Cells[2].Value.ToString();
+                for (int d = 0; d < dani.Length; d++)
+                {
+                    string dezurni = row.Cells[3 + d].Value?.ToString().Trim();
 
-                casovi.Add(cas);
+                    if (string.IsNullOrWhiteSpace(dezurni))
+                        continue;
+
+                    Dictionary<string, string> zapis = new Dictionary<string, string>();
+                    zapis["dan"] = dani[d];
+                    zapis["cas"] = row.Cells[0].Value.ToString();
+                    zapis["pocetak"] = row.Cells[1].Value.ToString();
+                    zapis["kraj"] = row.Cells[2].Value.ToString();
+                    zapis["dezurni"] = dezurni;
+
+                    casovi.Add(zapis);
+                }
             }
+
 
             Dictionary<string, object> jsonObjekat = new Dictionary<string, object>();
             jsonObjekat["tip"] = "raspored";
@@ -489,6 +524,62 @@ namespace SchoolBellSystem
         }
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
+
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            // odredi koji grid je aktivan
+            DataGridView aktivniGrid = radioButton1.Checked ? dataGridView1 : dataGridView2;
+
+            // trenutni dan u sedmici (0 = pon, 4 = pet)
+            int danIndex = (int)DateTime.Now.DayOfWeek - 1; // Monday = 0
+            if (danIndex < 0 || danIndex > 4) // subota/nedjelja
+            {
+                // šalji ESP-u da nema dezurnog
+                Dictionary<string, string> jsonObjekat = new Dictionary<string, string>();
+                jsonObjekat["tip"] = "dezurni";
+                jsonObjekat["ime"] = "Nema dezurnog";
+
+                string json = JsonConvert.SerializeObject(jsonObjekat);
+                SendToESP(json);
+                return;
+            }
+
+            int sadaMin = DateTime.Now.Hour * 60 + DateTime.Now.Minute;
+            string dezurniTrenutno = "";
+
+            foreach (DataGridViewRow row in aktivniGrid.Rows)
+            {
+                if (row.Cells[0].Value == null) continue;
+
+                string dez = row.Cells[3 + danIndex].Value?.ToString().Trim();
+                if (string.IsNullOrEmpty(dez) || dez == " ") continue;
+
+                // parsiraj početak i kraj časa sigurno
+                if (!TimeSpan.TryParse(row.Cells[1].Value?.ToString(), out TimeSpan start)) continue;
+                if (!TimeSpan.TryParse(row.Cells[2].Value?.ToString(), out TimeSpan end)) continue;
+
+                int startMin = start.Hours * 60 + start.Minutes;
+                int endMin = end.Hours * 60 + end.Minutes;
+
+                if (sadaMin >= startMin && sadaMin < endMin)
+                {
+                    dezurniTrenutno = dez;
+                    break;
+                }
+            }
+
+            if (string.IsNullOrEmpty(dezurniTrenutno))
+                dezurniTrenutno = "Nema dezurnog";
+
+            // šalji ESP-u
+            Dictionary<string, string> jsonObjekatFinal = new Dictionary<string, string>();
+            jsonObjekatFinal["tip"] = "dezurni";
+            jsonObjekatFinal["ime"] = dezurniTrenutno;
+
+            string jsonFinal = JsonConvert.SerializeObject(jsonObjekatFinal);
+            SendToESP(jsonFinal);
 
         }
     }

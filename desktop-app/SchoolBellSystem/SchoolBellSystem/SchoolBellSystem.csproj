@@ -102,5 +102,11 @@
   <ItemGroup>
     <None Include="Resources\4k-Bright-Gradient-Wave-Art-4K-Wallpaper.jpg" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Untitled design1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\ets_grb.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

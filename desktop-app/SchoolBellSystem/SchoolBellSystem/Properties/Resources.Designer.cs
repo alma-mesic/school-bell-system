@@ -83,9 +83,29 @@ namespace SchoolBellSystem.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap ets_grb {
+            get {
+                object obj = ResourceManager.GetObject("ets_grb", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Untitled_design {
             get {
                 object obj = ResourceManager.GetObject("Untitled design", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Untitled_design1 {
+            get {
+                object obj = ResourceManager.GetObject("Untitled design1", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
