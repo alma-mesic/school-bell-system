@@ -1,10 +1,8 @@
 // BURGER MENU
-const burger = document.getElementById('burger');
-const navMenu = document.getElementById('navMenu');
-
-burger.addEventListener('click', () => {
-    navMenu.classList.toggle('show');
-});
+document.getElementById("burger").onclick = function() {
+    let menu = document.getElementById("burgerMenu");
+    menu.classList.toggle("show");
+};
 
 // CARD NAVIGACIJA
 const homePage = document.getElementById('homePage');

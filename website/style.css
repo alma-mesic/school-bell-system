@@ -11,10 +11,52 @@ header {
     color: white;
     position: relative;
 }
-header h1 { font-size: 1.5rem; }
-.burger { font-size: 1.8rem; cursor: pointer; }
-nav ul { list-style: none; display: flex; gap: 20px; }
-nav ul li a { color:white; text-decoration: none; font-weight: bold; }
+
+header h1 { 
+    font-size: 1.5rem; 
+}
+
+.burger {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    font-size: 28px;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+.menu {
+    position: fixed;
+    top: 0;
+    right: -250px; /* izvan ekrana */
+    width: 250px;
+    height: 100%;
+    background-color: #333;
+    list-style: none;
+    padding: 50px 20px;
+    margin: 0;
+    transition: right 0.3s ease;
+    z-index: 1000;
+}
+
+.menu li {
+    margin: 20px 0;
+}
+
+.menu li a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 18px;
+}
+
+.menu li img {
+    height: 50px;
+    width: 50px;
+}
+
+.menu.show {
+    right: 0; /* prikazujemo meni */
+}
 
 /* BURGER MENU RESPONSIVE */
 @media (max-width: 768px) {
