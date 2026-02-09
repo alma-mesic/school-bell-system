@@ -16,6 +16,7 @@ namespace SchoolBellSystem
 {
     public partial class LoginForm : Form
     {
+        int br = 0;
         public LoginForm()
         {
             InitializeComponent();
@@ -68,24 +69,11 @@ namespace SchoolBellSystem
             textBox2.BackColor = Color.White;
             label1.BackColor = Color.Transparent;
             label2.BackColor = Color.Transparent;
-            checkBox1.BackColor = Color.Transparent;
             textBox2.UseSystemPasswordChar = true;
-            checkBox1.Checked = false;
+            pictureBox2.BackColor = Color.Transparent;
         }
 
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
-        {
-            if (checkBox1.Checked)
-            {
-                textBox2.UseSystemPasswordChar = false; // password VIDLJIV
-
-            }
-            else
-            {
-                textBox2.UseSystemPasswordChar = true;  //password SKRIVEN
-
-            }
-        }
+        
 
         private void label1_Click(object sender, EventArgs e)
         {
@@ -95,6 +83,22 @@ namespace SchoolBellSystem
         private void pictureBox3_Click(object sender, EventArgs e)
         {
             Application.Exit();
+        }
+
+        private void pictureBox2_Click(object sender, EventArgs e)
+        {
+            br++;
+            if (br % 2 == 0)
+            {
+                textBox2.UseSystemPasswordChar = true;  //password SKRIVEN
+                pictureBox2.Image = imageList1.Images[0];
+            }
+            else
+            {
+                textBox2.UseSystemPasswordChar = false; // password VIDLJIV
+                pictureBox2.Image = imageList1.Images[1];
+            }
+                
         }
     }
 }

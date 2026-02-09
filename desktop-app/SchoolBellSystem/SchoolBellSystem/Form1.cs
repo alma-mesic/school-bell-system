@@ -207,11 +207,11 @@ namespace SchoolBellSystem
                 serialPort.Open();
                 System.Threading.Thread.Sleep(1000);
 
-                MessageBox.Show("ESP32 povezan!");
+                MessageBox.Show("ESP32 povezan!", "Povezivanje", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Greska pri spajanju na ESP32:\n" + ex.Message);
+                MessageBox.Show("Greska pri spajanju na ESP32:\n" + ex.Message, "Povezivanje", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             serialPort.ReadTimeout = 1000;
             serialPort.WriteTimeout = 1000;
