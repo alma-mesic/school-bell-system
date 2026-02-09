@@ -114,5 +114,8 @@
   <ItemGroup>
     <None Include="Resources\4k-Flow-Of-Vibrant-Colors-Smooth-Waves-4K-Wallpaper.jpg" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\exit.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

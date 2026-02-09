@@ -239,7 +239,7 @@ namespace SchoolBellSystem
 
             SendToESP(json);
 
-            MessageBox.Show(json);
+            MessageBox.Show("Emergency dugme pritisnuto!", "Emergency", MessageBoxButtons.OK, MessageBoxIcon.Information); // dodati ovdje yes no za potvrdu
         }
 
 
@@ -305,7 +305,7 @@ namespace SchoolBellSystem
             // Spremi i lokalno u obavijesti.json
             File.WriteAllText("obavijesti.json", json);
 
-            MessageBox.Show(json);
+            MessageBox.Show("Obavjesti poslane na ESP32", "Poslano", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
 
@@ -355,7 +355,7 @@ namespace SchoolBellSystem
             string json = JsonConvert.SerializeObject(jsonObjekat);
 
             SendToESP(json);
-            MessageBox.Show("Raspored je poslan!");
+            MessageBox.Show("Raspored je poslan!", "Poslano", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
 
@@ -371,7 +371,7 @@ namespace SchoolBellSystem
 
             SendToESP(json);
 
-            MessageBox.Show(json);
+            MessageBox.Show("Testiranje zvona započeto!", "Test", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         private void bellstop_Click(object sender, EventArgs e) // test zvona (prestaje zvoniti)
         {
@@ -384,7 +384,7 @@ namespace SchoolBellSystem
 
             SendToESP(json);
 
-            MessageBox.Show(json);
+            MessageBox.Show("Testiranje zvona završilo!", "Test", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
 
@@ -427,7 +427,7 @@ namespace SchoolBellSystem
             string json = JsonConvert.SerializeObject(noviAdmin, Formatting.Indented);
             File.WriteAllText("admin.json", json);
 
-            MessageBox.Show("Admin podaci su uspješno promijenjeni!");
+            MessageBox.Show("Admin podaci su uspješno promijenjeni!", "Admin", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         private void checkBox1_CheckedChanged(object sender, EventArgs e) // vidljivost passworda
         {
@@ -459,7 +459,7 @@ namespace SchoolBellSystem
 
             SendToESP(json);
 
-            MessageBox.Show(json);
+            MessageBox.Show("Wifi podaci su uspješno promijenjeni!", "Wifi", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         private void checkBox2_CheckedChanged(object sender, EventArgs e) // vidljivost passworda
         {
@@ -536,31 +536,7 @@ namespace SchoolBellSystem
             }
         }
 
-        // ------------------------ SLUCAJNO PRITISNUTO -----------------------------
-        private void label13_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Postavke_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void tableLayoutPanel1_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void Raspored_Click(object sender, EventArgs e)
-        {
-
-
-        }
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
+        
 
         private void button7_Click(object sender, EventArgs e)
         {
@@ -616,21 +592,6 @@ namespace SchoolBellSystem
 
         }
 
-        private void Obavijesti_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Home_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void pictureBox2_Click(object sender, EventArgs e)
         {
             Application.Exit();
@@ -659,6 +620,53 @@ namespace SchoolBellSystem
         private void pictureBox3_Click(object sender, EventArgs e)
         {
             Application.Exit();
+        }
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+            LoginForm login = new LoginForm();
+            login.ShowDialog();
+            this.Close();
+        }
+        
+        // ------------------------ SLUCAJNO PRITISNUTO -----------------------------
+        private void label13_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Postavke_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void tableLayoutPanel1_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void Raspored_Click(object sender, EventArgs e)
+        {
+
+
+        }
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        } 
+        private void Obavijesti_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Home_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
