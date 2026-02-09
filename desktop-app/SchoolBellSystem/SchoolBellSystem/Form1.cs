@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using Newtonsoft.Json;
 using System.IO;
 using System.IO.Ports;
+using System.Drawing.Drawing2D;
 
 namespace SchoolBellSystem
 {
@@ -19,6 +20,17 @@ namespace SchoolBellSystem
         Timer obavijestiTimer;
 
         // -------------------- FUNCTIONS -----------------------
+        public static void SetRoundCorners(Control c, int radius)
+        {
+            GraphicsPath path = new GraphicsPath();
+
+            path.AddArc(0, 0, radius, radius, 180, 90);
+            path.AddArc(c.Width - radius, 0, radius, radius, 270, 90);
+            path.AddArc(c.Width - radius, c.Height - radius, radius, radius, 0, 90);
+            path.AddArc(0, c.Height - radius, radius, radius, 90, 90);
+
+            c.Region = new Region(path);
+        }
         void SendToESP(string json) // slanje podataka na ESP32
         {
             if (serialPort != null && serialPort.IsOpen)
@@ -105,6 +117,29 @@ namespace SchoolBellSystem
         }
         private void ETSbell_Load(object sender, EventArgs e) // LOAD
         {
+            panel1.BackColor = Color.FromArgb(170, 255, 255, 255);
+            panel2.BackColor = Color.FromArgb(170, 255, 255, 255);
+            panel3.BackColor = Color.FromArgb(170, 255, 255, 255);
+            panel4.BackColor = Color.FromArgb(170, 255, 255, 255);
+            SetRoundCorners(panel1, 20);
+            SetRoundCorners(panel2, 20);
+            SetRoundCorners(panel3, 20);
+            SetRoundCorners(panel4, 20);
+
+            label5.BackColor = Color.Transparent;
+            label6.BackColor = Color.Transparent;
+            label7.BackColor = Color.Transparent;
+            label8.BackColor = Color.Transparent;
+            label9.BackColor = Color.Transparent;
+            label10.BackColor = Color.Transparent;
+            label11.BackColor = Color.Transparent;
+            label12.BackColor = Color.Transparent;
+            label13.BackColor = Color.Transparent;
+            label14.BackColor = Color.Transparent;
+            label15.BackColor = Color.Transparent;
+            checkBox1.BackColor = Color.Transparent;
+            checkBox2.BackColor = Color.Transparent;
+
             pictureBox1.BackColor = Color.Transparent;
             textBox3.UseSystemPasswordChar = true;
             textBox4.UseSystemPasswordChar = true;
@@ -589,6 +624,41 @@ namespace SchoolBellSystem
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private void Home_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pictureBox2_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void pictureBox4_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void pictureBox5_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void pictureBox6_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void pictureBox7_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void pictureBox3_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
         }
     }
 }

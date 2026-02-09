@@ -62,6 +62,7 @@ namespace SchoolBellSystem
         private void LoginForm_Load(object sender, EventArgs e)
         {
             panel1.BackColor = Color.FromArgb(170, 255, 255, 255);
+            ETSbell.SetRoundCorners(panel1, 20);
             pictureBox1.BackColor = Color.Transparent;
             textBox1.BackColor = Color.White;
             textBox2.BackColor = Color.White;
@@ -89,6 +90,11 @@ namespace SchoolBellSystem
         private void label1_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void pictureBox3_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
         }
     }
 }
