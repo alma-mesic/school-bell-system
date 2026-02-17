@@ -7,48 +7,44 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Burger meni -->
-    <header>
-        
-        <ul class="menu" id="burgerMenu">
-            <li><a href="#" id="profil"><img src="user.png" alt="profile">Profil</a></li>
-            <li><a href="#" id="settings"><img src="setting.png" alt="settings">Postavke</a></li>
-            <li><a href="#" id="system"><img src="server.png" alt="system">Sistem</a></li>
-        </ul>
-        <div class="naziv">
-            <img src="ets_grb.png" alt="grb_skole">
+    <!------------------HEADER------------------>
+    <header> 
+        <div class="logo">
+            <a href="index.html"><img src="slike/ets_grb.png" alt="company logo"></a>
             <h1>ETS Bell System</h1>
         </div>
-        <div class="desno">
-            <a href="login.html" class="logout-btn">Log Out</a>
+        <div class="right">
             <div class="burger" id="burger">&#9776;</div>
         </div>
+        <ul class="burger_menu" id="burger_menu">
+            <li><a href="#">Profile</a></li>
+            <li><a href="#">System</a></li>
+            <li><a href="#">Settings</a></li>
+            <li><a href="login.html">Log out</a></li>
+        </ul>
+
     </header>
 
-    <!-- Home stranica -->
+    <!------------------MAIN------------------>
     <main id="homePage">
-        <div class="card" id="notificationsCard">Obavještenja</div>
-        <div class="card" id="scheduleCard">Raspored zvonjenja</div>
-        <div class="card" id="dutyCard">Dežurstvo</div>
-        <div class="card" id="testBellCard">Testiranje zvona</div>
+        <div class="card" id="notificationsCard">
+            <img src="slike/kartice/1.jpg" alt="server">
+            <h2>Obavještenja</h2>
+        </div>
+        <div class="card" id="scheduleCard"> 
+            <img src="slike/kartice/1.jpg" alt="server">
+            <h2>Raspored zvonjenja</h2>
+        </div>
+        <div class="card" id="dutyCard">
+            <img src="slike/kartice/1.jpg" alt="server">
+            <h2>Dežurstvo</h2>
+        </div>
+        <div class="card" id="testBellCard">
+            <img src="slike/kartice/1.jpg" alt="server">
+            <h2>Testiranje zvona</h2>
+        </div>
     </main>
 
-    <!-- Podstranice -->
-    <section id="notificationsPage" class="subPage">
-       
-    </section>
-
-    <section id="schedulePage" class="subPage">
-       
-    </section>
-
-    <section id="dutyPage" class="subPage">
-       
-    </section>
-
-    <section id="testBellPage" class="subPage">
-       
-    </section>
 
     <script src="script.js"></script>
 </body>

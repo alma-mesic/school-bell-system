@@ -1,222 +1,199 @@
-/* RESET */
-* { margin:0; padding:0; box-sizing:border-box; font-family: Arial, sans-serif; }
-
-/* HEADER */
-header {
-    display:flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
-    background: #2C3E50;
-    color: white;
-    position: relative;
-    height: 80px;
-}
-
-header h1 { 
-    font-size: 1.5rem; 
-}
-
-header img{
-    height: 75px;
-    width: 75px;
-}
-
-.desno {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.logout-btn {
-    padding: 6px 12px;
-    background: #2C3E50;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    font-size: 14px;
-    border: 2px solid #32607e;
-    transition: background-color, 0.5s;
-}
-
-.logout-btn:hover {
-    background: #32607e;
-}
-
-.naziv {
-    display: flex;
-    align-items: center;   
-    gap: 10px;           
-}
-
-.burger {
-    font-size: 28px;
-    cursor: pointer;
-    font-size: 28px;
-    cursor: pointer;
-    z-index: 1001;
-}
-
-.menu {
-    position: fixed;
-    top: 0;
-    right: -250px;
-    width: 250px;
-    height: 100vh;
-    background-color: #22303e;
-    list-style: none;
-    padding: 70px 20px;
+* {
     margin: 0;
-    transition: right 0.3s ease;
-    z-index: 1000;
-
-    display: flex;
-    flex-direction: column;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
 }
 
-.menu li {
-    margin: 8px 0;
-}
-
-.menu li a {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    color: #fff;
-    text-decoration: none;
-    font-size: 18px;
-    width: 100%;
-    padding: 8px 0;
-}
-.menu li a:hover {
-    background: rgba(255,255,255,0.08);
-    border-radius: 6px;
-}
-
-.menu li img {
-    width: 22px;
-    height: 22px;
-    object-fit: contain;
-}
-
-.logout {
-    margin-top: auto; 
-}
-
-.logout a {
-    color: #e74c3c;
-    font-weight: bold;
-}
-
-.logout a:hover {
-    color: #ff6b6b;
-}
-
-
-.menu.show {
-    right: 0; /* prikazujemo meni */
-}
-
-/* BURGER MENU RESPONSIVE */
-@media (max-width: 768px) {
-    nav { display:none; position:absolute; top:50px; right:20px; background:#34495E; padding:10px; border-radius:5px; }
-    nav ul { flex-direction: column; gap:10px; }
-    nav.show { display:block; }
-}
-
-/* HOME PAGE CARDS */
-main#homePage {
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:center;
-    gap:20px;
-    padding:20px;
-}
-.card {
-    flex:1 1 200px;
-    min-width: 150px;
-    max-width: 250px;
-    height: 120px;
-    background:#3498DB;
-    color:white;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:1.2rem;
-    font-weight:bold;
-    border-radius:10px;
-    cursor:pointer;
-    transition:0.3s;
-    text-align:center;
-}
-.card:hover { background:#2980B9; }
-
-/* PODSTRANICE */
-.subPage {
-    display:none;
-    padding:20px;
-}
-.subPage.active { display:block; }
-.backBtn {
-    margin-bottom:15px;
-    padding:5px 10px;
-    background:#e74c3c;
-    color:white;
-    border:none;
-    border-radius:5px;
-    cursor:pointer;
-}
-.backBtn:hover { background:#c0392b; }
-
-
-
+/* LOGIN FORMA */
 .login-container {
-    width: 300px;
-    margin: 100px auto;
-    padding: 30px;
-    background: white;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    border-radius: 10px;
+    width: 320px;
+    margin: 120px auto;
+    padding: 35px;
+    background: #ffffff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    border-radius: 12px;
     text-align: center;
+}
+
+.login-container h2 {
+    margin-bottom: 25px;
+    color: #1E3A5F;
+    font-family: 'Roboto Slab', serif;
 }
 
 .login-container input[type="text"],
 .login-container input[type="password"] {
     width: 100%;
-    padding: 10px;
-    margin: 10px 0;
+    padding: 12px;
+    margin: 12px 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
 }
+
 .password-container {
     position: relative;
 }
 
-.password-container button {
+.password-container .toggle-password {
     position: absolute;
-    right: -18px;
+    right: 12px;
     top: 50%;
     transform: translateY(-50%);
     background: transparent;
     border: none;
     cursor: pointer;
-    padding: 5px;
-}
-
-.password-container img {
-    width: 20px;
-    height: 20px;
+    font-size: 18px;
+    color: #1E3A5F;
 }
 
 #loginBtn {
     width: 100%;
-    padding: 10px;
-    background: #007bff;
+    padding: 12px;
+    background: #1E3A5F;
     color: white;
     border: none;
     cursor: pointer;
-    border-radius: 5px;
+    border-radius: 6px;
+    font-size: 16px;
+    margin-top: 15px;
+    transition: background 0.3s;
+}
+
+#loginBtn:hover {
+    background: #357ABD;
 }
 
 .error {
-    color: red;
+    color: #E74C3C;
     margin-top: 10px;
+    font-size: 14px;
+}
+
+ /************************************/
+
+body {
+    background-color: #1E1E2F;
+    color: #F0F0F5;
+    min-height: 100vh;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    background-color: #2B2D42;
+    height: 80px;
+    position: relative;
+    border-bottom: 1px solid #3F4154;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo img {
+    height: auto;
+    width: 20%;
+}
+
+.logo h1 {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.8rem;
+    color: #EDF2F4;
+    margin: 0;
+}
+
+.right {
+    display: flex;
+    align-items: center;
+}
+
+.burger {
+    font-size: 28px;
+    cursor: pointer;
+    color: #EDF2F4;
+    z-index: 1001;
+}
+
+
+.burger_menu {
+    position: fixed;
+    top: 0;
+    right: -260px;
+    width: 260px;
+    height: 100vh;
+    background-color: #3F4154;
+    list-style: none;
+    padding: 80px 20px;
+    display: flex;
+    flex-direction: column;
+    transition: right 0.3s ease;
+}
+
+.burger_menu.show {
+    right: 0;
+}
+
+.burger_menu li {
+    margin: 15px 0;
+}
+
+.burger_menu li a {
+    display: block;
+    color: #EDF2F4;
+    text-decoration: none;
+    font-size: 16px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    transition: background 0.3s;
+}
+
+.burger_menu li a:hover {
+    background-color: #2B2D42;
+}
+
+/* MAIN PAGE CARDS */
+main#homePage {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 25px;
+    padding: 40px;
+}
+
+.card {
+    background-color: #8D99AE;
+    color: #1E1E2F;
+    border-radius: 12px;
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
+    text-align: center;
+    padding: 15px;
+}
+
+.card img {
+    height: 60px;
+    width: 60px;
+    margin-bottom: 10px;
+}
+
+.card:hover {
+    background-color: #EDF2F4;
+    color: #2B2D42;
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }

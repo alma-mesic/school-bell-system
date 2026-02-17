@@ -1,0 +1,75 @@
+document.getElementById('notificationsCard').addEventListener('click', () => {
+    window.location.href = "obavjestenja.html";
+});
+document.getElementById('scheduleCard').addEventListener('click', () => {
+    window.location.href = "raspored.html";
+});
+document.getElementById('dutyCard').addEventListener('click', () => {
+    window.location.href = "dezurstvno.html";
+});
+document.getElementById('testBellCard').addEventListener('click', () => {
+    window.location.href = "test.html";
+});
+
+<main id="homePage">
+        <div class="card" id="notificationsCard">Obavještenja</div>
+        <div class="card" id="scheduleCard">Raspored zvonjenja</div>
+        <div class="card" id="dutyCard">Dežurstvo</div>
+        <div class="card" id="testBellCard">Testiranje zvona</div>
+    </main>
+
+
+/* HOME PAGE CARDS */
+main#homePage {
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:25px;
+    padding:30px;
+}
+
+.card {
+    flex:1 1 200px;
+    min-width: 160px;
+    max-width: 250px;
+    height: 120px;
+    background:#4A90E2;
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-family: 'Roboto Slab', serif;
+    font-size:1.2rem;
+    font-weight:bold;
+    border-radius:12px;
+    cursor:pointer;
+    transition: transform 0.3s, background 0.3s;
+    text-align:center;
+}
+
+.card:hover { 
+    background:#357ABD;
+    transform: translateY(-5px);
+}
+
+/* PODSTRANICE */
+.subPage {
+    display:none;
+    padding:25px;
+}
+
+.subPage.active { display:block; }
+
+.backBtn {
+    margin-bottom:20px;
+    padding:8px 12px;
+    background:#E74C3C;
+    color:white;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    font-size:14px;
+}
+.backBtn:hover { background:#c0392b; }
+
+

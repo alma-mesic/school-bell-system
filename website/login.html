@@ -3,26 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>School Bell System - Login</title>
+    <title>School Bell System</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
-    <div class="login-container">
-        <h2>Login</h2>
-        <input type="text" id="username" placeholder="Username">
+<!------------------MAIN------------------>
+<div class="login-container">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username">
 
-        <div class="password-container">
-            <input type="password" id="password" placeholder="Password">
-            <button type="button" id="togglePass">
-                <img id="eyeIcon" src="show.png" alt="Show Password">
-            </button>
-        </div>
-        
-        <button id="loginBtn">Login</button>
-        <p id="errorMsg" class="error"></p>
+    <div class="password-container">
+        <input type="password" id="password" placeholder="Password">
+        <span class="toggle-password" id="togglePassword">&#128065;</span> <!-- oko emoji -->
     </div>
 
-    <script src="login.js"></script>
+    <button id="loginBtn">Login</button>
+    <p id="errorMsg" class="error"></p>
+</div>
+
+<script src="script1.js"></script>
+
 </body>
 </html>
