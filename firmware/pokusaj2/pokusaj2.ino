@@ -10,9 +10,9 @@ Preferences prefs;  // globalni objekat za spremanje u flash
 // ---------------- KONFIGURACIJA ---------------------
 
 // =========== PANEL ============
-#define PANEL_RES_X 32
-#define PANEL_RES_Y 16
-#define PANEL_CHAIN 1
+#define PANEL_RES_X 64  // Širina jednog panela
+#define PANEL_RES_Y 32  // Visina jednog panela
+#define PANEL_CHAIN 2   // Dva panela povezana u niz
 
 MatrixPanel_I2S_DMA* display;
 HUB75_I2S_CFG mxconfig(PANEL_RES_X, PANEL_RES_Y, PANEL_CHAIN);
@@ -31,6 +31,7 @@ void configuration() {
   mxconfig.gpio.a = 23;
   mxconfig.gpio.b = 19;
   mxconfig.gpio.c = 5;
+  mxconfig.gpio.d = 17;//mora iz nkog razloga
   mxconfig.gpio.clk = 16;
   mxconfig.gpio.lat = 4;
   mxconfig.gpio.oe = 15;
@@ -161,34 +162,44 @@ void showStartupScreen() {
 }
 
 void showTime() {
+  display->setTextSize(2); // Veća slova za sat
   display->setTextColor(display->color565(252, 3, 148));
-  display->setCursor(1, 0);
+  
+  // Da bi dvotočka bila na kraju prve matrice (piksel 64), 
+  // sat (HH:) mora početi na 28. pikselu.
+  // Tako HH: ostaje na prvom panelu, a MM na drugom.
+  display->setCursor(28, 0); 
   display->print(getTimeString());
 }
 
 void scrollText() {
+  display->setTextSize(2); // Veća slova i za obavijesti
   display->setTextColor(display->color565(134, 50, 230));
-  display->setCursor(x, 8);
+  
+  // Drugi red počinje na y=16 (donja polovica ekrana)
+  display->setCursor(x, 17); 
   display->print(text);
+  
   x--;
-  if (x < -text_width) x = 32;
+  // Budući da su slova veća (Size 2), širina teksta je veća (12 piksela po slovu)
+  int total_text_width = text.length() * 12;
+  if (x < -total_text_width) x = 128; 
 }
 
 void drawMainScreen() {
   display->fillScreen(0);
-  display->setTextSize(1);
   display->setTextWrap(false);
 
   if (bellTestMode) {
+    display->setTextSize(2);
     display->setTextColor(display->color565(255, 255, 0));
-    display->setCursor(x, 4);
-    display->print("TESTIRANJE ZVONA");
-
+    display->setCursor(x, 8); // Centrirano po visini za test
+    display->print("TEST");
     x--;
-    if (x < -100) x = display->width();
+    if (x < -100) x = 128;
   } else {
-    showTime();
-    scrollText();
+    showTime();   // Prvi red (gore)
+    scrollText(); // Drugi red (dolje)
   }
 }
 
@@ -286,11 +297,11 @@ void buildMainText() {
   }
 
   // Reset scrolla samo ako se promijenio tekst
-  if (newText != lastText) {
+ if (newText != lastText) {
     text = newText;
     lastText = newText;
     text_width = text.length() * 6;
-    x = 32;
+    x = 128; // Promijenjeno sa 32 na 128
   }
 }
 
