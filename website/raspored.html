@@ -29,18 +29,32 @@
     </header>
 
     <!------------------MAIN------------------>
-    <div>
-        <table id="redovno"></table>
-    </div>
-    <div>
-        <table id="skraceno"></table>
-    </div>
-    <input type="radio" id="red" name="raspored" value="redovno">
-    <label for="raspored">Redovno</label><br>
-    <input type="radio" id="skr" name="raspored" value="skraceno">
-    <label for="raspored">Skraceno</label><br> 
-    <button>POSALJI NA ESP</button>
-
+    <main id="schedulePage">
+        <h2 class="page-title">Raspored zvonjenja</h2>
+        <div class="raspored-container">
+            <div class="radio-group">
+                <label>
+                    <input type="radio" name="raspored" value="redovno" checked>
+                    <span>Redovno</span>
+                </label>
+                <label>
+                    <input type="radio" name="raspored" value="skraceno">
+                    <span>Skraćeno</span>
+                </label>
+            </div>
+            <div class="tables-container">
+                <div class="table-box">
+                    <h3>Redovno zvonjenje</h3>
+                    <table id="redovno"></table>
+                </div>
+                <div class="table-box">
+                    <h3>Skraćeno zvonjenje</h3>
+                    <table id="skraceno"></table>
+                </div>
+            </div>
+            <button class="primary-btn">POŠALJI NA ESP</button>
+        </div>
+    </main>
     <!------------------FOOTER------------------>
     <footer>
         <div class="kolone">

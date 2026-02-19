@@ -223,5 +223,29 @@ function kreirajTabelu(podaci, tabelaId) {
 document.addEventListener("DOMContentLoaded", function() {
     kreirajTabelu(redovni, "redovno");
     kreirajTabelu(skraceni, "skraceno");
+
+    const redRadio = document.querySelector('input[value="redovno"]');
+    const skrRadio = document.querySelector('input[value="skraceno"]');
+
+    const redBox = document.getElementById("redovno").parentElement;
+    const skrBox = document.getElementById("skraceno").parentElement;
+
+    function updateActiveTable() {
+        redBox.classList.remove("active");
+        skrBox.classList.remove("active");
+
+        if (redRadio.checked) {
+            redBox.classList.add("active");
+        } else {
+            skrBox.classList.add("active");
+        }
+    }
+
+    redRadio.addEventListener("change", updateActiveTable);
+    skrRadio.addEventListener("change", updateActiveTable);
+
+    updateActiveTable();
 });
+
+
 

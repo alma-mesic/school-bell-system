@@ -274,3 +274,133 @@ footer > p {
     border-top: 1px solid #3F4154;
     padding-top: 15px;
 }
+
+/**************** RASPORED PAGE ****************/
+main#schedulePage {
+    padding: 120px 40px;
+}
+
+.page-title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 50px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: #EDF2F4;
+    
+}
+
+
+.raspored-panel {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #2B2D42;
+    padding: 50px;
+    border-radius: 20px;
+    border: 1px solid #3F4154;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+
+.radio-group {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 50px;
+}
+
+.radio-group label {
+    padding: 12px 35px;
+    background: #3F4154;
+    border-radius: 40px;
+    cursor: pointer;
+    transition: 0.3s ease;
+    font-weight: 500;
+}
+
+.radio-group input {
+    display: none;
+}
+
+.radio-group label:has(input:checked) {
+    background: #8D99AE;
+    color: #1E1E2F;
+    box-shadow: 0 0 20px rgba(141,153,174,0.7);
+}
+
+
+.tables-container {
+    display: flex;
+    gap: 40px;
+    justify-content: space-between;
+}
+
+.table-box {
+    flex: 1;
+    transition: 0.3s ease, filter 0.3s ease;
+}
+
+.table-box h3 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 500;
+    color: #EDF2F4;
+}
+
+.table-box table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #3F4154;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: 0.3s ease, filter 0.3s ease;
+}
+
+thead {
+    background: #8D99AE;
+    color: #1E1E2F;
+}
+
+th {
+    padding: 16px;
+    font-weight: 600;
+    text-align: left;
+}
+
+td {
+    padding: 14px;
+    border-bottom: 1px solid #2B2D42;
+}
+
+tbody tr:hover {
+    background: #2B2D42;
+}
+
+
+.table-box.active {
+    filter: brightness(1.1); 
+}
+
+.table-box:not(.active) {
+    filter: brightness(0.75); 
+}
+
+.primary-btn {
+    margin-top: 40px;
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #8D99AE, #EDF2F4);
+    color: #1E1E2F;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.primary-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px rgba(141,153,174,0.5);
+}
+
