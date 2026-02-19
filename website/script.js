@@ -1,29 +1,227 @@
 /*****************BRGER MENI*********************/
-document.getElementById("burger").onclick = function(){
-    let menu = document.getElementById("burger_menu")
-    menu.classList.toggle("show");
+const burger = document.getElementById("burger");
+if (burger) {
+    burger.onclick = function(){
+        let menu = document.getElementById("burger_menu");
+        menu.classList.toggle("show");
+    }
 }
 
 
 
-/********DIVS**********/
 
-document.getElementById("notificationsCard")
-    .addEventListener("click", function() {
+/********DIVS - main**********/
+
+const notificationsCard = document.getElementById("notificationsCard");
+if (notificationsCard) {
+    notificationsCard.addEventListener("click", function() {
         window.location.href = "obavjestenja.html";
     });
+}
 
-document.getElementById("scheduleCard")
-    .addEventListener("click", function() {
+const scheduleCard = document.getElementById("scheduleCard");
+if (scheduleCard) {
+    scheduleCard.addEventListener("click", function() {
         window.location.href = "raspored.html";
     });
+}
 
-document.getElementById("dutyCard")
-    .addEventListener("click", function() {
+const dutyCard = document.getElementById("dutyCard");
+if (dutyCard) {
+    dutyCard.addEventListener("click", function() {
         window.location.href = "dezurstvo.html";
     });
+}
 
-document.getElementById("testBellCard")
-    .addEventListener("click", function() {
+const testBellCard = document.getElementById("testBellCard");
+if (testBellCard) {
+    testBellCard.addEventListener("click", function() {
         window.location.href = "test.html";
     });
+}
+
+
+    /*****************RASPORED*********************/
+
+const redovni = [
+    {
+        cas:1,
+        pocetak:"7:30",
+        kraj:"8:15"
+    },
+    {
+        cas:2,
+        pocetak:"8:20",
+        kraj:"9:05"
+    },
+    {
+        cas:3,
+        pocetak:"9:10",
+        kraj:"9:55"
+    },
+    {
+        cas:4,
+        pocetak:"10:15",
+        kraj:"11:00"
+    },
+    {
+        cas:5,
+        pocetak:"11:05",
+        kraj:"11:50"
+    },
+    {
+        cas:6,
+        pocetak:"11:55",
+        kraj:"12:40"
+    },
+    {
+        cas:7,
+        pocetak:"12:45",
+        kraj:"13:30"
+    },
+    {
+        cas:8,
+        pocetak:"13:35",
+        kraj:"14:20"
+    },
+    {
+        cas:9,
+        pocetak:"14:25",
+        kraj:"15:10"
+    },
+    {
+        cas:10,
+        pocetak:"15:30",
+        kraj:"16:15"
+    },
+    {
+        cas:11,
+        pocetak:"16:20",
+        kraj:"17:05"
+    },
+    {
+        cas:12,
+        pocetak:"17:10",
+        kraj:"17:55"
+    },
+    {
+        cas:13,
+        pocetak:"18:00",
+        kraj:"18:45"
+    }
+]
+
+const skraceni = [
+    {
+        cas:1,
+        pocetak:"7:30",
+        kraj:"8:00"
+    },
+    {
+        cas:2,
+        pocetak:"8:05",
+        kraj:"8:35"
+    },
+    {
+        cas:3,
+        pocetak:"8:40",
+        kraj:"9:10"
+    },
+    {
+        cas:4,
+        pocetak:"9:30",
+        kraj:"10:00"
+    },
+    {
+        cas:5,
+        pocetak:"10:05",
+        kraj:"10:35"
+    },
+    {
+        cas:6,
+        pocetak:"10:40",
+        kraj:"11:10"
+    },
+    {
+        cas:7,
+        pocetak:"11:15",
+        kraj:"11:45"
+    },
+    {
+        cas:8,
+        pocetak:"11:50",
+        kraj:"12:20"
+    },
+    {
+        cas:9,
+        pocetak:"12:25",
+        kraj:"12:55"
+    },
+    {
+        cas:10,
+        pocetak:"13:15",
+        kraj:"13:45"
+    },
+    {
+        cas:11,
+        pocetak:"13:50",
+        kraj:"14:20"
+    },
+    {
+        cas:12,
+        pocetak:"14:25",
+        kraj:"14:55"
+    },
+    {
+        cas:13,
+        pocetak:"15:00",
+        kraj:"15:30"
+    }
+]
+
+function kreirajTabelu(podaci, tabelaId) {
+    const tabela = document.getElementById(tabelaId);
+    tabela.innerHTML = ""; 
+
+    const thead = document.createElement("thead");
+    const headerRed = document.createElement("tr");
+
+    const kolone = ["Br. časa", "Početak", "Kraj"];
+
+    kolone.forEach(naziv => {
+        const th = document.createElement("th");
+        th.textContent = naziv;
+        headerRed.appendChild(th);
+    });
+
+    thead.appendChild(headerRed);
+    tabela.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+
+    podaci.forEach(casObj => {
+        const red = document.createElement("tr");
+
+        const tdCas = document.createElement("td");
+        tdCas.textContent = casObj.cas;
+
+        const tdPocetak = document.createElement("td");
+        tdPocetak.textContent = casObj.pocetak;
+
+        const tdKraj = document.createElement("td");
+        tdKraj.textContent = casObj.kraj;
+
+        red.appendChild(tdCas);
+        red.appendChild(tdPocetak);
+        red.appendChild(tdKraj);
+
+        tbody.appendChild(red);
+    });
+    tabela.appendChild(tbody);
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    kreirajTabelu(redovni, "redovno");
+    kreirajTabelu(skraceni, "skraceno");
+});
+
