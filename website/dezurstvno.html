@@ -3,29 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
     <title>School Bell System</title>
+    <link rel="icon" type="image/x-icon" href="slike/ets_grb.png">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Burger meni -->
-    <header>
-        
-        <ul class="menu" id="burgerMenu">
-            <li><a href="#" id="profil"><img src="user.png" alt="profile">Profil</a></li>
-            <li><a href="#" id="settings"><img src="setting.png" alt="settings">Postavke</a></li>
-            <li><a href="#" id="system"><img src="server.png" alt="system">Sistem</a></li>
-        </ul>
-        <div class="naziv">
-            <img src="ets_grb.png" alt="grb_skole">
+    <!------------------HEADER------------------>
+    <header> 
+        <div class="logo">
+            <a href="index.html"><img src="slike/ets_grb.png" alt="company logo"></a>
             <h1>ETS Bell System</h1>
         </div>
-        <div class="desno">
-            <a href="login.html" class="logout-btn">Log Out</a>
+        <div class="right">
             <div class="burger" id="burger">&#9776;</div>
         </div>
+        <ul class="burger_menu" id="burger_menu">
+            <li><a href="profile.html">Profile</a></li>
+            <li><a href="system.html">System</a></li>
+            <li><a href="settings.html">Settings</a></li>
+            <li><a href="login.html">Log out</a></li>
+        </ul>
+
     </header>
 
+    <!------------------MAIN------------------>
     
+
+    <!------------------FOOTER------------------>
+    <footer>
+        <div class="kolone">
+            <div class="information1">
+                <p>Adressa: Ul. Muhameda Hevaija Uskufija br.2 Tuzla<br> Grad 75000 Bosna i Hercegovina</p>
+                <p>Radno vrijeme: Pon-Pet: 07:00-19:00</p>
+            </div>
+            <div class="information2">
+                <p>Telefon: +387 35 281 167</p>
+                <p type="email">E-mail: ets.tuzla@montk.gov.ba</p>
+                <p>https://etstuzla.skolatk.edu.ba/</p>
+            </div>
+        </div>
+        <div class="mreze">
+            <a href="https://www.instagram.com/etstuzla/"><i class="fab fa-instagram"></i></a>
+            <a href="https://www.youtube.com/@elektrotehnickaskolatuzla1788"><i class="fab fa-youtube"></i></a>
+            <a href="https://www.facebook.com/ETSTZ/?locale=hr_HR"><i class="fab fa-square-facebook"></i></a>
+        </div>
+       <p>© 2026 ETS Bell System. All rights reserved.</p>
+    </footer>
     <script src="script.js"></script>
 </body>
 </html>
