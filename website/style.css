@@ -4,7 +4,10 @@
     box-sizing: border-box;
     font-family: 'Inter', sans-serif;
 }
-
+.blocked {
+    pointer-events: none;
+    opacity: 0.5;
+}
 /*****************LOGIN FORMA***********************/
 .login-container {
     width: 320px;
@@ -403,4 +406,128 @@ tbody tr:hover {
     transform: translateY(-4px);
     box-shadow: 0 10px 15px rgba(141,153,174,0.5);
 }
+
+/****************TEST ZVONA****************/
+main#systemPage {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 120px 20px;
+}
+
+.system-panel {
+    max-width: 700px;
+    width: 100%;
+    background: #2B2D42;
+    padding: 50px;
+    border-radius: 20px;
+    border: 1px solid #3F4154;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    text-align: center;
+}
+
+.system-panel p {
+    font-size: 16px;
+    line-height: 1.7;
+    margin-bottom: 30px;
+    color: #EDF2F4;
+}
+
+.system-panel .primary-btn {
+    width: 200px;
+    padding: 12px 0;
+    font-size: 15px;
+    border-radius: 40px;
+    background: #8D99AE;
+    color: #1E1E2F;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin: 0 auto 30px auto;
+    display: block;
+}
+
+.system-panel .primary-btn:hover {
+    transform: scale(1.05);
+}
+
+.system-panel .primary-btn.active {
+    background: #2ecc71;
+    color: white;
+    box-shadow: 0 0 20px rgba(46, 204, 113, 0.6);
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0px rgba(46,204,113,0.4); }
+    50% { box-shadow: 0 0 25px rgba(46,204,113,0.8); }
+    100% { box-shadow: 0 0 0px rgba(46,204,113,0.4); }
+}
+
+.system-panel.ringing {
+    animation: pulse 1.5s infinite;
+}
+
+
+.status-indicator {
+    margin-bottom: 20px;
+    font-size: 14px;
+    opacity: 0.8;
+}
+.emergency-text {
+    margin-top: 50px;
+    font-size: 14px;
+    opacity: 0.8;
+}
+.emergency-btn {
+    width: 220px;
+    padding: 14px 0;
+    font-size: 16px;
+    border-radius: 50px;
+    background: linear-gradient(135deg, #ff3b3b, #c0392b);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+    letter-spacing: 1px;
+    transition: all 0.25s ease;
+    margin: 0 auto;
+    display: block;
+    box-shadow: 0 6px 15px rgba(231,76,60,0.4);
+}
+
+.emergency-btn:hover {
+    transform: scale(1.07);
+    box-shadow: 0 8px 25px rgba(231,76,60,0.6);
+}
+
+.emergency-btn:active {
+    transform: scale(0.97);
+}
+
+
+@keyframes emergencyPanelPulse {
+    0% {
+        background-color: #2B2D42;
+        box-shadow: 0 0 0px rgba(231,76,60,0.4);
+        border-color: #E74C3C;
+    }
+    50% {
+        background-color: #3a1c22; 
+        box-shadow: 0 0 70px rgba(231,76,60,0.9);
+        border-color: #ff3b3b;
+    }
+    100% {
+        background-color: #2B2D42;
+        box-shadow: 0 0 0px rgba(231,76,60,0.4);
+        border-color: #E74C3C;
+    }
+}
+
+.system-panel.emergency-active {
+    animation: emergencyPanelPulse 1.2s infinite;
+    border: 2px solid #E74C3C;
+}
+
 

@@ -41,7 +41,7 @@ if (testBellCard) {
 }
 
 
-    /*****************RASPORED*********************/
+/*****************RASPORED*********************/
 
 const redovni = [
     {
@@ -248,4 +248,108 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 
+/*****************TEST ZVONA*********************/
+const systemPanel = document.querySelector(".system-panel");
+const testZvona = document.getElementById("test_zvona");
+document.addEventListener("DOMContentLoaded", function () {
 
+    const statusSpan = document.querySelector("#statusIndicator span");
+
+    if (!testZvona) return;
+
+    let aktivno = false;
+
+    function updateUI() {
+        if (aktivno) {
+            testZvona.textContent = "Zaustavi";
+            testZvona.classList.add("active");
+            systemPanel.classList.add("ringing");
+            statusSpan.textContent = "AKTIVNO";
+            statusSpan.style.color = "#2ecc71";
+        } else {
+            testZvona.textContent = "Pokreni";
+            testZvona.classList.remove("active");
+            systemPanel.classList.remove("ringing");
+            statusSpan.textContent = "NEAKTIVNO";
+            statusSpan.style.color = "#E74C3C";
+        }
+    }
+
+    testZvona.addEventListener("click", function () {
+        aktivno = !aktivno;
+        updateUI();
+    });
+
+    updateUI(); 
+});
+
+/*****************EMERGENCY*********************/
+const emergencyBtn = document.querySelector(".emergency-btn");
+const burgerBtn = document.getElementById("burger");
+
+if (emergencyBtn) {
+
+    let emergencyActive = false;
+
+    emergencyBtn.addEventListener("click", function () {
+
+        if (!emergencyActive) {
+
+            const potvrda = confirm("Da li ste sigurni da želite aktivirati HITNO ZVONO?");
+            if (!potvrda) return;
+
+            emergencyActive = true;
+            activateEmergency();
+
+        } 
+        else {
+
+            const potvrdaStop = confirm("Da li želite zaustaviti emergency stanje?");
+            if (!potvrdaStop) return;
+
+            emergencyActive = false;
+            deactivateEmergency();
+        }
+
+    });
+
+
+    function activateEmergency() {
+
+        const sviElementi = document.querySelectorAll("button, a, input");
+
+        sviElementi.forEach(el => {
+            if (!el.classList.contains("emergency-btn")) {
+                el.disabled = true;
+                el.style.pointerEvents = "none";
+                el.style.opacity = "0.5";
+            }
+        });
+
+        emergencyBtn.classList.add("emergency-active");
+        systemPanel.classList.add("emergency-active");
+        emergencyBtn.textContent = "DEAKTIVIRAJ HITNO";
+
+        if (testZvona) testZvona.disabled = true;
+        if (burger) burger.classList.add("blocked");
+    }
+
+
+    function deactivateEmergency() {
+
+        const sviElementi = document.querySelectorAll("button, a, input");
+
+        sviElementi.forEach(el => {
+            el.disabled = false;
+            el.style.pointerEvents = "";
+            el.style.opacity = "";
+        });
+
+        emergencyBtn.classList.remove("emergency-active");
+        systemPanel.classList.remove("emergency-active");
+        emergencyBtn.textContent = "Emergency";
+
+        if (testZvona) testZvona.disabled = false;
+        if (burger) burger.classList.remove("blocked");
+    }
+}
