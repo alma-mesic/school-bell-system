@@ -29,7 +29,39 @@
     </header>
 
     <!------------------MAIN------------------>
-    
+    <div class="settings-wrapper">
+        <div id="upper"><!--100%-->
+            <a href="settings.html"><img src="slike/setting.png" alt="settings"></a>
+            <a href="system.html"><img src="slike/coding.png" alt="system"></a>
+        </div>
+        <div id="settings-content">
+            <div id="left"><!--30%-->
+                <img src="slike/user.png" alt="user">
+                <p id="username"></p>
+            </div>
+            <div id="right"><!--70%-->
+                <div id="change-username">
+                    <input type="text" id="user-name-old" placeholder="Current Username">
+                    <input type="text" id="user-name-new" placeholder="New Username">
+                    <input type="text" id="user-name-new-confirmation" placeholder="Confirmation Username">
+                    <button id="change-user">Change</button>
+                    <button id="cancle-user">Cancel</button>
+                </div>
+                <div id="change-password">
+                    <input type="text" id="password-old" placeholder="Current Password">
+                    <input type="password" id="password-new" placeholder="New Password">
+                    <input type="password" id="password-new-confirmation" placeholder="Confirmation Password">
+                    <button id="change-pass">Change</button>
+                    <button id="cancle-pass">Cancel</button>
+                </div>
+                <div id="change-wifi">
+                    <input type="text" id="wifi-name" placeholder="Wifi Name">
+                    <input type="text" id="wifi-password" placeholder="Wifi Password">
+                    <button id="save-wifi">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!------------------FOOTER------------------>
     <footer>
