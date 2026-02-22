@@ -596,13 +596,6 @@ main#systemPage {
     display: none;
 }
 
-#upper a[href="settings.html"]::before {
-    content: "Settings";
-}
-
-#upper a[href="system.html"]::before {
-    content: "System";
-}
 
 #upper a:hover {
     background: #8D99AE;
@@ -736,4 +729,156 @@ main#systemPage {
     content: "";
     display: block;
     clear: both;
+}
+
+/***********************SETTINGS**************************/
+.settings-wrapper2 {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 50px);
+    padding: 20px 30px;
+    gap: 25px;
+    background-color: #1E1E2F;
+}
+
+#settings-content2 {
+    display: flex;
+    gap: 30px;
+    justify-content: space-between;
+
+    margin: 30px; 
+    padding-bottom: 30px;
+}
+
+#other {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 300px;
+    gap: 25px;
+}
+
+#letter_font {
+    background-color: #2B2D42;
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid #3F4154;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#letter_font h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #EDF2F4;
+}
+
+#letter_font select {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #3F4154;
+    background: #3F4154;
+    color: #EDF2F4;
+    font-size: 14px;
+    transition: 0.3s ease;
+}
+
+#letter_font select:focus {
+    outline: none;
+    border-color: #8D99AE;
+    box-shadow: 0 0 10px rgba(141,153,174,0.4);
+}
+
+#letter_font button {
+    width: fit-content;
+    align-self: center;
+    padding: 12px 35px;
+    border-radius: 35px;
+    border: none;
+    background: linear-gradient(135deg, #8D99AE, #EDF2F4);
+    color: #1E1E2F;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#letter_font button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(141,153,174,0.5);
+}
+
+#color {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+#color h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #EDF2F4;
+    margin-bottom: 15px;
+}
+
+#color > div {
+    background-color: #2B2D42;
+    padding: 25px;
+    border-radius: 16px;
+    border: 1px solid #3F4154;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#color h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #EDF2F4;
+}
+
+.color-picker-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.color-picker-row input[type="color"] {
+    width: 60px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.color-preview {
+    width: 50px;
+    height: 35px;
+    border-radius: 6px;
+    border: 1px solid #3F4154;
+    background-color: #EDF2F4;
+    transition: background 0.3s ease;
+}
+
+#color button {
+    width: fit-content;
+    align-self: center;
+    padding: 12px 35px;
+    border-radius: 35px;
+    border: none;
+    background: linear-gradient(135deg, #8D99AE, #EDF2F4);
+    color: #1E1E2F;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#color button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(141,153,174,0.5);
 }

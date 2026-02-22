@@ -353,3 +353,20 @@ if (emergencyBtn) {
         if (burger) burger.classList.remove("blocked");
     }
 }
+
+
+/*********************SETTINGS************************* */
+function setupColorPreview(inputId, previewId) {
+    const colorInput = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+
+    preview.style.backgroundColor = colorInput.value;
+
+    colorInput.addEventListener('input', () => {
+        preview.style.backgroundColor = colorInput.value;
+    });
+}
+
+setupColorPreview('letter_color_change', 'letter_color_preview');
+setupColorPreview('marix_time_color_change', 'marix_time_color_preview');
+setupColorPreview('matrix_letter_color_change', 'matrix_letter_color_preview');
