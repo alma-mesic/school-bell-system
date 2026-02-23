@@ -31,7 +31,7 @@ void configuration() {
   mxconfig.gpio.a = 23;
   mxconfig.gpio.b = 19;
   mxconfig.gpio.c = 5;
-  mxconfig.gpio.d = 17;//mora iz nkog razloga
+  mxconfig.gpio.d = 17;  //mora iz nkog razloga
   mxconfig.gpio.clk = 16;
   mxconfig.gpio.lat = 4;
   mxconfig.gpio.oe = 15;
@@ -50,6 +50,8 @@ int lastBellMinute = -1;
 
 String adminPassword = "1234";  // isto kao u admin.json
 String lastText = "";
+
+String comparisonText = "";  // Služi samo za provjeru promjene časa/obavijesti
 
 // =========== SOS ===========
 bool sosActive = false;
@@ -162,28 +164,28 @@ void showStartupScreen() {
 }
 
 void showTime() {
-  display->setTextSize(2); // Veća slova za sat
-  display->setTextColor(display->color565(252, 3, 148));
-  
-  // Da bi dvotočka bila na kraju prve matrice (piksel 64), 
+  display->setTextSize(2);  // Veća slova za sat
+  display->setTextColor(display->color565(0, 255, 0));
+
+  // Da bi dvotočka bila na kraju prve matrice (piksel 64),
   // sat (HH:) mora početi na 28. pikselu.
   // Tako HH: ostaje na prvom panelu, a MM na drugom.
-  display->setCursor(28, 0); 
+  display->setCursor(28, 0);
   display->print(getTimeString());
 }
 
 void scrollText() {
-  display->setTextSize(2); // Veća slova i za obavijesti
-  display->setTextColor(display->color565(134, 50, 230));
-  
+  display->setTextSize(2);  // Veća slova i za obavijesti
+  display->setTextColor(display->color565(0, 255, 0));
+
   // Drugi red počinje na y=16 (donja polovica ekrana)
-  display->setCursor(x, 17); 
+  display->setCursor(x, 17);
   display->print(text);
-  
+
   x--;
   // Budući da su slova veća (Size 2), širina teksta je veća (12 piksela po slovu)
   int total_text_width = text.length() * 12;
-  if (x < -total_text_width) x = 128; 
+  if (x < -total_text_width) x = 128;
 }
 
 void drawMainScreen() {
@@ -193,13 +195,13 @@ void drawMainScreen() {
   if (bellTestMode) {
     display->setTextSize(2);
     display->setTextColor(display->color565(255, 255, 0));
-    display->setCursor(x, 8); // Centrirano po visini za test
+    display->setCursor(x, 8);  // Centrirano po visini za test
     display->print("TEST");
     x--;
     if (x < -100) x = 128;
   } else {
-    showTime();   // Prvi red (gore)
-    scrollText(); // Drugi red (dolje)
+    showTime();    // Prvi red (gore)
+    scrollText();  // Drugi red (dolje)
   }
 }
 
@@ -224,14 +226,24 @@ void buildMainText() {
       int remaining = endMin - nowMin;
 
       newText = String(classes[i].number) + ". cas u toku | Cas zavrsava u " + classes[i].end + " | Ostalo jos " + remaining + " min";
-      
+
       if (classes[i].dezurni != "") {
-            newText += " | Dezurni: " + classes[i].dezurni;
+        newText += " | Dezurni: " + classes[i].dezurni;
       }
-      
-      classInProgress = true;
-      break;
-    } 
+
+      if (nowMin >= startMin && nowMin < endMin) {
+        int remaining = endMin - nowMin;
+        newText = String(classes[i].number) + ". cas | Kraj u " + classes[i].end + " | Jos " + remaining + " min";
+
+        // OVDJE DODAJ: Ako postoji ime dežurnog, prikaži ga
+        if (classes[i].dezurni != "" && classes[i].dezurni != " ") {
+          newText += " | DEZURNI: " + classes[i].dezurni;
+        }
+
+        classInProgress = true;
+        break;
+      }
+    }
   }
 
   // Ako nema časa u toku, proveri da li je pauza između dva časa (5 min)
@@ -296,12 +308,21 @@ void buildMainText() {
     newText += notifications[i].minute;
   }
 
-  // Reset scrolla samo ako se promijenio tekst
- if (newText != lastText) {
+  // Iz novog teksta izbacujemo dio koji sadrži "Ostalo jos XX min"
+  String currentComparison = newText;
+  int pos = currentComparison.indexOf("| Ostalo jos");
+  if (pos != -1) {
+    currentComparison = currentComparison.substring(0, pos);
+  }
+
+  // 2. Provjeri da li se desila stvarna promjena (novi čas ili nova obavijest)
+  if (currentComparison != comparisonText) {
+    text = newText;                      // Postavi puni tekst za prikaz
+    comparisonText = currentComparison;  // Sačuvaj bazu za sljedeće poređenje
+    x = 128;                             // Resetuj scroll na početak samo tada
+  } else {
+    // Ako su se samo minute promijenile, samo ažuriraj 'text' ali NE DIRAJ 'x'
     text = newText;
-    lastText = newText;
-    text_width = text.length() * 6;
-    x = 128; // Promijenjeno sa 32 na 128
   }
 }
 
@@ -347,7 +368,7 @@ void removePastNotifications() {
 
   // Snimi novo stanje u Preferences
   if (changed) {
-    StaticJsonDocument<1024> doc;
+    StaticJsonDocument<3072> doc;
     JsonArray arr = doc.createNestedArray("lista");
 
     for (int i = 0; i < notificationCount; i++) {
@@ -556,7 +577,7 @@ void loop() {
   }
 
   if (sosActive) {
-    display->fillScreen(((millis() / 300) % 2) ? 0 : display->color565(255, 0, 0));
+    display->fillScreen(((millis() / 300) % 2) ? 0 : display->color565(0, 0, 255));
 
     if (millis() - sosBellTimer > sosPattern[sosStep]) {
       sosBellTimer = millis();

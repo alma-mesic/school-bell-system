@@ -11,12 +11,14 @@ using Newtonsoft.Json;
 using System.IO;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
+using System.IO.Ports;
 
 namespace SchoolBellSystem
 {
     public partial class LoginForm : Form
     {
         int br = 0;
+        SerialPort serialPort;
         public LoginForm()
         {
             InitializeComponent();
@@ -71,6 +73,11 @@ namespace SchoolBellSystem
             label2.BackColor = Color.Transparent;
             textBox2.UseSystemPasswordChar = true;
             pictureBox2.BackColor = Color.Transparent;
+
+            // Automatsko pronalaženje portova
+            string[] ports = SerialPort.GetPortNames();
+            comboBoxPorts.Items.AddRange(ports);
+            if (ports.Length > 0) comboBoxPorts.SelectedIndex = 0;
         }
 
         
@@ -99,6 +106,23 @@ namespace SchoolBellSystem
                 pictureBox2.Image = imageList1.Images[1];
             }
                 
+        }
+
+        private void btnConnect_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (serialPort != null && serialPort.IsOpen) serialPort.Close();
+
+                serialPort = new SerialPort(comboBoxPorts.SelectedItem.ToString(), 115200);
+                serialPort.NewLine = "\n";
+                serialPort.Open();
+                MessageBox.Show("Uspješno povezano na " + comboBoxPorts.SelectedItem.ToString());
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Greška: " + ex.Message);
+            }
         }
     }
 }

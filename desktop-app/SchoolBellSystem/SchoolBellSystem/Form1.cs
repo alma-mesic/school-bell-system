@@ -19,6 +19,12 @@ namespace SchoolBellSystem
         SerialPort serialPort;
         Timer obavijestiTimer;
 
+        public ETSbell(SerialPort port)
+        {
+            InitializeComponent();
+            this.serialPort = port; // Preuzimamo otvoreni port iz Login forme
+        }
+
         // -------------------- FUNCTIONS -----------------------
         public static void SetRoundCorners(Control c, int radius)
         {
@@ -31,6 +37,7 @@ namespace SchoolBellSystem
 
             c.Region = new Region(path);
         }
+
         void SendToESP(string json) // slanje podataka na ESP32
         {
             if (serialPort != null && serialPort.IsOpen)
@@ -197,24 +204,6 @@ namespace SchoolBellSystem
                     row.Cells[c].Value = " ";
                 }
             }
-
-
-            try
-            {
-                serialPort = new SerialPort("COM3", 115200); // PROMIJENI COM
-                serialPort.NewLine = "\n";
-
-                serialPort.Open();
-                System.Threading.Thread.Sleep(1000);
-
-                MessageBox.Show("ESP32 povezan!", "Povezivanje", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Greska pri spajanju na ESP32:\n" + ex.Message, "Povezivanje", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            serialPort.ReadTimeout = 1000;
-            serialPort.WriteTimeout = 1000;
 
             obavijestiTimer = new Timer();
             obavijestiTimer.Interval = 60 * 1000; // 1 minuta
@@ -545,50 +534,33 @@ namespace SchoolBellSystem
             int danIndex = (int)DateTime.Now.DayOfWeek - 1; // Monday = 0
             if (danIndex < 0 || danIndex > 4) // subota/nedjelja
             {
-                // šalji ESP-u da nema dezurnog
-                Dictionary<string, string> jsonObjekat = new Dictionary<string, string>();
-                jsonObjekat["tip"] = "dezurni";
-                jsonObjekat["ime"] = "Nema dezurnog";
-
-                string json = JsonConvert.SerializeObject(jsonObjekat);
-                SendToESP(json);
+                MessageBox.Show("Vikend je. Nema dežurstva.");
                 return;
             }
-
+            List<Dictionary<string, string>> listaZaSlanje = new List<Dictionary<string, string>>();
             int sadaMin = DateTime.Now.Hour * 60 + DateTime.Now.Minute;
-            string dezurniTrenutno = "";
 
             foreach (DataGridViewRow row in dataGridView3.Rows)
             {
                 if (row.Cells[0].Value == null) continue;
 
-                string dez = row.Cells[3 + danIndex].Value?.ToString().Trim();
-                if (string.IsNullOrEmpty(dez) || dez == " ") continue;
+                string ime = row.Cells[3 + danIndex].Value?.ToString().Trim();
+                // Ako je prazno, stavljamo tekst koji će se vrtiti na matrici
+                if (string.IsNullOrEmpty(ime) || ime == " ") ime = "Nema dezurnog";
 
-                // parsiraj početak i kraj časa sigurno
-                if (!TimeSpan.TryParse(row.Cells[1].Value?.ToString(), out TimeSpan start)) continue;
-                if (!TimeSpan.TryParse(row.Cells[2].Value?.ToString(), out TimeSpan end)) continue;
+                Dictionary<string, string> d = new Dictionary<string, string>();
+                d["p"] = row.Cells[1].Value.ToString(); // 'p' umjesto 'pocetak' (štedi RAM)
+                d["k"] = row.Cells[2].Value.ToString(); // 'k' umjesto 'kraj'
+                d["i"] = ime;                           // 'i' umjesto 'ime'
 
-                int startMin = start.Hours * 60 + start.Minutes;
-                int endMin = end.Hours * 60 + end.Minutes;
-
-                if (sadaMin >= startMin && sadaMin < endMin)
-                {
-                    dezurniTrenutno = dez;
-                    break;
-                }
+                listaZaSlanje.Add(d);
             }
 
-            if (string.IsNullOrEmpty(dezurniTrenutno))
-                dezurniTrenutno = "Nema dezurnog";
+            var paket = new { tip = "d_lista", podaci = listaZaSlanje };
+            string json = JsonConvert.SerializeObject(paket);
 
-            // šalji ESP-u
-            Dictionary<string, string> jsonObjekatFinal = new Dictionary<string, string>();
-            jsonObjekatFinal["tip"] = "dezurni";
-            jsonObjekatFinal["ime"] = dezurniTrenutno;
-
-            string jsonFinal = JsonConvert.SerializeObject(jsonObjekatFinal);
-            SendToESP(jsonFinal);
+            SendToESP(json);
+            MessageBox.Show("Dežurstva poslana na matricu!");
 
         }
 
