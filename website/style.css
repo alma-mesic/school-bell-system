@@ -882,3 +882,129 @@ main#systemPage {
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(141,153,174,0.5);
 }
+
+/***********************OBAVJETSENJA**************************/
+
+body > main.main-container {
+    padding: 130px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+
+body > main.main-container > .panel {
+    width: 100%;
+    max-width: 600px;
+    background: #2B2D42;
+    padding: 50px;
+    border-radius: 20px;
+    border: 1px solid #3F4154;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+
+body > main.main-container > .panel > label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #8D99AE;
+}
+
+body > main.main-container > .panel > input {
+    padding: 13px;
+    border-radius: 10px;
+    border: 1px solid #3F4154;
+    background: #3F4154;
+    color: #EDF2F4;
+    font-size: 14px;
+    transition: 0.3s ease;
+}
+
+body > main.main-container > .panel > input:focus {
+    outline: none;
+    border-color: #8D99AE;
+    box-shadow: 0 0 12px rgba(141,153,174,0.4);
+}
+
+body > main.main-container > .panel > .buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+body > main.main-container > .panel > .buttons > button:first-child {
+    padding: 12px 35px;
+    border-radius: 40px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(135deg, #8D99AE, #EDF2F4);
+    color: #1E1E2F;
+    transition: 0.3s ease;
+}
+
+body > main.main-container > .panel > .buttons > button:first-child:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(141,153,174,0.5);
+}
+
+body > main.main-container > .panel > .buttons > button:last-child {
+    padding: 12px 35px;
+    border-radius: 40px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ff3b3b, #c0392b);
+    color: white;
+    transition: 0.3s ease;
+}
+
+body > main.main-container > .panel > .buttons > button:last-child:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(231,76,60,0.6);
+}
+
+body > main.main-container > .panel > select {
+    background: #3F4154;
+    border: 1px solid #3F4154;
+    border-radius: 12px;
+    padding: 12px;
+    color: #EDF2F4;
+    font-size: 14px;
+    height: 200px;
+    overflow-y: auto;
+}
+
+body > main.main-container > .panel > select:focus {
+    outline: none;
+    border-color: #8D99AE;
+}
+
+/* scrollbar */
+body > main.main-container > .panel > select::-webkit-scrollbar {
+    width: 8px;
+}
+
+body > main.main-container > .panel > select::-webkit-scrollbar-thumb {
+    background: #8D99AE;
+    border-radius: 10px;
+}
+
+body > main.main-container > .panel > .sendBtn {
+    margin-top: 10px;
+    padding: 14px;
+    border-radius: 40px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    background: #8D99AE;
+    color: #1E1E2F;
+    transition: 0.3s ease;
+}
+
+body > main.main-container > .panel > .sendBtn:hover {
+    transform: scale(1.05);
+}

@@ -20,16 +20,38 @@
             <div class="burger" id="burger">&#9776;</div>
         </div>
         <ul class="burger_menu" id="burger_menu">
+            <li><a href="obavjestenja.html">Obavještenja</a></li>
+            <li><a href="raspored.html">Raspored</a></li>
+            <li><a href="dezurstvo.html">Dežurstvo</a></li>
+            <li><a href="test.html">Testiranje zvona</a></li>
+            <hr>
             <li><a href="profile.html">Profile</a></li>
             <li><a href="system.html">System</a></li>
             <li><a href="settings.html">Settings</a></li>
-            <li><a href="login.html">Log out</a></li>
+            <hr>
+            <li><a href="login.html" style="color: rgb(255, 61, 61);">Log out</a></li>
         </ul>
-
     </header>
 
     <!------------------MAIN------------------>
-    
+    <main class="main-container">
+        <div class="panel">
+            <label>Izaberi datum i vrijeme:</label>
+            <input type="datetime-local" id="datetime" class="labell">
+
+            <label>Upiši naziv događaja:</label>
+            <input type="text" id="eventName" placeholder="Naziv događaja" class="labell">
+
+            <div class="buttons">
+                <button onclick="addEvent()">Dodaj</button>
+                <button onclick="deleteEvent()">Obriši</button>
+            </div>
+
+            <select id="eventList" size="8"></select>
+
+            <button class="sendBtn">Pošalji na ESP32</button>
+        </div>
+    </main>
 
     <!------------------FOOTER------------------>
     <footer>
