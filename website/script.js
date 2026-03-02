@@ -4,12 +4,29 @@ let events = [];
 /*****************BRGER MENI*********************/
 const burger = document.getElementById("burger");
 if (burger) {
-    burger.onclick = function(){
-        let menu = document.getElementById("burger_menu");
-        menu.classList.toggle("show");
-    }
+    burger.addEventListener("click", function(e){
+    e.stopPropagation(); 
+    let menu = document.getElementById("burger_menu");
+    menu.classList.toggle("show");
+});
 }
+document.addEventListener("click", function(e) {
+    const menu = document.getElementById("burger_menu");
+    const burgerBtn = document.getElementById("burger");
 
+    if (!menu.classList.contains("show")) return;
+
+    if (!menu.contains(e.target) && !burgerBtn.contains(e.target)) {
+        menu.classList.remove("show");
+    }
+});
+
+const menu = document.getElementById("burger_menu");
+if (menu) {
+    menu.addEventListener("click", function(e) {
+        e.stopPropagation();
+    });
+}
 /********DIVS - main**********/
 
 const notificationsCard = document.getElementById("notificationsCard");

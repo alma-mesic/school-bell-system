@@ -125,30 +125,28 @@ header {
     font-size: 28px;
     cursor: pointer;
     color: #EDF2F4;
-    z-index: 1001;
+    z-index: 9999;
 }
-
 
 .burger_menu {
-    position: fixed;
-    top: 0;
-    right: -260px;
-    width: 260px;
-    height: 100vh;
-    background-color: #3F4154;
+    position: absolute;
+    top: 65px; 
+    right: 30px;
+    width: 240px;
+    max-height: 500px;
+    overflow-y: auto;
+    background-color: #484a5e;
     list-style: none;
-    padding: 80px 20px;
-    display: flex;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+    display: none;
     flex-direction: column;
-    transition: right 0.3s ease;
+    gap: 6px;
+    z-index: 9999;
 }
-
 .burger_menu.show {
-    right: 0;
-}
-
-.burger_menu li {
-    margin: 15px 0;
+    display: flex;
 }
 
 .burger_menu li a {
@@ -162,7 +160,7 @@ header {
 }
 
 .burger_menu li a:hover {
-    background-color: #2B2D42;
+    background-color: #363850;
 }
 
 /*******************MAIN PAGE**************/
