@@ -130,6 +130,7 @@ int dayOfYear(int y, int m, int d) {
 // ---------------- FUNKCIJE --------------------
 // =========== WIFI =============
 void connectWiFi() {
+  if (ssid == "") return;  // Ne pokušavaj ako nema podataka
   WiFi.begin(ssid.c_str(), wifiPassword.c_str());
 
   int tries = 0;
@@ -158,14 +159,14 @@ int timeToMinutes(const String& t) {
 // ============ DISPLAY =============
 void showStartupScreen() {
   display->fillScreen(0);
-  display->setTextColor(display->color565(255, 0, 0));
-  display->setCursor(6, 4);
+  display->setTextColor(display->color565(255, 150, 0));
+  display->setCursor(28, 2);
   display->print("ETS");
 }
 
 void showTime() {
   display->setTextSize(2);  // Veća slova za sat
-  display->setTextColor(display->color565(0, 255, 0));
+  display->setTextColor(display->color565(255, 150, 0));
 
   // Da bi dvotočka bila na kraju prve matrice (piksel 64),
   // sat (HH:) mora početi na 28. pikselu.
@@ -176,7 +177,7 @@ void showTime() {
 
 void scrollText() {
   display->setTextSize(2);  // Veća slova i za obavijesti
-  display->setTextColor(display->color565(0, 255, 0));
+  display->setTextColor(display->color565(150, 255, 0));
 
   // Drugi red počinje na y=16 (donja polovica ekrana)
   display->setCursor(x, 17);
@@ -226,26 +227,15 @@ void buildMainText() {
       int remaining = endMin - nowMin;
 
       newText = String(classes[i].number) + ". cas u toku | Cas zavrsava u " + classes[i].end + " | Ostalo jos " + remaining + " min";
-
+      
       if (classes[i].dezurni != "") {
-        newText += " | Dezurni: " + classes[i].dezurni;
+            newText += " | Dezurni: " + classes[i].dezurni;
       }
-
-      if (nowMin >= startMin && nowMin < endMin) {
-        int remaining = endMin - nowMin;
-        newText = String(classes[i].number) + ". cas | Kraj u " + classes[i].end + " | Jos " + remaining + " min";
-
-        // OVDJE DODAJ: Ako postoji ime dežurnog, prikaži ga
-        if (classes[i].dezurni != "" && classes[i].dezurni != " ") {
-          newText += " | DEZURNI: " + classes[i].dezurni;
-        }
-
-        classInProgress = true;
-        break;
-      }
-    }
+      
+      classInProgress = true;
+      break;
+    } 
   }
-
   // Ako nema časa u toku, proveri da li je pauza između dva časa (5 min)
   if (!classInProgress && classCount > 0) {
     for (int i = 0; i < classCount - 1; i++) {
@@ -270,331 +260,326 @@ void buildMainText() {
       }
     }
   }
+      if (newText == "") newText = "Nema casa";
 
-  if (newText == "") newText = "Nema casa";
+      // Današnji datum
+      int todayYear = now.tm_year + 1900;
+      int todayMonth = now.tm_mon + 1;
+      int todayDay = now.tm_mday;
 
-  // Današnji datum
-  int todayYear = now.tm_year + 1900;
-  int todayMonth = now.tm_mon + 1;
-  int todayDay = now.tm_mday;
+      // Sutrašnji datum
+      time_t t_now = mktime(&now) + 24 * 3600;
+      struct tm tm_tomorrow;
+      localtime_r(&t_now, &tm_tomorrow);
+      int tomorrowYear = tm_tomorrow.tm_year + 1900;
+      int tomorrowMonth = tm_tomorrow.tm_mon + 1;
+      int tomorrowDay = tm_tomorrow.tm_mday;
 
-  // Sutrašnji datum
-  time_t t_now = mktime(&now) + 24 * 3600;
-  struct tm tm_tomorrow;
-  localtime_r(&t_now, &tm_tomorrow);
-  int tomorrowYear = tm_tomorrow.tm_year + 1900;
-  int tomorrowMonth = tm_tomorrow.tm_mon + 1;
-  int tomorrowDay = tm_tomorrow.tm_mday;
+      // Obavijesti
+      for (int i = 0; i < notificationCount; i++) {
+        bool isToday = notifications[i].year == todayYear && notifications[i].month == todayMonth && notifications[i].day == todayDay;
 
-  // Obavijesti
-  for (int i = 0; i < notificationCount; i++) {
-    bool isToday = notifications[i].year == todayYear && notifications[i].month == todayMonth && notifications[i].day == todayDay;
+        bool isTomorrow = notifications[i].year == tomorrowYear && notifications[i].month == tomorrowMonth && notifications[i].day == tomorrowDay;
 
-    bool isTomorrow = notifications[i].year == tomorrowYear && notifications[i].month == tomorrowMonth && notifications[i].day == tomorrowDay;
+        if (!isToday && !isTomorrow) continue;
 
-    if (!isToday && !isTomorrow) continue;
+        newText += " | ";
+        if (isTomorrow) newText += "sutra ";
 
-    newText += " | ";
-    if (isTomorrow) newText += "sutra ";
+        newText += notifications[i].text;
+        newText += " u ";
 
-    newText += notifications[i].text;
-    newText += " u ";
+        if (notifications[i].hour < 10) newText += "0";
+        newText += notifications[i].hour;
+        newText += ":";
 
-    if (notifications[i].hour < 10) newText += "0";
-    newText += notifications[i].hour;
-    newText += ":";
+        if (notifications[i].minute < 10) newText += "0";
+        newText += notifications[i].minute;
+      }
 
-    if (notifications[i].minute < 10) newText += "0";
-    newText += notifications[i].minute;
-  }
-
-  // Iz novog teksta izbacujemo dio koji sadrži "Ostalo jos XX min"
-  String currentComparison = newText;
-  int pos = currentComparison.indexOf("| Ostalo jos");
-  if (pos != -1) {
-    currentComparison = currentComparison.substring(0, pos);
-  }
-
-  // 2. Provjeri da li se desila stvarna promjena (novi čas ili nova obavijest)
-  if (currentComparison != comparisonText) {
-    text = newText;                      // Postavi puni tekst za prikaz
-    comparisonText = currentComparison;  // Sačuvaj bazu za sljedeće poređenje
-    x = 128;                             // Resetuj scroll na početak samo tada
-  } else {
-    // Ako su se samo minute promijenile, samo ažuriraj 'text' ali NE DIRAJ 'x'
+ // Reset scrolla samo ako se promijenio tekst
+ if (newText != lastText) {
     text = newText;
+    lastText = newText;
+    text_width = text.length() * 6;
+    x = 128; // Promijenjeno sa 32 na 128
   }
 }
 
-// ============ ROTACIJA OBAVJESTI ==============
-void rotateNotifications() {
-  if (notificationCount == 0) return;
 
-  if (millis() - lastNotifSwitch > notifInterval) {
-    currentNotifIndex++;
-    if (currentNotifIndex >= notificationCount)
-      currentNotifIndex = 0;
-    lastNotifSwitch = millis();
-  }
-}
+    // ============ ROTACIJA OBAVJESTI ==============
+    void rotateNotifications() {
+      if (notificationCount == 0) return;
 
-// =========== BRISANJE OBAVJESTI ==============
-void removePastNotifications() {
-  struct tm now;
-  if (!getLocalTime(&now)) return;
-
-  bool changed = false;
-
-  for (int i = 0; i < notificationCount;) {
-    // ako NIJE danas → preskoči
-    if (notifications[i].year != now.tm_year + 1900 || notifications[i].month != now.tm_mon + 1 || notifications[i].day != now.tm_mday) {
-      i++;
-      continue;
+      if (millis() - lastNotifSwitch > notifInterval) {
+        currentNotifIndex++;
+        if (currentNotifIndex >= notificationCount)
+          currentNotifIndex = 0;
+        lastNotifSwitch = millis();
+      }
     }
 
-    // ako je danas, ali vrijeme još NIJE prošlo → preskoči
-    if (notifications[i].hour > now.tm_hour || (notifications[i].hour == now.tm_hour && notifications[i].minute > now.tm_min)) {
-      i++;
-      continue;
+    // =========== BRISANJE OBAVJESTI ==============
+    void removePastNotifications() {
+      struct tm now;
+
+      if (!getLocalTime(&now)) return;
+
+      bool changed = false;
+
+      for (int i = 0; i < notificationCount;) {
+        bool passed = false;
+        // ako NIJE danas → preskoči
+        if (notifications[i].year != now.tm_year + 1900 || notifications[i].month != now.tm_mon + 1 || notifications[i].day != now.tm_mday) {
+          i++;
+          continue;
+        }
+
+        // ako je danas, ali vrijeme još NIJE prošlo → preskoči
+        if (notifications[i].hour > now.tm_hour || (notifications[i].hour == now.tm_hour && notifications[i].minute > now.tm_min)) {
+          i++;
+          continue;
+        }
+
+        // prošla obavijest → briši
+        for (int j = i; j < notificationCount - 1; j++) {
+          notifications[j] = notifications[j + 1];
+        }
+        notificationCount--;
+        changed = true;
+      }
+
+      // Snimi novo stanje u Preferences
+      if (changed) {
+        StaticJsonDocument<3072> doc;
+        JsonArray arr = doc.createNestedArray("lista");
+
+        for (int i = 0; i < notificationCount; i++) {
+          JsonObject o = arr.createNestedObject();
+          o["naziv"] = notifications[i].text;
+
+          char buf[20];
+          sprintf(buf, "%04d-%02d-%02d %02d:%02d",
+                  notifications[i].year,
+                  notifications[i].month,
+                  notifications[i].day,
+                  notifications[i].hour,
+                  notifications[i].minute);
+          o["datumVrijeme"] = buf;
+        }
+
+        doc["tip"] = "obavijesti";
+
+        String json;
+        serializeJson(doc, json);
+        saveData("obavijesti", json);
+      }
     }
 
-    // prošla obavijest → briši
-    for (int j = i; j < notificationCount - 1; j++) {
-      notifications[j] = notifications[j + 1];
-    }
-    notificationCount--;
-    changed = true;
-  }
+    // ============== ZVONJAVA ===============
+    void checkBell() {
+      struct tm now;
+      if (!getLocalTime(&now)) return;
 
-  // Snimi novo stanje u Preferences
-  if (changed) {
-    StaticJsonDocument<3072> doc;
-    JsonArray arr = doc.createNestedArray("lista");
+      int nowMin = now.tm_hour * 60 + now.tm_min;
 
-    for (int i = 0; i < notificationCount; i++) {
-      JsonObject o = arr.createNestedObject();
-      o["naziv"] = notifications[i].text;
+      if (nowMin == lastBellMinute) return;
 
-      char buf[20];
-      sprintf(buf, "%04d-%02d-%02d %02d:%02d",
-              notifications[i].year,
-              notifications[i].month,
-              notifications[i].day,
-              notifications[i].hour,
-              notifications[i].minute);
-      o["datumVrijeme"] = buf;
+      for (int i = 0; i < classCount; i++) {
+        int startMin = timeToMinutes(classes[i].start);
+        int endMin = timeToMinutes(classes[i].end);
+
+        if (nowMin == startMin || nowMin == endMin) {
+          digitalWrite(RELAY_PIN, HIGH);
+          delay(2000);  // zvoni 2 sekunde
+          digitalWrite(RELAY_PIN, LOW);
+
+          lastBellMinute = nowMin;
+          break;
+        }
+      }
     }
 
-    doc["tip"] = "obavijesti";
-
-    String json;
-    serializeJson(doc, json);
-    saveData("obavijesti", json);
-  }
-}
-
-// ============== ZVONJAVA ===============
-void checkBell() {
-  struct tm now;
-  if (!getLocalTime(&now)) return;
-
-  int nowMin = now.tm_hour * 60 + now.tm_min;
-
-  if (nowMin == lastBellMinute) return;
-
-  for (int i = 0; i < classCount; i++) {
-    int startMin = timeToMinutes(classes[i].start);
-    int endMin = timeToMinutes(classes[i].end);
-
-    if (nowMin == startMin || nowMin == endMin) {
-      digitalWrite(RELAY_PIN, HIGH);
-      delay(2000);  // zvoni 2 sekunde
-      digitalWrite(RELAY_PIN, LOW);
-
-      lastBellMinute = nowMin;
-      break;
-    }
-  }
-}
-
-// ============ EEPROM ==============
-void saveData(const String& tip, const String& json) {
-  prefs.putString(tip.c_str(), json);  // tip = "raspored" ili "obavijesti"
-  Serial.println("Podaci sacuvani u Preferences: " + tip);
-}
-
-void loadSavedData() {
-  // Raspored
-  String rasporedJson = prefs.getString("raspored", "");
-  if (rasporedJson.length() > 0) handleJson(rasporedJson);
-
-  // Obavijesti
-  String obavijestiJson = prefs.getString("obavijesti", "");
-  if (obavijestiJson.length() > 0) handleJson(obavijestiJson);
-}
-
-void clearEEPROM() {
-  prefs.clear();  // briše SVE iz namespace "schoolbell"
-  Serial.println("EEPROM obrisan!");
-
-  // reset stanja u RAM-u
-  classCount = 0;
-  notificationCount = 0;
-  text = "EEPROM obrisan";
-}
-
-// ============== JSON ===============
-void handleJson(String json) {
-  StaticJsonDocument<2048> doc;
-  if (deserializeJson(doc, json)) return;
-
-  String tip = doc["tip"] | "";
-
-  if (tip == "raspored") {
-    classCount = 0;
-    for (JsonObject c : doc["casovi"].as<JsonArray>()) {
-      classes[classCount++] = {
-        c["dan"].as<String>(),
-        c["cas"].as<int>(),
-        c["pocetak"].as<String>(),
-        c["kraj"].as<String>(),
-        c["dezurni"].as<String>()
-      };
-    }
-    saveData("raspored", json);
-  }
-
-  else if (tip == "obavijesti") {
-    notificationCount = 0;
-
-    for (JsonObject o : doc["lista"].as<JsonArray>()) {
-      String dt = o["datumVrijeme"];  // YYYY-MM-DD HH:MM
-
-      if (dt.length() < 16 || notificationCount >= 10) continue;
-
-      notifications[notificationCount++] = {
-        o["naziv"].as<String>(),
-        dt.substring(0, 4).toInt(),    // year
-        dt.substring(5, 7).toInt(),    // month
-        dt.substring(8, 10).toInt(),   // day
-        dt.substring(11, 13).toInt(),  // hour
-        dt.substring(14, 16).toInt()   // minute
-      };
+    // ============ EEPROM ==============
+    void saveData(const String& tip, const String& json) {
+      prefs.putString(tip.c_str(), json);  // tip = "raspored" ili "obavijesti"
+      Serial.println("Podaci sacuvani u Preferences: " + tip);
     }
 
-    saveData("obavijesti", json);
-  }
+    void loadSavedData() {
+      // Raspored
+      String rasporedJson = prefs.getString("raspored", "");
+      if (rasporedJson.length() > 0) handleJson(rasporedJson);
 
-  else if (tip == "zvono") {
-    String a = doc["akcija"];
-    if (a == "start") {
-      bellTestMode = true;
-      digitalWrite(RELAY_PIN, HIGH);
-    }
-    if (a == "stop") {
-      bellTestMode = false;
-      digitalWrite(RELAY_PIN, LOW);
-    }
-  }
-
-  else if (tip == "emergency") {
-    textBeforeSOS = text;
-    sosActive = true;
-    sosStartTime = millis();
-    sosBellTimer = millis();
-    sosStep = 0;
-  }
-
-  else if (tip == "clear_eeprom") {
-    if (doc["password"] == adminPassword)
-      clearEEPROM();
-  }
-
-  else if (tip == "wifi") {
-    ssid = doc["ssid"].as<String>();
-    wifiPassword = doc["password"].as<String>();
-
-    prefs.putString("ssid", ssid);
-    prefs.putString("wifiPass", wifiPassword);
-
-    connectWiFi();
-  }
-
-  else if (tip == "admin") {
-    String newPass = doc["password"].as<String>();
-    adminPassword = newPass;
-    prefs.putString("adminPass", newPass);
-  }
-}
-
-// ---------------- SETUP I LOOP --------------------
-// ============ SETUP ============
-void setup() {
-  Serial.begin(115200);
-  pinMode(RELAY_PIN, OUTPUT);
-  configuration();
-
-  display = new MatrixPanel_I2S_DMA(mxconfig);
-  display->begin();
-  display->setBrightness8(120);
-  display->setTextWrap(false);
-
-  startTime = millis();
-  text_width = text.length() * 6;
-
-  prefs.begin("schoolbell", false);  // namespace: schoolbell, read/write
-
-  adminPassword = prefs.getString("adminPass", "1234");
-  ssid = prefs.getString("ssid", "");
-  wifiPassword = prefs.getString("wifiPass", "");
-  if (ssid == "" || wifiPassword == "") {
-    ssid = "59588d";
-    wifiPassword = "273370344";
-  }
-
-  connectWiFi();
-  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-  loadSavedData();  // učitaj prethodni raspored i obavijesti
-}
-
-// ============= LOOP =============
-void loop() {
-
-  if (Serial.available())
-    handleJson(Serial.readStringUntil('\n'));
-
-  static unsigned long lastCleanup = 0;
-
-  if (millis() - lastCleanup > 60000) {  // svaku 1 min
-    removePastNotifications();
-    lastCleanup = millis();
-  }
-
-  if (startup) {
-    showStartupScreen();
-    if (millis() - startTime > 3000) startup = false;
-    return;
-  }
-
-  if (sosActive) {
-    display->fillScreen(((millis() / 300) % 2) ? 0 : display->color565(0, 0, 255));
-
-    if (millis() - sosBellTimer > sosPattern[sosStep]) {
-      sosBellTimer = millis();
-      digitalWrite(RELAY_PIN, !digitalRead(RELAY_PIN));
-      sosStep = (sosStep + 1) % sosLen;
+      // Obavijesti
+      String obavijestiJson = prefs.getString("obavijesti", "");
+      if (obavijestiJson.length() > 0) handleJson(obavijestiJson);
     }
 
-    if (millis() - sosStartTime > 10000) {
-      sosActive = false;
-      digitalWrite(RELAY_PIN, LOW);
-      text = textBeforeSOS;
-    }
-    return;
-  }
+    void clearEEPROM() {
+      prefs.clear();  // briše SVE iz namespace "schoolbell"
+      Serial.println("EEPROM obrisan!");
 
-  checkBell();
-  buildMainText();
-  drawMainScreen();
-  delay(80);
-}
+      // reset stanja u RAM-u
+      classCount = 0;
+      notificationCount = 0;
+      text = "EEPROM obrisan";
+    }
+
+    // ============== JSON ===============
+    void handleJson(String json) {
+      StaticJsonDocument<4096> doc;
+      if (deserializeJson(doc, json)) return;
+
+      String tip = doc["tip"] | "";
+
+      if (tip == "raspored") {
+        classCount = 0;
+        for (JsonObject c : doc["casovi"].as<JsonArray>()) {
+          classes[classCount++] = {
+            c["dan"].as<String>(),
+            c["cas"].as<int>(),
+            c["pocetak"].as<String>(),
+            c["kraj"].as<String>(),
+            c["dezurni"].as<String>()
+          };
+        }
+        saveData("raspored", json);
+      }
+
+      else if (tip == "obavijesti") {
+        notificationCount = 0;
+
+        for (JsonObject o : doc["lista"].as<JsonArray>()) {
+          String dt = o["datumVrijeme"];  // YYYY-MM-DD HH:MM
+
+          if (dt.length() < 16 || notificationCount >= 10) continue;
+
+          notifications[notificationCount++] = {
+            o["naziv"].as<String>(),
+            dt.substring(0, 4).toInt(),    // year
+            dt.substring(5, 7).toInt(),    // month
+            dt.substring(8, 10).toInt(),   // day
+            dt.substring(11, 13).toInt(),  // hour
+            dt.substring(14, 16).toInt()   // minute
+          };
+        }
+
+        saveData("obavijesti", json);
+      }
+
+      else if (tip == "zvono") {
+        String a = doc["akcija"];
+        if (a == "start") {
+          bellTestMode = true;
+          digitalWrite(RELAY_PIN, HIGH);
+        }
+        if (a == "stop") {
+          bellTestMode = false;
+          digitalWrite(RELAY_PIN, LOW);
+        }
+      }
+
+      else if (tip == "emergency") {
+        textBeforeSOS = text;
+        sosActive = true;
+        sosStartTime = millis();
+        sosBellTimer = millis();
+        sosStep = 0;
+      }
+
+      else if (tip == "clear_eeprom") {
+        if (doc["password"] == adminPassword)
+          clearEEPROM();
+      }
+
+      else if (tip == "wifi") {
+        ssid = doc["ssid"].as<String>();
+        wifiPassword = doc["password"].as<String>();
+
+        prefs.putString("ssid", ssid);
+        prefs.putString("wifiPass", wifiPassword);
+
+        connectWiFi();
+      }
+
+      else if (tip == "admin") {
+        String newPass = doc["password"].as<String>();
+        adminPassword = newPass;
+        prefs.putString("adminPass", newPass);
+      }
+    }
+
+    // ---------------- SETUP I LOOP --------------------
+    // ============ SETUP ============
+    void setup() {
+      Serial.begin(115200);
+      Serial.setRxBufferSize(4096);
+      Serial.setTimeout(10);
+      pinMode(RELAY_PIN, OUTPUT);
+      configuration();
+
+      display = new MatrixPanel_I2S_DMA(mxconfig);
+      display->begin();
+      display->setBrightness8(120);
+      display->setTextWrap(false);
+
+      startTime = millis();
+      text_width = text.length() * 6;
+
+      prefs.begin("schoolbell", false);  // namespace: schoolbell, read/write
+
+      adminPassword = prefs.getString("adminPass", "1234");
+      ssid = prefs.getString("ssid", "");
+      wifiPassword = prefs.getString("wifiPass", "");
+      if (ssid == "" || wifiPassword == "") {
+        ssid = "MUJKIC";
+        wifiPassword = "100200300";
+      }
+
+      connectWiFi();
+      configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+      loadSavedData();  // učitaj prethodni raspored i obavijesti
+    }
+
+    // ============= LOOP =============
+    void loop() {
+
+      if (Serial.available())
+        handleJson(Serial.readStringUntil('\n'));
+
+      static unsigned long lastCleanup = 0;
+
+      if (millis() - lastCleanup > 60000) {  // svaku 1 min
+        removePastNotifications();
+        lastCleanup = millis();
+      }
+
+      if (startup) {
+        showStartupScreen();
+        if (millis() - startTime > 3000) startup = false;
+        return;
+      }
+
+      if (sosActive) {
+        display->fillScreen(((millis() / 300) % 2) ? 0 : display->color565(255, 0, 0));
+
+        if (millis() - sosBellTimer > sosPattern[sosStep]) {
+          sosBellTimer = millis();
+          digitalWrite(RELAY_PIN, !digitalRead(RELAY_PIN));
+          sosStep = (sosStep + 1) % sosLen;
+        }
+
+        if (millis() - sosStartTime > 10000) {
+          sosActive = false;
+          digitalWrite(RELAY_PIN, LOW);
+          text = textBeforeSOS;
+        }
+        return;
+      }
+
+      checkBell();
+      buildMainText();
+      drawMainScreen();
+      delay(80);
+    }

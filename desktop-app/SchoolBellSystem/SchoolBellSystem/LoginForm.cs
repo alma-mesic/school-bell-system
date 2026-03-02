@@ -44,7 +44,15 @@ namespace SchoolBellSystem
             // provjera unosa
             if (textBox1.Text == adminUser && textBox2.Text == adminPass)
             {
-                ETSbell mainForm = new ETSbell();
+                // PRVO PROVJERI DA LI JE PORT UOPŠTE OTVOREN PRIJE LOGINA
+                if (serialPort == null || !serialPort.IsOpen)
+                {
+                    MessageBox.Show("Morate se prvo povezati na uređaj (Connect)!", "Upozorenje");
+                    return;
+                }
+
+                // PROSLIJEDI serialPort U ZAGRADU
+                ETSbell mainForm = new ETSbell(serialPort);
                 mainForm.Show();
                 this.Hide();
             }

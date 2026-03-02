@@ -56,7 +56,6 @@ namespace SchoolBellSystem
             DateTime sada = DateTime.Now;
 
             List<string> zaBrisanje = new List<string>();
-
             foreach (string item in listBox1.Items)
             {
                 // format: yyyyMMddHHmm NAZIV dd.MM.yyyy. HH:mm
@@ -83,6 +82,7 @@ namespace SchoolBellSystem
             {
                 listBox1.Items.Remove(item);
             }
+
         }
 
         private void LoadSavedNotifications() // ucitavanje sacuvanih notifikacija
@@ -290,11 +290,8 @@ namespace SchoolBellSystem
             string json = JsonConvert.SerializeObject(jsonObjekat);
 
             SendToESP(json);
-
-            // Spremi i lokalno u obavijesti.json
             File.WriteAllText("obavijesti.json", json);
-
-            MessageBox.Show("Obavjesti poslane na ESP32", "Poslano", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("Obavijesti poslane!");
         }
 
 
@@ -302,6 +299,51 @@ namespace SchoolBellSystem
         private void button3_Click(object sender, EventArgs e) //salje raspored iz datagridview na esp eeprom i gleda da li je selektan radiobuttn 1 ili 2
         {                                                       //i na osnovu toga bira po kojem rasporedu ce zvoniti zvono (datagridview1 ili datagridview2
 
+            /* DataGridView aktivniGrid;
+
+             if (radioButton1.Checked) // pretpostavka: radioButton1 = redovni
+                 aktivniGrid = dataGridView1;
+             else
+                 aktivniGrid = dataGridView2;
+
+             List<Dictionary<string, string>> casovi = new List<Dictionary<string, string>>();
+
+             string[] dani = { "Ponedjeljak", "Utorak", "Srijeda", "Četvrtak", "Petak" };
+                 foreach (DataGridViewRow row in aktivniGrid.Rows)
+                 {
+                     if ( row.Cells[0].Value == null) continue;
+
+                     for (int d = 0; d < dani.Length; d++)
+                     {
+                         int indeksKolone = 3 + d;
+                         if (indeksKolone >= aktivniGrid.ColumnCount) break;
+                         // sigurno uzimanje vrijednosti (ako je null, stavi prazan string)
+                         object cellValue = row.Cells[indeksKolone].Value;
+                         string dezurni = (cellValue != null) ? cellValue.ToString().Trim() : "";
+
+                         if (string.IsNullOrWhiteSpace(dezurni))
+                             continue;
+
+                         Dictionary<string, string> zapis = new Dictionary<string, string>();
+                         zapis["cas"] = row.Cells[0].Value.ToString();
+                         zapis["pocetak"] = row.Cells[1].Value.ToString();
+                         zapis["kraj"] = row.Cells[2].Value.ToString();
+
+                         casovi.Add(zapis);
+                     }
+                 }
+
+
+                 Dictionary<string, object> jsonObjekat = new Dictionary<string, object>();
+                 jsonObjekat["tip"] = "raspored";
+                 jsonObjekat["nacin"] = radioButton1.Checked ? "redovni" : "skraceni";
+                 jsonObjekat["casovi"] = casovi;
+
+                 string json = JsonConvert.SerializeObject(jsonObjekat);
+
+                 SendToESP(json);
+                 MessageBox.Show("Raspored je poslan!", "Poslano", MessageBoxButtons.OK, MessageBoxIcon.Information);
+  */
             DataGridView aktivniGrid;
 
             if (radioButton1.Checked) // pretpostavka: radioButton1 = redovni
@@ -309,44 +351,37 @@ namespace SchoolBellSystem
             else
                 aktivniGrid = dataGridView2;
 
+            // 2. Lista casova (ovo ce u JSON ici kao niz)
             List<Dictionary<string, string>> casovi = new List<Dictionary<string, string>>();
-
-            string[] dani = { "Ponedjeljak", "Utorak", "Srijeda", "Četvrtak", "Petak" };
 
             foreach (DataGridViewRow row in aktivniGrid.Rows)
             {
                 if (row.Cells[0].Value == null) continue;
 
-                for (int d = 0; d < dani.Length; d++)
-                {
-                    string dezurni = row.Cells[3 + d].Value?.ToString().Trim();
+                // jedan cas
+                Dictionary<string, string> cas = new Dictionary<string, string>();
+                cas["cas"] = row.Cells[0].Value.ToString();
+                cas["pocetak"] = row.Cells[1].Value.ToString();
+                cas["kraj"] = row.Cells[2].Value.ToString();
 
-                    if (string.IsNullOrWhiteSpace(dezurni))
-                        continue;
-
-                    Dictionary<string, string> zapis = new Dictionary<string, string>();
-                    zapis["dan"] = dani[d];
-                    zapis["cas"] = row.Cells[0].Value.ToString();
-                    zapis["pocetak"] = row.Cells[1].Value.ToString();
-                    zapis["kraj"] = row.Cells[2].Value.ToString();
-                    zapis["dezurni"] = dezurni;
-
-                    casovi.Add(zapis);
-                }
+                casovi.Add(cas);
             }
 
-
+            // 3. Glavni JSON objekat
             Dictionary<string, object> jsonObjekat = new Dictionary<string, object>();
             jsonObjekat["tip"] = "raspored";
             jsonObjekat["nacin"] = radioButton1.Checked ? "redovni" : "skraceni";
             jsonObjekat["casovi"] = casovi;
 
+            // 4. Pretvaranje u JSON tekst
             string json = JsonConvert.SerializeObject(jsonObjekat);
 
-            SendToESP(json);
-            MessageBox.Show("Raspored je poslan!", "Poslano", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
 
+            SendToESP(json);
+
+            // 5. Za sad samo prikaz (kasnije ide na ESP32)
+            MessageBox.Show("Raspored je poslan!");
+        }
 
         // --------------------------- TESTIRANJE -------------------------------
         private void bellstart_Click(object sender, EventArgs e) // test zvona (pocinje zvoniti)
@@ -529,7 +564,7 @@ namespace SchoolBellSystem
 
         private void button7_Click(object sender, EventArgs e)
         {
-            
+            /*
             // trenutni dan u sedmici (0 = pon, 4 = pet)
             int danIndex = (int)DateTime.Now.DayOfWeek - 1; // Monday = 0
             if (danIndex < 0 || danIndex > 4) // subota/nedjelja
@@ -560,7 +595,7 @@ namespace SchoolBellSystem
             string json = JsonConvert.SerializeObject(paket);
 
             SendToESP(json);
-            MessageBox.Show("Dežurstva poslana na matricu!");
+            MessageBox.Show("Dežurstva poslana na matricu!");*/
 
         }
 
@@ -630,6 +665,7 @@ namespace SchoolBellSystem
         {
 
         }
+
 
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
