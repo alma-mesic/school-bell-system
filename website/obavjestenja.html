@@ -29,7 +29,24 @@
     </header>
 
     <!------------------MAIN------------------>
-    
+    <main class="main-container">
+        <div class="panel">
+            <label>Izaberi datum i vrijeme:</label>
+            <input type="datetime-local" id="datetime" class="labell">
+
+            <label>Upiši naziv događaja:</label>
+            <input type="text" id="eventName" placeholder="Naziv događaja" class="labell">
+
+            <div class="buttons">
+                <button onclick="addEvent()">Dodaj</button>
+                <button onclick="deleteEvent()">Obriši</button>
+            </div>
+
+            <select id="eventList" size="8"></select>
+
+            <button class="sendBtn">Pošalji na ESP32</button>
+        </div>
+    </main>
 
     <!------------------FOOTER------------------>
     <footer>

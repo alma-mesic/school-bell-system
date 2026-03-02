@@ -1,3 +1,6 @@
+/**GLOBAL***/
+let events = [];
+
 /*****************BRGER MENI*********************/
 const burger = document.getElementById("burger");
 if (burger) {
@@ -6,9 +9,6 @@ if (burger) {
         menu.classList.toggle("show");
     }
 }
-
-
-
 
 /********DIVS - main**********/
 
@@ -370,3 +370,58 @@ function setupColorPreview(inputId, previewId) {
 setupColorPreview('letter_color_change', 'letter_color_preview');
 setupColorPreview('marix_time_color_change', 'marix_time_color_preview');
 setupColorPreview('matrix_letter_color_change', 'matrix_letter_color_preview');
+
+/********************OBAVJEŠTENJA**********************/
+
+function addEvent() {
+    const name = document.getElementById("eventName").value;
+    const datetime = document.getElementById("datetime").value;
+
+    if (!name || !datetime) {
+        alert("Popuni sva polja!");
+        return;
+    }
+
+    const event = {
+        name: name,
+        time: new Date(datetime)
+    };
+
+    events.push(event);
+
+    sortEvents();
+    renderList();
+
+    document.getElementById("eventName").value = "";
+}
+
+function deleteEvent() {
+    const list = document.getElementById("eventList");
+    const index = list.selectedIndex;
+
+    if (index >= 0) {
+        events.splice(index, 1);
+        renderList();
+    }
+}
+
+function sortEvents() {
+    events.sort((a, b) => a.time - b.time);
+}
+
+function renderList() {
+    const list = document.getElementById("eventList");
+    list.innerHTML = "";
+
+    events.forEach(event => {
+        const option = document.createElement("option");
+        option.text = `${event.time.toLocaleString()} - ${event.name}`;
+        list.add(option);
+    });
+}
+
+setInterval(() => {
+    const now = new Date();
+    events = events.filter(event => event.time > now);
+    renderList();
+}, 60000); 
