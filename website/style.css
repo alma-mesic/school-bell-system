@@ -177,28 +177,64 @@ main#homePage {
 
 .card {
     background-color: #8D99AE;
-    color: #1E1E2F;
+    color: #F0F0F5;
     border-radius: 12px;
     height: 240px;
     font-size: 1.4rem;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
     font-family: 'Inter', sans-serif;
     font-weight: 600;
     cursor: pointer;
-    transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
+    transition: transform 0.3s, box-shadow 0.3s;
     text-align: center;
-    padding: 15px;
+    padding: 0; /* Smanjujemo padding na 0 da slika ide do ivica */
+    position: relative; /* Bitno za tekst preko slike */
+    overflow: hidden;   /* Da slika ne "izlazi" van zaobljenih uglova */
 }
 
 .card img {
-    height: 60px;
-    width: 60px;
-    margin-bottom: 10px;
+    height: 100%;    /* Slika ide preko cijele visine */
+    width: 100%;     /* I cijele širine */
+    margin: 0;
+    object-fit: cover; /* Ovo sprečava da se slika razvuče/izobliči */
+}
+/* Ako želiš da tekst ima tamnu podlogu radi čitljivosti */
+.card::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3); /* Lagano zatamnjenje cijele slike */
+    z-index: 1;
 }
 
+/* Podešavanje samog teksta unutar kartice */
+.card span, .card p, .card div {
+    position: absolute;
+    bottom: 20px; /* Odmaknuto od dna */
+    z-index: 2;   /* Da bude iznad slike i zatamnjenja */
+    width: 100%;
+    padding: 10px;
+    background: rgba(43, 45, 66, 0.8); /* Tamna traka iza teksta */
+}
+
+.card h2 {
+    position: absolute;
+    bottom: 0;         /* Lijepi tekst za dno */
+    left: 0;
+    width: 100%;
+    margin: 0;
+    padding: 15px 10px;
+    background: rgba(43, 45, 66, 0.85); /* Poluprozirna tamna traka (kao tvoj header) */
+    color: #EDF2F4;
+    font-size: 1.3rem;
+    font-weight: 600;
+    z-index: 2;        /* Osigurava da je tekst iznad slike */
+}
 .card:hover {
     background-color: #EDF2F4;
     color: #2B2D42;

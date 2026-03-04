@@ -198,6 +198,8 @@ const skraceni = [
 
 function kreirajTabelu(podaci, tabelaId) {
     const tabela = document.getElementById(tabelaId);
+
+    if (!tabela) return;
     tabela.innerHTML = ""; 
 
     const thead = document.createElement("thead");
@@ -377,11 +379,14 @@ function setupColorPreview(inputId, previewId) {
     const colorInput = document.getElementById(inputId);
     const preview = document.getElementById(previewId);
 
-    preview.style.backgroundColor = colorInput.value;
-
-    colorInput.addEventListener('input', () => {
+    // SIGURNOSNA PROVJERA: Radi samo ako oba elementa postoje na stranici
+    if (colorInput && preview) {
         preview.style.backgroundColor = colorInput.value;
-    });
+
+        colorInput.addEventListener('input', () => {
+            preview.style.backgroundColor = colorInput.value;
+        });
+    }
 }
 
 setupColorPreview('letter_color_change', 'letter_color_preview');
@@ -428,11 +433,16 @@ function sortEvents() {
 
 function renderList() {
     const list = document.getElementById("eventList");
-    list.innerHTML = "";
+    
+    if (!list) return; 
+
+    list.innerHTML = ""; 
 
     events.forEach(event => {
         const option = document.createElement("option");
-        option.text = `${event.time.toLocaleString()} - ${event.name}`;
+        // Provjeravamo je li event.time već Date objekat ili ga treba pretvoriti
+        const d = (event.time instanceof Date) ? event.time : new Date(event.time);
+        option.text = `${d.toLocaleString()} - ${event.name}`;
         list.add(option);
     });
 }
@@ -442,3 +452,130 @@ setInterval(() => {
     events = events.filter(event => event.time > now);
     renderList();
 }, 60000); 
+
+/******************* OBAVJEŠTENJA (json) *******************/
+
+let listaObavjestenja = JSON.parse(localStorage.getItem("sacuvanaObavjestenja")) || [];
+
+listaObavjestenja = listaObavjestenja.map(e => ({
+    name: e.name,
+    time: new Date(e.time)
+}));
+
+function addEvent() {
+    const name = document.getElementById("eventName").value;
+    const datetime = document.getElementById("datetime").value;
+
+    if (!name || !datetime) {
+        alert("Popuni sva polja!");
+        return;
+    }
+
+    const noviEvent = {
+        name: name,
+        time: new Date(datetime)
+    };
+
+    listaObavjestenja.push(noviEvent);
+    // Sortiranje: najbliži događaji idu prvi
+    listaObavjestenja.sort((a, b) => a.time - b.time);
+
+    //  Da ostane tu i nakon osvježavanja stranice
+    localStorage.setItem("sacuvanaObavjestenja", JSON.stringify(listaObavjestenja));
+
+    renderList();
+    document.getElementById("eventName").value = "";
+}
+
+function renderList() {
+    const list = document.getElementById("eventList");
+    if (!list) return;
+    
+    list.innerHTML = "";
+    listaObavjestenja.forEach(event => {
+        const option = document.createElement("option");
+        // Formatiranje datuma 
+        option.text = `${event.time.toLocaleString('bs-BA')} - ${event.name}`;
+        list.add(option);
+    });
+}
+
+function deleteEvent() {
+    const list = document.getElementById("eventList");
+    if (!list || list.selectedIndex < 0) return;
+    
+    listaObavjestenja.splice(list.selectedIndex, 1);
+    localStorage.setItem("sacuvanaObavjestenja", JSON.stringify(listaObavjestenja));
+    renderList();
+}
+
+/******************* SLANJE NA ESP (DANAS I SUTRA) *******************/
+
+async function posaljiNaESP() {
+    if (listaObavjestenja.length === 0) {
+        alert("Lista obavještenja je prazna!");
+        return;
+    }
+
+    const sada = new Date();
+    const krajSutra = new Date();
+    krajSutra.setDate(krajSutra.getDate() + 1);
+    krajSutra.setHours(23, 59, 59, 999);
+
+    // Filter: Šaljemo samo ono što je za danas i sutra
+    const zaMatricu = listaObavjestenja.filter(e => {
+        const t = new Date(e.time);
+        return t >= sada && t <= krajSutra;
+    });
+
+    const podaciZaSlanje = {
+        tip: "obavjestenje",
+        vrijednost: zaMatricu.map(e => ({
+            ime: e.name,
+            vrijeme: Math.floor(e.time.getTime() / 1000)
+        }))
+    };
+
+    // Alert da vidiš šta ide na sat prije slanja
+    alert("PODACI SPREMNI:\nŠaljem " + zaMatricu.length + " obavještenja (danas/sutra).");
+
+    try {
+        const response = await fetch('/poshalji', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(podaciZaSlanje)
+        });
+
+        if (response.ok) {
+            alert("Uspješno poslano na ESP32!");
+        } else {
+            alert("Greška pri slanju na server.");
+        }
+    } catch (error) {
+        alert("ESP32 nije dostupan, ali su obavještenja sačuvana u browseru.");
+    }
+}
+
+// Inicijalizacija
+document.addEventListener("DOMContentLoaded", function() {
+    renderList();
+    
+    const sendBtn = document.querySelector(".sendBtn");
+    if (sendBtn) {
+        sendBtn.onclick = posaljiNaESP;
+    }
+});
+
+// Automatsko čišćenje starih obavještenja svakih 10 sekundi
+setInterval(() => {
+    const now = new Date();
+    const prethodnaDuzina = listaObavjestenja.length;
+    
+    // Briše samo one čije je vrijeme prošlo
+    listaObavjestenja = listaObavjestenja.filter(e => new Date(e.time) > now);
+    
+    if (listaObavjestenja.length !== prethodnaDuzina) {
+        localStorage.setItem("sacuvanaObavjestenja", JSON.stringify(listaObavjestenja));
+        renderList();
+    }
+}, 10000);
