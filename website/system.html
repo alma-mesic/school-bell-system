@@ -35,19 +35,22 @@
     </header>
 
     <!------------------MAIN------------------>
-    <div class="settings-wrapper">
-        <div id="upper"><!--100%-->
+    <div id="upper"><!--100%-->
             <a href="profile.html"><img src="slike/user.png" alt="profile"></a>
             <a href="settings.html"><img src="slike/setting.png" alt="settings"></a>
+    </div>
+    <div id="settings2"> <!--icons by: https://www.flaticon.com/authors/good-ware and https://www.flaticon.com/authors/picons-->
+        <div id="clear_eeprom">
+            <img src="slike/warning.png" alt="warning">
+            <p>Pritiskom na ovo dugme desit će se brisanje svih podataka prisutnih na ESP32 mikrokontroleru. Samim tim spremljeni raspored, plan dežurstva i sva obavještenja biti će izbrisana.</p>
+            <button>Očisti EEPROM</button>
         </div>
-        <div id="settings-content">
-            <div id="clear_eeprom">
-                <p>Pritiskom na ovo dugme desit će se brisanje svih podataka prisutnih na ESP32 mikrokontroleru. Samim tim spremljeni raspored, plan dežurstva i sva obavještenja biti će izbrisana.</p>
-                <button>Očisti EEPROM</button>
-            </div>
+        <div id="turn_letters_off">
+            <img src="slike/lightbulb.png" alt="lightbulb">
+            <p>Pritiskom na ovo dugme ugasit će se led traka iza slova na ploči sistema zvona.</p>
+            <button>Ugasi LED traku</button>
         </div>
     </div>
-
     <!------------------FOOTER------------------>
     <footer>
         <div class="kolone">
