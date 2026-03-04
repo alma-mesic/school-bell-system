@@ -1169,3 +1169,184 @@ body > main.main-container > .panel > .sendBtn:hover {
         flex: 1 1 100%;
     }
 }
+
+/***********************DEŽURSTVO PAGE***********************/
+#dezurstvo-main {
+    max-width: 1300px;
+    margin: 100px auto;
+    padding: 50px;
+    background-color: #2B2D42;
+    border-radius: 30px;
+    border: 1px solid #3F4154;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+    color: #EDF2F4;
+    font-family: 'Inter', sans-serif;
+    line-height: 1.8;
+}
+
+#dezurstvo-main h2,
+#dezurstvo-main h3 {
+    text-align: center;
+    margin-bottom: 35px;
+    font-weight: 600;
+    color: #EDF2F4;
+}
+
+#dez-profa {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    padding: 25px;
+    border-radius: 20px;
+    background: #3F4154;
+    margin-bottom: 35px;
+    overflow-x: auto;
+}
+
+#dez-profa table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+    table-layout: fixed;
+    background: #3F4154;
+    border-radius: 18px;
+}
+
+#dez-profa thead {
+    display: block;
+}
+
+#dez-profa tbody {
+    display: block;
+    max-height: 450px;
+    overflow-y: auto;
+}
+
+#dez-profa th,
+#dez-profa td {
+    min-width: 120px;
+    padding: 12px 8px;
+    text-align: center;
+    border-bottom: 1px solid #2B2D42;
+    position: relative;
+}
+
+#dez-profa tbody tr {
+    height: 50px;
+}
+
+#dez-profa thead th {
+    background: #8D99AE;
+    color: #1E1E2F;
+}
+
+#dez-profa tbody tr:hover {
+    background-color: #2B2D42;
+}
+
+#dez-profa input[type="text"],
+#dez-profa input[type="date"] {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #3F4154;
+    background-color: #3F4154;
+    color: #EDF2F4;
+    font-size: 14px;
+}
+
+#dez-profa input[type="text"]:focus,
+#dez-profa input[type="date"]:focus {
+    outline: none;
+    border-color: #8D99AE;
+    box-shadow: 0 0 10px rgba(141,153,174,0.4);
+}
+
+#dez-profa-buttons {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 25px;
+    margin-top: 25px;
+}
+
+#dez-profa-buttons button {
+    width: 200px;
+    padding: 16px 30px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg, #8D99AE, #EDF2F4);
+    color: #1E1E2F;
+    transition: all 0.3s ease;
+}
+
+#dez-profa-buttons button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(141,153,174,0.5);
+}
+
+.autocomplete-items {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: #3F4154;
+    border: 1px solid #8D99AE;
+    border-radius: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 9999;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+
+.autocomplete-items div {
+    padding: 12px;
+    cursor: pointer;
+    color: #EDF2F4;
+    transition: background 0.3s;
+}
+
+.autocomplete-items div:hover {
+    background-color: #8D99AE;
+    color: #1E1E2F;
+}
+
+#dezurstvo-main p,
+#dezurstvo-main ol {
+    margin: 20px 0 25px 0;
+    line-height: 1.8;
+    font-size: 15px;
+    color: #EDF2F4;
+}
+
+#dezurstvo-main li {
+    margin-bottom: 10px;
+}
+
+@media (max-width: 900px) {
+    #dezurstvo-main {
+        padding: 40px 20px;
+    }
+
+    #dez-profa {
+        padding: 15px;
+    }
+
+    #dez-profa table {
+        font-size: 13px;
+    }
+
+    #dez-profa-buttons {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+
+    #dez-profa-buttons button {
+        width: 80%;
+    }
+}

@@ -579,3 +579,131 @@ setInterval(() => {
         renderList();
     }
 }, 10000);
+
+
+/***********************DEŽURSTVO************************ */
+const profesori = [
+    "Asmir Mandžukić", "Edin Zulfić", "Slađana Pejić", "Melisa Zahirović",
+    "Damir Kunosić", "Jasmina Omerdić", "Naza Dadanović", "Medina Bristić",
+    "Radislav Stojak", "Samir Tokić", "Muamer Halilović", "Muamer Jusić"
+];
+
+const dani = ["Ponedjeljak","Utorak","Srijeda","Četvrtak","Petak"];
+const sati = [
+    "07:00 do 08:00","08:00 do 09:00","09:00 do 10:00","10:00 do 11:00",
+    "11:00 do 12:00","12:00 do 13:00","13:00 do 14:00","14:00 do 15:00",
+    "15:00 do 16:00","16:00 do 17:00","17:00 do 18:00","18:00 do 19:00"
+];
+
+const dezProfa = document.getElementById("dez-profa");
+const table = document.createElement("table");
+dezProfa.appendChild(table);
+
+const header = table.insertRow();
+header.insertCell().outerHTML = "<th>Dan</th>";
+header.insertCell().outerHTML = "<th>Datum</th>";
+sati.forEach(sat => {
+    const th = document.createElement("th");
+    th.textContent = sat;
+    header.appendChild(th);
+});
+
+dani.forEach(dan => {
+    const row = table.insertRow();
+    row.insertCell().textContent = dan;
+    const dateCell = row.insertCell();
+    const dateInput = document.createElement("input");
+    dateInput.type = "date";
+    dateCell.appendChild(dateInput);
+
+    sati.forEach(() => {
+        const cell = row.insertCell();
+        const input = document.createElement("input");
+        input.type = "text";
+        input.placeholder = "Odaberi profesora";
+        cell.appendChild(input);
+        autocomplete(input, profesori); 
+    });
+});
+
+function autocomplete(inp, arr) {
+    let currentFocus;
+
+    inp.addEventListener("input", function() {
+        closeAllLists();
+        if (!this.value) return false;
+        currentFocus = -1;
+
+        const list = document.createElement("div");
+        list.setAttribute("class", "autocomplete-items");
+        this.parentNode.appendChild(list);
+
+        arr.forEach(item => {
+            if (item.toLowerCase().includes(this.value.toLowerCase())) {
+                const itemDiv = document.createElement("div");
+                itemDiv.innerHTML = "<strong>" + item.substr(0, this.value.length) + "</strong>";
+                itemDiv.innerHTML += item.substr(this.value.length);
+                itemDiv.addEventListener("click", () => {
+                    inp.value = item;
+                    closeAllLists();
+                });
+                list.appendChild(itemDiv);
+            }
+        });
+    });
+
+    inp.addEventListener("keydown", function(e) {
+        const items = this.parentNode.querySelectorAll(".autocomplete-items div");
+        if (!items) return;
+
+        if (e.key === "ArrowDown") {
+            currentFocus++;
+            addActive(items);
+        } else if (e.key === "ArrowUp") {
+            currentFocus--;
+            addActive(items);
+        } else if (e.key === "Enter") {
+            e.preventDefault();
+            if (currentFocus > -1) items[currentFocus].click();
+        }
+    });
+
+    function addActive(items) {
+        if (!items) return false;
+        removeActive(items);
+        if (currentFocus >= items.length) currentFocus = 0;
+        if (currentFocus < 0) currentFocus = items.length - 1;
+        items[currentFocus].classList.add("autocomplete-active");
+    }
+
+    function removeActive(items) {
+        items.forEach(item => item.classList.remove("autocomplete-active"));
+    }
+
+    function closeAllLists(elmnt) {
+        const items = document.querySelectorAll(".autocomplete-items");
+        items.forEach(item => {
+            if (elmnt != item && elmnt != inp) item.parentNode.removeChild(item);
+        });
+    }
+
+    document.addEventListener("click", (e) => closeAllLists(e.target));
+}
+
+document.getElementById("save-prof").addEventListener("click", () => {
+    const data = {};
+    for (let i = 1; i < table.rows.length; i++) {
+        const row = table.rows[i];
+        const dan = row.cells[0].innerText;
+        const datum = row.cells[1].querySelector("input")?.value || "";
+        data[dan] = { date: datum, schedule: {} };
+        for (let j = 2; j < row.cells.length; j++) {
+            const timeSlot = table.rows[0].cells[j].innerText;
+            const prof = row.cells[j].querySelector("input")?.value || "";
+            data[dan].schedule[timeSlot] = prof;
+        }
+    }
+    localStorage.setItem("dezurniData", JSON.stringify(data));
+    alert("Raspored sačuvan!");
+    console.log(data);
+});
