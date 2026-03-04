@@ -453,7 +453,7 @@ setInterval(() => {
     renderList();
 }, 60000); 
 
-/******************* OBAVJEŠTENJA (json) *******************/
+/******************* OBAVJEŠTENJA (slanje) *******************/
 
 let listaObavjestenja = JSON.parse(localStorage.getItem("sacuvanaObavjestenja")) || [];
 
@@ -707,3 +707,118 @@ document.getElementById("save-prof").addEventListener("click", () => {
     alert("Raspored sačuvan!");
     console.log(data);
 });
+/*******************RASPORED (slanje)********************/
+function prikaziRasporede() {
+    const tRedovno = document.querySelector("#redovno");
+    const tSkraceno = document.querySelector("#skraceno");
+
+    let header = `<thead><tr><th>Čas</th><th>Početak</th><th>Kraj</th></tr></thead><tbody>`;
+
+    // Popuni redovnu tabelu
+    tRedovno.innerHTML = header + redovni.map(c => 
+        `<tr id="r-cas-${c.cas}"><td>${c.cas}.</td><td>${c.pocetak}</td><td>${c.kraj}</td></tr>`
+    ).join("") + "</tbody>";
+
+    // Popuni skraćenu tabelu
+    tSkraceno.innerHTML = header + skraceni.map(c => 
+        `<tr id="s-cas-${c.cas}"><td>${c.cas}.</td><td>${c.pocetak}</td><td>${c.kraj}</td></tr>`
+    ).join("") + "</tbody>";
+}
+
+function osvjeziStatus() {
+    // 1. Provjeri koji je raspored odabran na dugmićima
+    const odabraniTip = document.querySelector('input[name="raspored"]:checked').value;
+    const trenutniNiz = odabraniTip === "redovno" ? redovni : skraceni;
+    const prefix = odabraniTip === "redovno" ? "r" : "s";
+
+    // 2. Dobij trenutno vrijeme u minutama (npr. 07:45 -> 465 min)
+    const sad = new Date();
+    const trenutnoMin = sad.getHours() * 60 + sad.getMinutes();
+
+    // Resetuj sve boje u tabelama
+    document.querySelectorAll("tr").forEach(tr => tr.classList.remove("active-row"));
+
+    let ispisZaMatricu = "Trenutno nema nastave";
+
+    // 3. Prođi kroz časove i nađi gdje smo sad
+    for (let c of trenutniNiz) {
+        const [hP, mP] = c.pocetak.split(":").map(Number);
+        const [hK, mK] = c.kraj.split(":").map(Number);
+        
+        const pocetakMin = hP * 60 + mP;
+        const krajMin = hK * 60 + mK;
+
+        if (trenutnoMin >= pocetakMin && trenutnoMin < krajMin) {
+            const ostalo = krajMin - trenutnoMin;
+            ispisZaMatricu = `Cas: ${c.cas} | Kraj: ${c.kraj} | Jos: ${ostalo}min`;
+            
+            // Oboji red u tabeli (zeleno)
+            document.getElementById(`${prefix}-cas-${c.cas}`).classList.add("active-row");
+            break;
+        }
+    }
+    
+    // Ovdje ispisujemo u konzolu, a sutra ćemo ovo fetch-ati na ESP32
+    console.log(ispisZaMatricu);
+    return ispisZaMatricu;
+}
+
+// Pokretanje svega
+prikaziRasporede();
+setInterval(osvjeziStatus, 1000); // Radi svake sekunde kao Timer u C#
+
+function posaljiRasporedNaESP() {
+    // 1. Uzmi trenutni ispis koji je funkcija osvjeziStatus izračunala
+    // Da bismo to uradili lakše, izmijenićemo osvjeziStatus da vraća taj tekst
+    const tekstZaMatricu = osvjeziStatus(); 
+
+    // 2. Uzmi koji je tip rasporeda (da ESP zna cijelu tabelu)
+    const tip = document.querySelector('input[name="raspored"]:checked').value;
+    const podaciZaESP = tip === "redovno" ? redovni : skraceni;
+
+    // 3. Spakuj u JSON
+    const paket = {
+        naredba: "azuriraj_raspored",
+        tip: tip,
+        ispis: tekstZaMatricu,
+        svi_casovi: podaciZaESP
+    };
+
+    console.log("Šaljem JSON na ESP:", paket);
+
+    // 4. Fetch poziv 
+    fetch("/api/raspored", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(paket)
+    }).then(() => alert("Poslato na matricu!"));
+}
+
+/**********************ZVONO test (slanje)************************/
+let testAktivno = false;
+function pokreniSveZaTest() {
+    let d = document.getElementById("test_zvona"); // Nađemo dugme
+    testAktivno = !testAktivno; // Promijenimo stanje
+
+    if (testAktivno) {
+        d.textContent = "Zaustavi"; // Promijeni tekst na ekranu
+        fetch("/api/test", { method: "POST", body: JSON.stringify({ naredba: "TEST_START" }) });
+    } else {
+        d.textContent = "Pokreni"; // Vrati tekst na ekranu
+        fetch("/api/test", { method: "POST", body: JSON.stringify({ naredba: "TEST_STOP" }) });
+    }
+}
+
+let emergencyAktivno = false;
+function pokreniSveZaEmergency() {
+    let d = document.querySelector(".emergency-btn");
+    emergencyAktivno = !emergencyAktivno;
+
+    if (emergencyAktivno) {
+        d.textContent = "STOP EMERGENCY";
+        fetch("/api/emergency", { method: "POST", body: JSON.stringify({ naredba: "EMERGENCY_START" }) });
+    } else {
+        d.textContent = "Emergency";
+        fetch("/api/emergency", { method: "POST", body: JSON.stringify({ naredba: "EMERGENCY_STOP" }) });
+    }
+}
