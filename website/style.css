@@ -347,7 +347,6 @@ main#schedulePage {
     
 }
 
-
 .raspored-panel {
     max-width: 1200px;
     margin: 0 auto;
@@ -443,13 +442,14 @@ tbody tr:hover {
 }
 
 .primary-btn {
-    margin-top: 40px;
-    width: 100%;
+    display: block;
+    margin: 40px auto 0;
+    width: 400px;
     padding: 16px;
     background: linear-gradient(135deg, #8D99AE, #EDF2F4);
     color: #1E1E2F;
     border: none;
-    border-radius: 14px;
+    border-radius: 40px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
@@ -460,6 +460,8 @@ tbody tr:hover {
     transform: translateY(-4px);
     box-shadow: 0 10px 15px rgba(141,153,174,0.5);
 }
+
+
 
 /****************TEST ZVONA****************/
 main#systemPage {
@@ -1065,6 +1067,7 @@ body > main.main-container > .panel > .sendBtn {
     
 body > main.main-container > .panel > .sendBtn:hover {
     transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(141,153,174,0.5);
 }
 
 /****************SISTEM****************/
