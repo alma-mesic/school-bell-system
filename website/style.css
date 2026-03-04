@@ -189,18 +189,20 @@ main#homePage {
     cursor: pointer;
     transition: transform 0.3s, box-shadow 0.3s;
     text-align: center;
-    padding: 0; /* Smanjujemo padding na 0 da slika ide do ivica */
-    position: relative; /* Bitno za tekst preko slike */
-    overflow: hidden;   /* Da slika ne "izlazi" van zaobljenih uglova */
+    padding: 0 !important; 
+    position: relative; 
+    overflow: hidden;   
+    display: block;
 }
 
 .card img {
-    height: 100%;    /* Slika ide preko cijele visine */
-    width: 100%;     /* I cijele širine */
+    display: block;
+    height: 100% !important;   
+    width: 100% !important;    
     margin: 0;
-    object-fit: cover; /* Ovo sprečava da se slika razvuče/izobliči */
+    object-fit: cover; 
 }
-/* Ako želiš da tekst ima tamnu podlogu radi čitljivosti */
+
 .card::after {
     content: "";
     position: absolute;
@@ -208,15 +210,15 @@ main#homePage {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.3); /* Lagano zatamnjenje cijele slike */
+    background: rgba(0, 0, 0, 0.3); 
     z-index: 1;
 }
 
 /* Podešavanje samog teksta unutar kartice */
 .card span, .card p, .card div {
     position: absolute;
-    bottom: 20px; /* Odmaknuto od dna */
-    z-index: 2;   /* Da bude iznad slike i zatamnjenja */
+    bottom: 20px; 
+    z-index: 2;   
     width: 100%;
     padding: 10px;
     background: rgba(43, 45, 66, 0.8); /* Tamna traka iza teksta */
@@ -224,22 +226,40 @@ main#homePage {
 
 .card h2 {
     position: absolute;
-    bottom: 0;         /* Lijepi tekst za dno */
+    bottom: 0;        
     left: 0;
     width: 100%;
     margin: 0;
     padding: 15px 10px;
-    background: rgba(43, 45, 66, 0.85); /* Poluprozirna tamna traka (kao tvoj header) */
+    background: rgba(43, 45, 66, 0.85); 
     color: #EDF2F4;
     font-size: 1.3rem;
     font-weight: 600;
-    z-index: 2;        /* Osigurava da je tekst iznad slike */
+    z-index: 2;   
 }
+/*.icon1 {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: #3F4154;
+    border: 2px solid #1E1E2F;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 25px;
+}
+.icon1 img {
+    width: 55px;
+    height: 55px;
+    object-fit: contain;
+}*/
+
 .card:hover {
     background-color: #EDF2F4;
     color: #2B2D42;
     transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
 }
 /*************** FOOTER *****************/
 footer {
@@ -1045,7 +1065,6 @@ body > main.main-container > .panel > .sendBtn {
     
 body > main.main-container > .panel > .sendBtn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(141,153,174,0.5);
 }
 
 /****************SISTEM****************/
