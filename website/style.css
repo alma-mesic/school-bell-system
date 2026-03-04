@@ -697,14 +697,14 @@ main#systemPage {
 }
 
 #change-user,
-#change-pass,
+#Promijeni-user,
 #save-wifi {
     background: linear-gradient(135deg, #8D99AE, #EDF2F4);
     color: #1E1E2F;
 }
 
 #change-user:hover,
-#change-pass:hover,
+#Promijeni-user:hover,
 #save-wifi:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(141,153,174,0.5);
@@ -713,14 +713,20 @@ main#systemPage {
 
 #cancle-user,
 #cancle-pass {
-    background: #3F4154;
-    color: #EDF2F4;
+    padding: 12px 35px;
+    border-radius: 40px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ff3b3b, #c0392b);
+    color: white;
+    transition: 0.3s ease;
 }
 
 #cancle-user:hover,
 #cancle-pass:hover {
-    background: #E74C3C;
-    color: white;
+    box-shadow: 0 8px 25px rgba(231,76,60,0.5);
+    transform: translateY(-3px);
 }
 
 #right::after {
@@ -728,6 +734,7 @@ main#systemPage {
     display: block;
     clear: both;
 }
+
 
 /***********************SETTINGS**************************/
 .settings-wrapper2 {
@@ -980,7 +987,6 @@ body > main.main-container > .panel > select:focus {
     border-color: #8D99AE;
 }
 
-/* scrollbar */
 body > main.main-container > .panel > select::-webkit-scrollbar {
     width: 8px;
 }
@@ -991,18 +997,117 @@ body > main.main-container > .panel > select::-webkit-scrollbar-thumb {
 }
 
 body > main.main-container > .panel > .sendBtn {
-    margin-top: 10px;
-    padding: 14px;
+    padding: 12px 35px;
     border-radius: 40px;
     border: none;
     font-weight: 600;
     cursor: pointer;
-    background: #8D99AE;
+    background: linear-gradient(135deg, #8D99AE, #EDF2F4);
+    color: #1E1E2F;
+    transition: 0.3s ease;
+}
+    
+body > main.main-container > .panel > .sendBtn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(141,153,174,0.5);
+}
+
+/****************SISTEM****************/
+#settings2 {
+    display: flex;
+    justify-content: space-between;
+    gap: 40px;
+    padding: 80px 60px;
+    min-height: calc(100vh - 40px);
+    background: #1E1E2F;
+    flex-wrap: wrap; 
+}
+
+#settings2 > div {
+    flex: 0 0 48%;
+    background: #2B2D42;
+    padding: 40px 35px;
+    border-radius: 20px;
+    border: 1px solid #3F4154;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.45);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+#settings2 > div:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 45px rgba(0,0,0,0.6);
+}
+
+#settings2 img {
+    width: 150px;              
+    height: 150px;
+    object-fit: contain;
+    padding: 10px;             
+    border-radius: 20px;       
+    background: #3F4154;
+    border: 2px solid #8D99AE;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.45);
+}
+#settings2 p {
+    color: #EDF2F4;
+    font-size: 14px;
+    line-height: 1.7;
+    max-width: 90%;
+}
+
+#settings2 button {
+    padding: 12px 35px;
+    border-radius: 40px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(135deg, #8D99AE, #EDF2F4);
     color: #1E1E2F;
     transition: 0.3s ease;
 }
 
-body > main.main-container > .panel > .sendBtn:hover {
-    transform: scale(1.05);
+
+#settings2 button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(141,153,174,0.5);
+}
+#clear_eeprom img {
+    background: rgba(231, 76, 60, 0.15);
+    border: 2px solid #E74C3C;
 }
 
+#clear_eeprom button {
+    padding: 12px 35px;
+    border-radius: 40px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ff3b3b, #c0392b);
+    color: white;
+    transition: 0.3s ease;
+}
+
+#clear_eeprom button:hover {
+    box-shadow: 0 8px 25px rgba(231,76,60,0.5);
+}
+
+#turn_letters_off img {
+    background: rgba(141,153,174,0.15);
+}
+
+@media (max-width: 900px) {
+    #settings2 {
+        flex-direction: column;
+        padding: 50px 30px;
+    }
+
+    #settings2 > div {
+        flex: 1 1 100%;
+    }
+}
