@@ -822,3 +822,44 @@ function pokreniSveZaEmergency() {
         fetch("/api/emergency", { method: "POST", body: JSON.stringify({ naredba: "EMERGENCY_STOP" }) });
     }
 }
+
+/**********************SYSTEM (slanje)**********************/
+// --- FUNKCIJA ZA BRISANJE EEPROM-A ---
+function obrisiSvePodatke() {
+    if (confirm("Jeste li sigurni da želite obrisati SVE podatke (raspored, dežurstva, poruke)? Ova radnja je nepovratna!")) {
+        fetch("/api/settings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ naredba: "CLEAR_EEPROM" })
+        })
+        .then(() => alert("Komanda za brisanje poslata. Sistem će se restartovati."))
+        .catch(err => alert("Greška: ESP32 nije dostupan."));
+    }
+}
+
+// --- FUNKCIJA ZA LED TRAKU ---
+let ledUpaljen = true; // Pretpostavljamo da je na početku upaljena
+function upravljajLedTrakom(dugme) {
+    ledUpaljen = !ledUpaljen;
+
+    const paket = {
+        naredba: "LED_CONTROL",
+        stanje: ledUpaljen ? "ON" : "OFF"
+    };
+
+    fetch("/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(paket)
+    })
+    .then(() => {
+        if (ledUpaljen) {
+            dugme.textContent = "Ugasi LED traku";
+            dugme.style.backgroundColor = ""; // Vraća originalnu boju
+        } else {
+            dugme.textContent = "Upali LED traku";
+            dugme.style.backgroundColor = "#2c3e50"; // Tamnija boja kad je ugašeno
+        }
+    })
+    .catch(err => console.log("Greška pri kontroli LED trake."));
+}

@@ -43,12 +43,17 @@
         <div id="clear_eeprom">
             <img src="slike/warning.png" alt="warning">
             <p>Pritiskom na ovo dugme desit će se brisanje svih podataka prisutnih na ESP32 mikrokontroleru. Samim tim spremljeni raspored, plan dežurstva i sva obavještenja biti će izbrisana.</p>
-            <button>Očisti EEPROM</button>
+            <p style="color: #e74c3c; font-weight: bold; margin-top: 10px;">
+                <i class="fas fa-exclamation-triangle"></i> 
+                Napomena: Nakon brisanja, sistem će biti prazan. Morate ponovo poslati raspored i obavještenja sa odgovarajućih stranica kako bi matrica ponovo radila.
+            </p>
+            
+            <button onclick="obrisiSvePodatke()">Očisti EEPROM</button>
         </div>
         <div id="turn_letters_off">
             <img src="slike/lightbulb.png" alt="lightbulb">
             <p>Pritiskom na ovo dugme ugasit će se led traka iza slova na ploči sistema zvona.</p>
-            <button>Ugasi LED traku</button>
+            <button id="led_btn" onclick="upravljajLedTrakom(this)">Ugasi LED traku</button>
         </div>
     </div>
     <!------------------FOOTER------------------>
