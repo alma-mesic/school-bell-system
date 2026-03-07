@@ -5,6 +5,10 @@
 #include "time.h"
 #include <Preferences.h>
 
+#include <Fonts/Picopixel.h>
+#include <Fonts/TomThumb.h>
+#include <Fonts/FreeSans9pt7b.h>
+
 Preferences prefs;  // globalni objekat za spremanje u flash
 
 // ---------------- KONFIGURACIJA ---------------------
@@ -581,5 +585,5 @@ void buildMainText() {
       checkBell();
       buildMainText();
       drawMainScreen();
-      delay(80);
+      delay(30);
     }
