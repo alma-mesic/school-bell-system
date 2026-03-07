@@ -202,9 +202,18 @@ void setupRoutes() {
       }
 
       // Obrada za CLEAR_EEPROM ako ti zatreba
+      // Unutar setupRoutes() potraži /api/settings dio
       if (naredba == "CLEAR_EEPROM") {
-        // Logika za brisanje podataka...
-        request->send(200, "text/plain", "EEPROM obrisan");
+        // 1. Briše sve iz Preferences (NVS memorija)
+        prefs.clear();
+
+        // 2. Pošalji odgovor klijentu prije nego se ugasiš
+        request->send(200, "application/json", "{\"status\":\"ok\"}");
+
+        // 3. Sačekaj malo i restartuj ESP32
+        Serial.println("Memorija obrisana. Restartujem...");
+        delay(2000);
+        ESP.restart();
       }
     });
   server.on(
@@ -335,6 +344,12 @@ void setup() {
 }
 
 void loop() {
+  
+  if (Serial.available()) {
+    String podaciIzKabla = Serial.readStringUntil('\n');
+    handleJson(podaciIzKabla); // Proslijedi istoj funkciji koju koristi i Web App
+  }
+
   display->fillScreen(0);
 
   if (startup) {

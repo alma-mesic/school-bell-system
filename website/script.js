@@ -1,5 +1,4 @@
 /**GLOBAL***/
-let events = [];
 const ESP_IP = "http://10.132.0.148";
 /*****************BRGER MENI*********************/
 const burger = document.getElementById("burger");
@@ -221,6 +220,8 @@ function kreirajTabelu(podaci, tabelaId) {
     podaci.forEach(casObj => {
         const red = document.createElement("tr");
 
+        red.id = `${tabelaId === "redovno" ? "r" : "s"}-cas-${casObj.cas}`;
+
         const tdCas = document.createElement("td");
         tdCas.textContent = casObj.cas;
 
@@ -303,13 +304,11 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 /*****************EMERGENCY*********************/
+let emergencyActive = false;
 const emergencyBtn = document.querySelector(".emergency-btn");
 const burgerBtn = document.getElementById("burger");
 
 if (emergencyBtn) {
-
-    let emergencyActive = false;
-
     emergencyBtn.addEventListener("click", function () {
 
         if (!emergencyActive) {
@@ -340,8 +339,8 @@ if (emergencyBtn) {
         sviElementi.forEach(el => {
             if (!el.classList.contains("emergency-btn")) {
                 el.disabled = true;
-                el.style.pointerEvents = "none";
-                el.style.opacity = "0.5";
+                el.style.opacity = "1";
+                el.style.pointerEvents = "none"
             }
         });
 
@@ -374,78 +373,9 @@ if (emergencyBtn) {
 }
 
 
-/*********************SETTINGS************************* */
-function setupColorPreview(inputId, previewId) {
-    const colorInput = document.getElementById(inputId);
-    const preview = document.getElementById(previewId);
 
-    // SIGURNOSNA PROVJERA: Radi samo ako oba elementa postoje na stranici
-    if (colorInput && preview) {
-        preview.style.backgroundColor = colorInput.value;
+/******************* OBAVJEŠTENJA (slanje) *******************/
 
-        colorInput.addEventListener('input', () => {
-            preview.style.backgroundColor = colorInput.value;
-        });
-    }
-}
-
-setupColorPreview('letter_color_change', 'letter_color_preview');
-setupColorPreview('marix_time_color_change', 'marix_time_color_preview');
-setupColorPreview('matrix_letter_color_change', 'matrix_letter_color_preview');
-
-/********************OBAVJEŠTENJA**********************/
-
-function addEvent() {
-    const name = document.getElementById("eventName").value;
-    const datetime = document.getElementById("datetime").value;
-
-    if (!name || !datetime) {
-        alert("Popuni sva polja!");
-        return;
-    }
-
-    const event = {
-        name: name,
-        time: new Date(datetime)
-    };
-
-    events.push(event);
-
-    sortEvents();
-    renderList();
-
-    document.getElementById("eventName").value = "";
-}
-
-function deleteEvent() {
-    const list = document.getElementById("eventList");
-    const index = list.selectedIndex;
-
-    if (index >= 0) {
-        events.splice(index, 1);
-        renderList();
-    }
-}
-
-function sortEvents() {
-    events.sort((a, b) => a.time - b.time);
-}
-
-function renderList() {
-    const list = document.getElementById("eventList");
-
-    if (!list) return;
-
-    list.innerHTML = "";
-
-    events.forEach(event => {
-        const option = document.createElement("option");
-        // Provjeravamo je li event.time već Date objekat ili ga treba pretvoriti
-        const d = (event.time instanceof Date) ? event.time : new Date(event.time);
-        option.text = `${d.toLocaleString()} - ${event.name}`;
-        list.add(option);
-    });
-}
 
 setInterval(() => {
     const now = new Date();
@@ -453,7 +383,7 @@ setInterval(() => {
     renderList();
 }, 60000);
 
-/******************* OBAVJEŠTENJA (slanje) *******************/
+
 
 let listaObavjestenja = JSON.parse(localStorage.getItem("sacuvanaObavjestenja")) || [];
 
@@ -517,45 +447,38 @@ async function posaljiNaESP() {
         return;
     }
 
-    const sada = new Date();
-    const krajSutra = new Date();
-    krajSutra.setDate(krajSutra.getDate() + 1);
-    krajSutra.setHours(23, 59, 59, 999);
-
-    // Filter: Šaljemo samo ono što je za danas i sutra
     const zaMatricu = listaObavjestenja.filter(e => {
         const t = new Date(e.time);
+        const sada = new Date();
+        const krajSutra = new Date();
+        krajSutra.setDate(krajSutra.getDate() + 1);
+        krajSutra.setHours(23, 59, 59, 999);
         return t >= sada && t <= krajSutra;
     });
 
+    // PRILAGOĐENO TVOM C++ KODU (linija 98-111)
     const podaciZaSlanje = {
-        tip: "obavjestenje",
-        vrijednost: zaMatricu.map(e => ({
-            ime: e.name,
-            vrijeme: Math.floor(e.time.getTime() / 1000)
+        tip: "obavijesti", // Mora biti "obavijesti"
+        lista: zaMatricu.map(e => ({
+            naziv: e.name, // C++ traži "naziv"
+            datumVrijeme: e.time.toISOString().slice(0, 16).replace('T', ' ')
+            // Pretvara u format "YYYY-MM-DD HH:mm" koji tvoj C++ siječe sa substring
         }))
     };
 
-    // Alert da vidiš šta ide na sat prije slanja
-    alert("PODACI SPREMNI:\nŠaljem " + zaMatricu.length + " obavještenja (danas/sutra).");
-
     try {
-        const response = await fetch(`${ESP_IP}/poshalji`, {
+        const response = await fetch(`${ESP_IP}/api/data`, { // Putanja mora biti ista kao za raspored
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(podaciZaSlanje)
         });
 
-        if (response.ok) {
-            alert("Uspješno poslano na ESP32!");
-        } else {
-            alert("Greška pri slanju na server.");
-        }
+        if (response.ok) alert("Obavještenja poslana!");
+        else alert("Greška na serveru.");
     } catch (error) {
-        alert("ESP32 nije dostupan, ali su obavještenja sačuvana u browseru.");
+        alert("ESP32 nedostupan.");
     }
 }
-
 // Inicijalizacija
 document.addEventListener("DOMContentLoaded", function () {
     renderList();
@@ -708,23 +631,6 @@ document.getElementById("save-prof").addEventListener("click", () => {
     console.log(data);
 });
 /*******************RASPORED (slanje)********************/
-function prikaziRasporede() {
-    const tRedovno = document.querySelector("#redovno");
-    const tSkraceno = document.querySelector("#skraceno");
-
-    let header = `<thead><tr><th>Čas</th><th>Početak</th><th>Kraj</th></tr></thead><tbody>`;
-
-    // Popuni redovnu tabelu
-    tRedovno.innerHTML = header + redovni.map(c =>
-        `<tr id="r-cas-${c.cas}"><td>${c.cas}.</td><td>${c.pocetak}</td><td>${c.kraj}</td></tr>`
-    ).join("") + "</tbody>";
-
-    // Popuni skraćenu tabelu
-    tSkraceno.innerHTML = header + skraceni.map(c =>
-        `<tr id="s-cas-${c.cas}"><td>${c.cas}.</td><td>${c.pocetak}</td><td>${c.kraj}</td></tr>`
-    ).join("") + "</tbody>";
-}
-
 function osvjeziStatus() {
     // 1. Provjeri koji je raspored odabran na dugmićima
     const odabraniTip = document.querySelector('input[name="raspored"]:checked').value;
@@ -768,77 +674,91 @@ prikaziRasporede();
 setInterval(osvjeziStatus, 1000); // Radi svake sekunde kao Timer u C#
 
 function posaljiRasporedNaESP() {
-    // 1. Uzmi trenutni ispis koji je funkcija osvjeziStatus izračunala
-    // Da bismo to uradili lakše, izmijenićemo osvjeziStatus da vraća taj tekst
-    const tekstZaMatricu = osvjeziStatus();
+    const tipRasporeda = document.querySelector('input[name="raspored"]:checked').value;
+    const podaciZaESP = tipRasporeda === "redovno" ? redovni : skraceni;
 
-    // 2. Uzmi koji je tip rasporeda (da ESP zna cijelu tabelu)
-    const tip = document.querySelector('input[name="raspored"]:checked').value;
-    const podaciZaESP = tip === "redovno" ? redovni : skraceni;
-
-    // 3. Spakuj u JSON
     const paket = {
-        naredba: "azuriraj_raspored",
-        tip: tip,
-        ispis: tekstZaMatricu,
-        svi_casovi: podaciZaESP
+        tip: "raspored", // Mora biti "raspored" da bi handleJson ušao u pravi if
+        casovi: podaciZaESP.map(c => ({
+            dan: "Svi", // Možeš dodati logiku za dan ako treba
+            cas: c.cas,
+            pocetak: c.pocetak,
+            kraj: c.kraj,
+            dezurni: ""
+        }))
     };
 
-    console.log("Šaljem JSON na ESP:", paket);
-
-    // 4. Fetch poziv 
-    fetch(`{ESP_IP}/api/raspored`, {
+    fetch(`${ESP_IP}/api/data`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(paket)
-    }).then(() => alert("Poslato na matricu!"));
+    })
+        .then(() => alert("Raspored poslat na ESP32!"));
 }
 
 /**********************ZVONO test (slanje)************************/
 let testAktivno = false;
 function pokreniSveZaTest() {
-    let d = document.getElementById("test_zvona"); // Nađemo dugme
-    testAktivno = !testAktivno; // Promijenimo stanje
+    let d = document.getElementById("test_zvona");
+    testAktivno = !testAktivno;
 
-    if (testAktivno) {
-        d.textContent = "Zaustavi"; // Promijeni tekst na ekranu
-        fetch(`{ESP_IP}/api/test`, { method: "POST", body: JSON.stringify({ naredba: "TEST_START" }) });
-    } else {
-        d.textContent = "Pokreni"; // Vrati tekst na ekranu
-        fetch(`{ESP_IP}/api/test`, { method: "POST", body: JSON.stringify({ naredba: "TEST_STOP" }) });
-    }
+    const paket = {
+        tip: "zvono",
+        akcija: testAktivno ? "start" : "stop"
+    };
+
+    fetch(`${ESP_IP}/api/data`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(paket)
+    });
+
+    d.textContent = testAktivno ? "Zaustavi" : "Pokreni";
 }
 
-let emergencyAktivno = false;
 function pokreniSveZaEmergency() {
-    let d = document.querySelector(".emergency-btn");
-    emergencyAktivno = !emergencyAktivno;
-
-    if (emergencyAktivno) {
-        d.textContent = "STOP EMERGENCY";
-        fetch(`{ESP_IP}/api/emergency`, { method: "POST", body: JSON.stringify({ naredba: "EMERGENCY_START" }) });
+    if (!emergencyActive) {
+        activateEmergency(); 
     } else {
-        d.textContent = "Emergency";
-        fetch(`{ESP_IP}/api/emergency`, { method: "POST", body: JSON.stringify({ naredba: "EMERGENCY_STOP" }) });
+        deactivateEmergency();
     }
+
+    fetch(`${ESP_IP}/api/data`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            tip: "emergency", 
+            akcija: emergencyActive ? "start" : "stop" 
+        })
+    });
 }
 
 /**********************SYSTEM (slanje)**********************/
 // --- FUNKCIJA ZA BRISANJE EEPROM-A ---
 function obrisiSvePodatke() {
-    if (confirm("Jeste li sigurni da želite obrisati SVE podatke (raspored, dežurstva, poruke)? Ova radnja je nepovratna!")) {
-        fetch(`{ESP_IP}/api/settings`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ naredba: "CLEAR_EEPROM" })
+    if (confirm("Da li ste sigurni? Svi podaci (raspored, obavještenja, WiFi) će biti obrisani!")) {
+        fetch(`${ESP_IP}/api/settings`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                naredba: "CLEAR_EEPROM"
+            })
         })
-            .then(() => alert("Komanda za brisanje poslata. Sistem će se restartovati."))
-            .catch(err => alert("Greška: ESP32 nije dostupan."));
+            .then(response => {
+                if (response.ok) {
+                    alert("Memorija se čisti. Sistem će se sada restartovati.");
+                } else {
+                    alert("Greška pri komunikaciji sa sistemom.");
+                }
+            })
+            .catch(error => console.error('Error:', error));
     }
 }
 
 // --- FUNKCIJA ZA LED TRAKU ---
-let ledUpaljen = true; // Pretpostavljamo da je na početku upaljena
+let ledUpaljen = true;
 function upravljajLedTrakom(dugme) {
     ledUpaljen = !ledUpaljen;
 
@@ -847,7 +767,7 @@ function upravljajLedTrakom(dugme) {
         stanje: ledUpaljen ? "ON" : "OFF"
     };
 
-    fetch("{ESP_IP}/api/settings", {
+    fetch(`${ESP_IP}/api/settings`, { // Dodani backtickovi
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(paket)
@@ -855,141 +775,139 @@ function upravljajLedTrakom(dugme) {
         .then(() => {
             if (ledUpaljen) {
                 dugme.textContent = "Ugasi LED traku";
-                dugme.style.backgroundColor = ""; // Vraća originalnu boju
+                dugme.style.backgroundColor = "";
             } else {
                 dugme.textContent = "Upali LED traku";
-                dugme.style.backgroundColor = "#2c3e50"; // Tamnija boja kad je ugašeno
+                dugme.style.backgroundColor = "#2c3e50";
             }
         })
-        .catch(err => console.log("Greška pri kontroli LED trake."));
-
-    /*********************** SETTINGS & BOJE ************************/
-
-    // 1. Funkcija za uživo ažuriranje kvadratića (već je imaš u kodu)
-    function setupColorPreview(inputId, previewId) {
-        const colorInput = document.getElementById(inputId);
-        const preview = document.getElementById(previewId);
-
-        if (colorInput && preview) {
-            preview.style.backgroundColor = colorInput.value;
-            colorInput.addEventListener('input', () => {
-                preview.style.backgroundColor = colorInput.value;
-            });
-        }
-    }
-
-    // 2. Pomoćna funkcija za pretvaranje HEX u RGB
-    function hexToRgb(hex) {
-        const r = parseInt(hex.slice(1, 3), 16);
-        const g = parseInt(hex.slice(3, 5), 16);
-        const b = parseInt(hex.slice(5, 7), 16);
-        return { r, g, b };
-    }
-
-    // 3. Glavna funkcija koja šalje JSON paket na ESP32
-    async function posaljiBoju(tip, inputId) {
-        const colorInput = document.getElementById(inputId);
-        if (!colorInput) return;
-
-        const rgb = hexToRgb(colorInput.value);
-        const paket = {
-            naredba: "SET_COLOR",
-            tip: tip,
-            r: rgb.r,
-            g: rgb.g,
-            b: rgb.b
-        };
-
-        try {
-            const response = await fetch(`${ESP_IP}/api/settings`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(paket)
-            });
-            if (response.ok) alert(`Boja za ${tip} uspješno sačuvana!`);
-        } catch (error) {
-            alert(`Nije moguće povezati se na ESP32. RGB: ${rgb.r}, ${rgb.g}, ${rgb.b}`);
-        }
-    }
-
-    // 4. INICIJALIZACIJA (Ovdje se pokreće tvoj preview)
-    document.addEventListener("DOMContentLoaded", function () {
-        // Aktiviramo uživo preview za sva tri pickera
-        setupColorPreview('letter_color_change', 'letter_color_preview');
-        setupColorPreview('marix_time_color_change', 'marix_time_color_preview');
-        setupColorPreview('matrix_letter_color_change', 'matrix_letter_color_preview');
-    });
-
-    /********************** PROFIL & WIFI POSTAVKE **********************/
-
-    // 1. Promjena Username-a
-    async function promijeniUsername() {
-        const staro = document.getElementById("user-name-old").value;
-        const novo = document.getElementById("user-name-new").value;
-        const potvrda = document.getElementById("user-name-new-confirmation").value;
-
-        if (novo !== potvrda) {
-            alert("Novi username i potvrda se ne podudaraju!");
-            return;
-        }
-
-        const paket = { naredba: "UPDATE_USER", staro: staro, novo: novo };
-        posaljiNaProfilAPI(paket, "Username uspješno promijenjen!");
-    }
-
-    // 2. Promjena Šifre
-    async function promijeniSifru() {
-        const stara = document.getElementById("password-old").value;
-        const nova = document.getElementById("password-new").value;
-        const potvrda = document.getElementById("password-new-confirmation").value;
-
-        if (nova !== potvrda) {
-            alert("Nova šifra i potvrda se ne podudaraju!");
-            return;
-        }
-
-        const paket = { naredba: "UPDATE_PASS", stara: stara, nova: nova };
-        posaljiNaProfilAPI(paket, "Šifra uspješno promijenjena!");
-    }
-
-    // 3. Promjena WiFi postavki
-    async function sacuvajWifi() {
-        const ssid = document.getElementById("wifi-name").value;
-        const pass = document.getElementById("wifi-password").value;
-
-        if (!ssid || !pass) {
-            alert("Popunite oba WiFi polja!");
-            return;
-        }
-
-        const paket = { naredba: "UPDATE_WIFI", ssid: ssid, pass: pass };
-        posaljiNaProfilAPI(paket, "WiFi postavke sačuvane! ESP32 će se restartovati.");
-    }
-
-    // Pomoćna funkcija za slanje
-    async function posaljiNaProfilAPI(paket, poruka) {
-        try {
-            const response = await fetch(`${ESP_IP}/api/profile`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(paket)
-            });
-            if (response.ok) alert(poruka);
-            else alert("Greška: Server nije prihvatio promjene.");
-        } catch (error) {
-            alert("Greška pri komunikaciji sa ESP32.");
-        }
-    }
-
-    // Povezivanje dugmića sa funkcijama (Inicijalizacija)
-    document.addEventListener("DOMContentLoaded", function () {
-        const btnUser = document.getElementById("change-user");
-        const btnPass = document.getElementById("Promijeni-user");
-        const btnWifi = document.getElementById("save-wifi");
-
-        if (btnUser) btnUser.onclick = promijeniUsername;
-        if (btnPass) btnPass.onclick = promijeniSifru;
-        if (btnWifi) btnWifi.onclick = sacuvajWifi;
-    });
-
+        .catch(err => alert("ESP32 nedostupan za LED kontrolu."));
 }
+/*********************** SETTINGS & BOJE ************************/
+
+// 1. Funkcija za uživo ažuriranje kvadratića (već je imaš u kodu)
+function setupColorPreview(inputId, previewId) {
+    const colorInput = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+
+    if (colorInput && preview) {
+        preview.style.backgroundColor = colorInput.value;
+        colorInput.addEventListener('input', () => {
+            preview.style.backgroundColor = colorInput.value;
+        });
+    }
+}
+
+// 2. Pomoćna funkcija za pretvaranje HEX u RGB
+function hexToRgb(hex) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return { r, g, b };
+}
+
+// 3. Glavna funkcija koja šalje JSON paket na ESP32
+async function posaljiBoju(tip, inputId) {
+    const colorInput = document.getElementById(inputId);
+    if (!colorInput) return;
+
+    const rgb = hexToRgb(colorInput.value);
+    const paket = {
+        naredba: "SET_COLOR",
+        tip: tip,
+        r: rgb.r,
+        g: rgb.g,
+        b: rgb.b
+    };
+
+    try {
+        const response = await fetch(`${ESP_IP}/api/settings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(paket)
+        });
+        if (response.ok) alert(`Boja za ${tip} uspješno sačuvana!`);
+    } catch (error) {
+        alert(`Nije moguće povezati se na ESP32. RGB: ${rgb.r}, ${rgb.g}, ${rgb.b}`);
+    }
+}
+
+
+
+/********************** PROFIL & WIFI POSTAVKE **********************/
+
+// 1. Promjena Username-a
+async function promijeniUsername() {
+    const staro = document.getElementById("user-name-old").value;
+    const novo = document.getElementById("user-name-new").value;
+    const potvrda = document.getElementById("user-name-new-confirmation").value;
+
+    if (novo !== potvrda) {
+        alert("Novi username i potvrda se ne podudaraju!");
+        return;
+    }
+
+    const paket = { naredba: "UPDATE_USER", staro: staro, novo: novo };
+    posaljiNaProfilAPI(paket, "Username uspješno promijenjen!");
+}
+
+// 2. Promjena Šifre
+async function promijeniSifru() {
+    const stara = document.getElementById("password-old").value;
+    const nova = document.getElementById("password-new").value;
+    const potvrda = document.getElementById("password-new-confirmation").value;
+
+    if (nova !== potvrda) {
+        alert("Nova šifra i potvrda se ne podudaraju!");
+        return;
+    }
+
+    const paket = { naredba: "UPDATE_PASS", stara: stara, nova: nova };
+    posaljiNaProfilAPI(paket, "Šifra uspješno promijenjena!");
+}
+
+// 3. Promjena WiFi postavki
+async function sacuvajWifi() {
+    const ssid = document.getElementById("wifi-name").value;
+    const pass = document.getElementById("wifi-password").value;
+
+    if (!ssid || !pass) {
+        alert("Popunite oba WiFi polja!");
+        return;
+    }
+
+    const paket = { naredba: "UPDATE_WIFI", ssid: ssid, pass: pass };
+    posaljiNaProfilAPI(paket, "WiFi postavke sačuvane! ESP32 će se restartovati.");
+}
+
+// Pomoćna funkcija za slanje
+async function posaljiNaProfilAPI(paket, poruka) {
+    try {
+        const response = await fetch(`${ESP_IP}/api/profile`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(paket)
+        });
+        if (response.ok) alert(poruka);
+        else alert("Greška: Server nije prihvatio promjene.");
+    } catch (error) {
+        alert("Greška pri komunikaciji sa ESP32.");
+    }
+}
+
+// Povezivanje dugmića sa funkcijama (Inicijalizacija)
+document.addEventListener("DOMContentLoaded", function () {
+    const btnUser = document.getElementById("change-user");
+    const btnPass = document.getElementById("Promijeni-user");
+    const btnWifi = document.getElementById("save-wifi");
+
+    if (btnUser) btnUser.onclick = promijeniUsername;
+    if (btnPass) btnPass.onclick = promijeniSifru;
+    if (btnWifi) btnWifi.onclick = sacuvajWifi;
+
+    setupColorPreview('letter_color_change', 'letter_color_preview');
+    setupColorPreview('marix_time_color_change', 'marix_time_color_preview');
+    setupColorPreview('matrix_letter_color_change', 'matrix_letter_color_preview');
+
+});
+
