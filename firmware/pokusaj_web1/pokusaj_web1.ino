@@ -1,4 +1,5 @@
 #include <WiFi.h>
+#include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h> 
 #include <ArduinoJson.h>
 #include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
@@ -46,36 +47,59 @@ void configuration() {
 }
 
 void setupRoutes() {
-  // TEST ZVONA
-  server.on("/api/test", HTTP_POST, [](AsyncWebServerRequest *request){}, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-    StaticJsonDocument<200> doc;
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS");
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  server.onNotFound([](AsyncWebServerRequest *request) {
+    if (request->method() == HTTP_OPTIONS) request->send(200);
+    else request->send(404);
+  });
+
+  // --- POPRAVLJENA RUTA ZA OBAVJEŠTENJA ---
+  server.on("/poshalji", HTTP_POST, [](AsyncWebServerRequest *request){
+    request->send(200, "application/json", "{\"status\":\"ok\"}");
+  }, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+    StaticJsonDocument<2048> doc;
     deserializeJson(doc, data);
-    if (doc["naredba"] == "TEST_START") {
-      digitalWrite(RELAY_PIN, HIGH);
-      trenutniTekst = "TESTIRANJE ZVONA";
-    } else {
-      digitalWrite(RELAY_PIN, LOW);
-      trenutniTekst = "Sistem spreman";
+    
+    if (doc.containsKey("vrijednost")) {
+      JsonArray obavijesti = doc["vrijednost"];
+      String noviTekst = "";
+      for (JsonObject v : obavijesti) {
+        String ime = v["ime"].as<String>();
+        String vrijeme = v["vrijeme"].as<String>();
+        noviTekst += ime + " u " + vrijeme + "  |"; 
+      }
+      if (noviTekst != "") {
+        trenutniTekst = noviTekst;
+        xPos = 128;
+        emergencyMode = false; // Isključi emergency ako stigne nova vijest
+      }
     }
-    request->send(200, "application/json", "{\"status\":\"ok\"}");
   });
 
-  // EMERGENCY
-  server.on("/api/emergency", HTTP_POST, [](AsyncWebServerRequest *request){}, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+  // --- POPRAVLJENA RUTA ZA EMERGENCY (Blinkanje) ---
+  server.on("/api/emergency", HTTP_POST, [](AsyncWebServerRequest *request){
+    request->send(200, "application/json", "{\"status\":\"ok\"}");
+  }, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
     StaticJsonDocument<200> doc;
     deserializeJson(doc, data);
-    emergencyMode = (doc["naredba"] == "EMERGENCY_START");
-    if (!emergencyMode) digitalWrite(RELAY_PIN, LOW);
-    request->send(200, "application/json", "{\"status\":\"ok\"}");
+    String naredba = doc["naredba"].as<String>();
+    emergencyMode = (naredba == "EMERGENCY_START");
+    Serial.println(emergencyMode ? "EMERGENCY START" : "EMERGENCY STOP");
   });
 
-  // RASPORED
-  server.on("/api/raspored", HTTP_POST, [](AsyncWebServerRequest *request){}, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+  // --- RUTA ZA RASPORED ---
+  server.on("/api/raspored", HTTP_POST, [](AsyncWebServerRequest *request){
+    request->send(200, "application/json", "{\"status\":\"ok\"}");
+  }, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
     StaticJsonDocument<4096> doc;
     deserializeJson(doc, data);
-    trenutniTekst = doc["ispis"].as<String>();
-    xPos = 128; 
-    request->send(200, "application/json", "{\"status\":\"ok\"}");
+    if (doc.containsKey("ispis")) {
+        trenutniTekst = doc["ispis"].as<String>();
+        xPos = 128;
+    }
   });
 
   server.begin();
@@ -83,6 +107,8 @@ void setupRoutes() {
 
 void setup() {
   Serial.begin(115200);
+  delay(1000); // Daj mu sekundu da se "probudi"
+  Serial.println("Sistem se pokrece..."); // Ako ovo vidis, Serial radi!
   pinMode(RELAY_PIN, OUTPUT);
   pinMode(LED_STRIP_PIN, OUTPUT);
   digitalWrite(LED_STRIP_PIN, HIGH);
@@ -92,8 +118,18 @@ void setup() {
   display->begin();
   display->setBrightness8(120);
 
-  WiFi.begin("59588d", "273370344");
-  while (WiFi.status() != WL_CONNECTED) { delay(500); }
+  WiFi.begin("lamija7", "112345678");
+  Serial.print("Povezujem se na WiFi");
+  while (WiFi.status() != WL_CONNECTED) { 
+    delay(500);
+    display->fillScreen(0);
+    display->setCursor(0, 8);
+    display->print("Spajanje...");
+    }
+
+  Serial.println("\nPovezan!");
+  Serial.print("IP adresa: ");
+  Serial.println(WiFi.localIP());
 
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
   startupVrijeme = millis();
@@ -102,6 +138,7 @@ void setup() {
 
 void loop() {
   display->fillScreen(0);
+  
 
   // 1. STARTUP (ETS na sredini 3 sekunde)
   if (!startupOdrano) {
@@ -123,14 +160,14 @@ void loop() {
   // 3. NORMALAN RAD (Dva reda)
   
   // --- GORNJI RED: SAT (Fiksni) ---
-  display->setTextSize(1);
-  display->setTextColor(display->color565(255, 255, 0)); // Žuti sat
-  display->setCursor(49, 2); 
+  display->setTextSize(2);
+  display->setTextColor(display->color565(255, 150, 0)); // Žuti sat
+  display->setCursor(28, 0); 
   display->print(getVrijeme());
 
   // --- DONJI RED: INFO (Scrolling) ---
   display->setTextColor(display->color565(0, 255, 0)); // Zeleni tekst
-  display->setCursor(xPos, 20); 
+  display->setCursor(xPos, 17); 
   display->print(trenutniTekst);
 
   xPos--;

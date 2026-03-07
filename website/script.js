@@ -1,6 +1,6 @@
 /**GLOBAL***/
 let events = [];
-
+const ESP_IP = "http://10.132.0.148";
 /*****************BRGER MENI*********************/
 const burger = document.getElementById("burger");
 if (burger) {
@@ -540,7 +540,7 @@ async function posaljiNaESP() {
     alert("PODACI SPREMNI:\nŠaljem " + zaMatricu.length + " obavještenja (danas/sutra).");
 
     try {
-        const response = await fetch('/poshalji', {
+        const response = await fetch(`${ESP_IP}/poshalji`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(podaciZaSlanje)
@@ -787,7 +787,7 @@ function posaljiRasporedNaESP() {
     console.log("Šaljem JSON na ESP:", paket);
 
     // 4. Fetch poziv 
-    fetch("/api/raspored", {
+    fetch(`{ESP_IP}/api/raspored`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(paket)
@@ -802,10 +802,10 @@ function pokreniSveZaTest() {
 
     if (testAktivno) {
         d.textContent = "Zaustavi"; // Promijeni tekst na ekranu
-        fetch("/api/test", { method: "POST", body: JSON.stringify({ naredba: "TEST_START" }) });
+        fetch(`{ESP_IP}/api/test`, { method: "POST", body: JSON.stringify({ naredba: "TEST_START" }) });
     } else {
         d.textContent = "Pokreni"; // Vrati tekst na ekranu
-        fetch("/api/test", { method: "POST", body: JSON.stringify({ naredba: "TEST_STOP" }) });
+        fetch(`{ESP_IP}/api/test`, { method: "POST", body: JSON.stringify({ naredba: "TEST_STOP" }) });
     }
 }
 
@@ -816,10 +816,10 @@ function pokreniSveZaEmergency() {
 
     if (emergencyAktivno) {
         d.textContent = "STOP EMERGENCY";
-        fetch("/api/emergency", { method: "POST", body: JSON.stringify({ naredba: "EMERGENCY_START" }) });
+        fetch(`{ESP_IP}/api/emergency`, { method: "POST", body: JSON.stringify({ naredba: "EMERGENCY_START" }) });
     } else {
         d.textContent = "Emergency";
-        fetch("/api/emergency", { method: "POST", body: JSON.stringify({ naredba: "EMERGENCY_STOP" }) });
+        fetch(`{ESP_IP}/api/emergency`, { method: "POST", body: JSON.stringify({ naredba: "EMERGENCY_STOP" }) });
     }
 }
 
@@ -827,7 +827,7 @@ function pokreniSveZaEmergency() {
 // --- FUNKCIJA ZA BRISANJE EEPROM-A ---
 function obrisiSvePodatke() {
     if (confirm("Jeste li sigurni da želite obrisati SVE podatke (raspored, dežurstva, poruke)? Ova radnja je nepovratna!")) {
-        fetch("/api/settings", {
+        fetch(`{ESP_IP}/api/settings`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ naredba: "CLEAR_EEPROM" })
@@ -847,7 +847,7 @@ function upravljajLedTrakom(dugme) {
         stanje: ledUpaljen ? "ON" : "OFF"
     };
 
-    fetch("/api/settings", {
+    fetch("{ESP_IP}/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(paket)
