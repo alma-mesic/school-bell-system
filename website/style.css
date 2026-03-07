@@ -820,10 +820,10 @@ main#systemPage {
     min-width: 300px;
     gap: 25px;
 }
-
-#letter_font {
+#font_panel{
     background-color: #2B2D42;
     padding: 20px;
+    height: 180px;
     border-radius: 16px;
     border: 1px solid #3F4154;
     box-shadow: 0 10px 25px rgba(0,0,0,0.4);
@@ -832,13 +832,27 @@ main#systemPage {
     gap: 12px;
 }
 
-#letter_font h3 {
+#letter_font,
+#clock_font {
+    background-color: #2B2D42;
+    padding: 24px;
+    border-radius: 16px;
+    border: 1px solid #3F4154;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#letter_font h3,
+#clock_font h3 {
     font-size: 16px;
     font-weight: 600;
     color: #EDF2F4;
 }
 
-#letter_font select {
+#letter_font select,
+#clock_font select {
     padding: 10px;
     border-radius: 8px;
     border: 1px solid #3F4154;
@@ -848,13 +862,15 @@ main#systemPage {
     transition: 0.3s ease;
 }
 
-#letter_font select:focus {
+#letter_font select:focus,
+#clock_font select:focus {
     outline: none;
     border-color: #8D99AE;
     box-shadow: 0 0 10px rgba(141,153,174,0.4);
 }
 
-#letter_font button {
+#letter_font button,
+#clock_font button {
     width: fit-content;
     align-self: center;
     padding: 12px 35px;
@@ -867,7 +883,8 @@ main#systemPage {
     transition: all 0.3s ease;
 }
 
-#letter_font button:hover {
+#letter_font button:hover,
+#clock_font button:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(141,153,174,0.5);
 }
