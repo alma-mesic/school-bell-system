@@ -1,0 +1,389 @@
+#include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
+#include <Adafruit_GFX.h>
+#include <WiFi.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+#include <ArduinoJson.h>
+#include "time.h"
+#include <Preferences.h>
+#include <Adafruit_NeoPixel.h>
+
+// ---------------- KONFIGURACIJA ---------------------
+#define RELAY_PIN 18
+#define PANEL_RES_X 64
+#define PANEL_RES_Y 32
+#define PANEL_CHAIN 2
+
+#define LED_PIN 32     // broj pina led trake
+#define LED_COUNT 200  // broj ledica na traci
+
+MatrixPanel_I2S_DMA *display;
+HUB75_I2S_CFG mxconfig(PANEL_RES_X, PANEL_RES_Y, PANEL_CHAIN);
+Preferences prefs;
+AsyncWebServer server(80);
+
+// ---------------- GLOBALNE PROMJENLJIVE --------------------
+bool startup = true;
+unsigned long startTime;
+int xPos = 128;
+
+bool bellTestMode = false;
+int lastBellMinute = -1;
+String text = "Cekam raspored...";
+String lastText = "";
+
+// SOS / Emergency
+bool sosActive = false;
+unsigned long sosStartTime = 0;
+unsigned long sosBellTimer = 0;
+int sosStep = 0;
+const int sosPattern[] = { 200, 200, 200, 600, 600, 600, 600, 600, 200, 200, 200 };
+const int sosLen = 11;
+
+// Podaci
+struct ClassTime {
+  String day;
+  int number;
+  String start;
+  String end;
+  String dezurni;
+};
+ClassTime classes[20];
+int classCount = 0;
+
+struct Notification {
+  String text;
+  int year, month, day, hour, minute;
+};
+Notification notifications[10];
+int notificationCount = 0;
+
+const char *ntpServer = "pool.ntp.org";
+const long gmtOffset_sec = 3600;
+const int daylightOffset_sec = 3600;
+
+Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
+
+int ledR = 255, ledG = 255, ledB = 255;  // Boja LED trake
+int satR = 255, satG = 0, satB = 0;      // Boja sata na matrici
+int textR = 0, textG = 255, textB = 0;   // Boja scroll teksta
+
+
+// ---------------- POMOĆNE FUNKCIJE --------------------
+
+void configuration() {
+  mxconfig.gpio.r1 = 25;
+  mxconfig.gpio.g1 = 27;
+  mxconfig.gpio.b1 = 26;
+  mxconfig.gpio.r2 = 14;
+  mxconfig.gpio.g2 = 13;
+  mxconfig.gpio.b2 = 12;
+  mxconfig.gpio.a = 23;
+  mxconfig.gpio.b = 19;
+  mxconfig.gpio.c = 5;
+  mxconfig.gpio.d = 17;
+  mxconfig.gpio.clk = 16;
+  mxconfig.gpio.lat = 4;
+  mxconfig.gpio.oe = 15;
+}
+
+String getTimeString() {
+  struct tm t;
+  if (!getLocalTime(&t)) return "00:00";
+  char buf[6];
+  strftime(buf, 6, "%H:%M", &t);
+  return String(buf);
+}
+
+int timeToMinutes(const String &t) {
+  return t.substring(0, 2).toInt() * 60 + t.substring(3, 5).toInt();
+}
+
+// ---------------- WEB SERVER RUTE (ZA WEB APP) --------------------
+
+void handleJson(String json) {
+  StaticJsonDocument<4096> doc;
+  if (deserializeJson(doc, json)) return;
+
+  String tip = doc["tip"] | "";
+
+  if (tip == "raspored") {
+    classCount = 0;
+    for (JsonObject c : doc["casovi"].as<JsonArray>()) {
+      if (classCount < 20) {
+        classes[classCount++] = { c["dan"] | "", c["cas"] | 0, c["pocetak"] | "", c["kraj"] | "", c["dezurni"] | "" };
+      }
+    }
+    prefs.putString("raspored", json);
+  } else if (tip == "obavijesti") {
+    notificationCount = 0;
+    for (JsonObject o : doc["lista"].as<JsonArray>()) {
+      String dt = o["datumVrijeme"] | "";
+      if (dt.length() >= 16 && notificationCount < 10) {
+        notifications[notificationCount++] = {
+          o["naziv"] | "", dt.substring(0, 4).toInt(), dt.substring(5, 7).toInt(),
+          dt.substring(8, 10).toInt(), dt.substring(11, 13).toInt(), dt.substring(14, 16).toInt()
+        };
+      }
+    }
+    prefs.putString("obavijesti", json);
+  } else if (tip == "emergency") {
+    sosActive = true;
+    sosStartTime = millis();
+    sosStep = 0;
+  } else if (tip == "zvono") {
+    String akcija = doc["akcija"] | "";
+    if (akcija == "start") {
+      bellTestMode = true;
+      digitalWrite(RELAY_PIN, HIGH);
+    } else {
+      bellTestMode = false;
+      digitalWrite(RELAY_PIN, LOW);
+    }
+  }
+}
+
+void setupRoutes() {
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  server.onNotFound([](AsyncWebServerRequest *request) {
+    if (request->method() == HTTP_OPTIONS) request->send(200);
+    else request->send(404);
+  });
+
+  // Ruta koja prima JSON iz Web App i prosljeđuje ga tvojoj handleJson funkciji
+  server.on(
+    "/api/data", HTTP_POST, [](AsyncWebServerRequest *request) {
+      request->send(200, "application/json", "{\"status\":\"ok\"}");
+    },
+    NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+      String body = "";
+      for (size_t i = 0; i < len; i++) body += (char)data[i];
+      handleJson(body);
+    });
+  server.on(
+    "/api/settings", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL,
+    [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+      StaticJsonDocument<256> doc;
+      deserializeJson(doc, (const char *)data);
+
+      String naredba = doc["naredba"];
+      String tip = doc["tip"];
+      int r = doc["r"];
+      int g = doc["g"];
+      int b = doc["b"];
+
+      if (naredba == "SET_COLOR") {
+        if (tip == "led_traka") {
+          // Bojimo svaku diodu na traci u odabranu boju
+          for (int i = 0; i < strip.numPixels(); i++) {
+            strip.setPixelColor(i, strip.Color(r, g, b));
+          }
+          strip.show();  // Šalje podatke na traku da zasvijetli
+        } else if (tip == "boja_sata") {
+          satR = r;
+          satG = g;
+          satB = b;
+          prefs.putInt("satR", r);
+          prefs.putInt("satG", g);
+          prefs.putInt("satB", b);
+        } else if (tip == "boja_scroll") {
+          textR = r;
+          textG = g;
+          textB = b;
+          prefs.putInt("textR", r);
+          prefs.putInt("textG", g);
+          prefs.putInt("textB", b);
+        }
+
+        request->send(200, "application/json", "{\"status\":\"ok\"}");
+      }
+
+      // Obrada za CLEAR_EEPROM ako ti zatreba
+      // Unutar setupRoutes() potraži /api/settings dio
+      if (naredba == "CLEAR_EEPROM") {
+        // 1. Briše sve iz Preferences (NVS memorija)
+        prefs.clear();
+
+        // 2. Pošalji odgovor klijentu prije nego se ugasiš
+        request->send(200, "application/json", "{\"status\":\"ok\"}");
+
+        // 3. Sačekaj malo i restartuj ESP32
+        Serial.println("Memorija obrisana. Restartujem...");
+        delay(2000);
+        ESP.restart();
+      }
+    });
+  server.on(
+    "/api/profile", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL,
+    [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+      StaticJsonDocument<256> doc;
+      deserializeJson(doc, (const char *)data);
+
+      String naredba = doc["naredba"];
+
+      if (naredba == "UPDATE_USER") {
+        String noviUser = doc["novo"];
+        prefs.putString("adminUser", noviUser);
+        request->send(200, "application/json", "{\"status\":\"ok\"}");
+      } else if (naredba == "UPDATE_PASS") {
+        String novaSifra = doc["nova"];
+        prefs.putString("adminPass", novaSifra);
+        request->send(200, "application/json", "{\"status\":\"ok\"}");
+      } else if (naredba == "UPDATE_WIFI") {
+        String ssid = doc["ssid"];
+        String pass = doc["pass"];
+        prefs.putString("wifi_ssid", ssid);
+        prefs.putString("wifi_pass", pass);
+
+        request->send(200, "application/json", "{\"status\":\"restart\"}");
+        delay(2000);
+        ESP.restart();  // Restartujemo da se poveže na novi WiFi
+      }
+    });
+  server.begin();
+}
+
+// ---------------- LOGIKA ISPISA I RADA --------------------
+
+void buildMainText() {
+  struct tm now;
+  if (!getLocalTime(&now)) return;
+
+  String newText = "";
+  int nowMin = now.tm_hour * 60 + now.tm_min;
+  bool inClass = false;
+
+  for (int i = 0; i < classCount; i++) {
+    int start = timeToMinutes(classes[i].start);
+    int end = timeToMinutes(classes[i].end);
+    if (nowMin >= start && nowMin < end) {
+      newText = String(classes[i].number) + ". cas | Kraj: " + classes[i].end + " | Jos " + String(end - nowMin) + " min";
+      if (classes[i].dezurni != "") newText += " | Dezurni: " + classes[i].dezurni;
+      inClass = true;
+      break;
+    }
+  }
+
+  if (!inClass) newText = "ODMOR / NEMA CASA";
+
+  // Dodaj obavijesti za danas/sutra
+  for (int i = 0; i < notificationCount; i++) {
+    newText += " | " + notifications[i].text + " u " + String(notifications[i].hour) + ":" + String(notifications[i].minute);
+  }
+
+  if (newText != lastText) {
+    text = newText;
+    lastText = newText;
+    xPos = 128;
+  }
+}
+
+void checkBell() {
+  struct tm now;
+  if (!getLocalTime(&now) || bellTestMode) return;
+  int nowMin = now.tm_hour * 60 + now.tm_min;
+  if (nowMin == lastBellMinute) return;
+
+  for (int i = 0; i < classCount; i++) {
+    if (nowMin == timeToMinutes(classes[i].start) || nowMin == timeToMinutes(classes[i].end)) {
+      digitalWrite(RELAY_PIN, HIGH);
+      delay(2000);
+      digitalWrite(RELAY_PIN, LOW);
+      lastBellMinute = nowMin;
+      break;
+    }
+  }
+}
+
+// ---------------- SETUP I LOOP --------------------
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(RELAY_PIN, OUTPUT);
+  configuration();
+
+  strip.begin();             // Inicijalizacija trake
+  strip.show();              // Ugasi sve LED diode na početku
+  strip.setBrightness(100);  // Podesi jačinu (0-255)
+
+  display = new MatrixPanel_I2S_DMA(mxconfig);
+  display->begin();
+  display->setBrightness8(120);
+
+  prefs.begin("schoolbell", false);
+
+  satR = prefs.getInt("satR", 255);
+  satG = prefs.getInt("satG", 0);
+  satB = prefs.getInt("satB", 0);
+  textR = prefs.getInt("textR", 0);
+  textG = prefs.getInt("textG", 255);
+  textB = prefs.getInt("textB", 0);
+
+  // Pročitaj spaseni WiFi, ako ga nema koristi "lamija7" kao rezervu
+  String savedSSID = prefs.getString("wifi_ssid", "lamija7");
+  String savedPASS = prefs.getString("wifi_pass", "112345678");
+
+  // Poveži se koristeći te podatke
+  WiFi.begin(savedSSID.c_str(), savedPASS.c_str());
+
+  while (WiFi.status() != WL_CONNECTED) { delay(500); }
+
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+
+  // Učitaj stare podatke
+  String r = prefs.getString("raspored", "");
+  if (r != "") handleJson(r);
+  String o = prefs.getString("obavijesti", "");
+  if (o != "") handleJson(o);
+
+  setupRoutes();
+  startTime = millis();
+}
+
+void loop() {
+  
+  if (Serial.available()) {
+    String podaciIzKabla = Serial.readStringUntil('\n');
+    handleJson(podaciIzKabla); // Proslijedi istoj funkciji koju koristi i Web App
+  }
+
+  display->fillScreen(0);
+
+  if (startup) {
+    display->setTextSize(2);
+    display->setTextColor(display->color565(255, 150, 0));
+    display->setCursor(45, 8);
+    display->print("ETS");
+    if (millis() - startTime > 3000) startup = false;
+  } else if (sosActive) {
+    display->fillScreen(((millis() / 300) % 2) ? 0 : display->color565(255, 0, 0));
+    if (millis() - sosBellTimer > sosPattern[sosStep]) {
+      sosBellTimer = millis();
+      digitalWrite(RELAY_PIN, !digitalRead(RELAY_PIN));
+      sosStep = (sosStep + 1) % sosLen;
+    }
+    if (millis() - sosStartTime > 15000) {
+      sosActive = false;
+      digitalWrite(RELAY_PIN, LOW);
+    }
+  } else {
+    display->setTextSize(2);
+    display->setTextColor(display->color565(satR, satG, satB));  // boja sata
+    display->setCursor(28, 0);
+    display->print(getTimeString());
+
+    display->setTextColor(display->color565(textR, textG, textB));  // boja scrolla
+    display->setCursor(xPos, 17);
+    display->print(text);
+
+    xPos--;
+    if (xPos < -((int)text.length() * 12)) xPos = 128;
+
+    checkBell();
+    buildMainText();
+  }
+  delay(30);
+}
