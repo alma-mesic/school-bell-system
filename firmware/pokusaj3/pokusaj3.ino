@@ -177,11 +177,10 @@ void setupRoutes() {
 
       if (naredba == "SET_COLOR") {
         if (tip == "led_traka") {
-          // Bojimo svaku diodu na traci u odabranu boju
           for (int i = 0; i < strip.numPixels(); i++) {
             strip.setPixelColor(i, strip.Color(r, g, b));
           }
-          strip.show();  // Šalje podatke na traku da zasvijetli
+          strip.show();
         } else if (tip == "boja_sata") {
           satR = r;
           satG = g;
@@ -201,16 +200,10 @@ void setupRoutes() {
         request->send(200, "application/json", "{\"status\":\"ok\"}");
       }
 
-      // Obrada za CLEAR_EEPROM ako ti zatreba
-      // Unutar setupRoutes() potraži /api/settings dio
       if (naredba == "CLEAR_EEPROM") {
-        // 1. Briše sve iz Preferences (NVS memorija)
+        // brise sve iz preferences (nvs memorija)
         prefs.clear();
-
-        // 2. Pošalji odgovor klijentu prije nego se ugasiš
         request->send(200, "application/json", "{\"status\":\"ok\"}");
-
-        // 3. Sačekaj malo i restartuj ESP32
         Serial.println("Memorija obrisana. Restartujem...");
         delay(2000);
         ESP.restart();
@@ -240,18 +233,17 @@ void setupRoutes() {
 
         request->send(200, "application/json", "{\"status\":\"restart\"}");
         delay(2000);
-        ESP.restart();  // Restartujemo da se poveže na novi WiFi
+        ESP.restart();  // restartujemo da bi se povezo na novi WiFi
       }
     });
   server.begin();
 }
 
-// ---------------- LOGIKA ISPISA I RADA --------------------
+// ----------------ISPIS I RAD--------------------
 void buildMainText() {
   struct tm now;
   if (!getLocalTime(&now)) return;
 
-  // Izračun kodova za poređenje datuma (danas i sutra)
   long danas = (now.tm_year + 1900) * 10000L + (now.tm_mon + 1) * 100 + now.tm_mday;
   
   struct tm sutraTm = now;
@@ -263,7 +255,6 @@ void buildMainText() {
   int nowMin = now.tm_hour * 60 + now.tm_min;
   bool inClass = false;
 
-  // --- 1. DIO: ČAS / ODMOR (Tvoj postojeći kod) ---
   for (int i = 0; i < classCount; i++) {
     int start = timeToMinutes(classes[i].start);
     int end = timeToMinutes(classes[i].end);
@@ -276,7 +267,6 @@ void buildMainText() {
   }
 
   if (!inClass) {
-    // Ako nije čas, provjeravamo da li je odmor ili je kraj nastave
     if (classCount > 0 && nowMin < timeToMinutes(classes[0].start)) {
       newText = "PRIPREMA ZA NASTAVU";
     } else if (classCount > 0 && nowMin > timeToMinutes(classes[classCount-1].end)) {
@@ -286,32 +276,27 @@ void buildMainText() {
     }
   }
 
-  // --- 2. DIO: PAMETNE OBAVIJESTI (Nadogradnja) ---
   String obavijestiDio = "";
   for (int i = 0; i < notificationCount; i++) {
     long datumObavijesti = notifications[i].year * 10000L + notifications[i].month * 100 + notifications[i].day;
+    int notifMinuta = notifications[i].hour * 60 + notifications[i].minute;
 
-    // A) Brisanje/Preskakanje starih: Ako je datum manji od današnjeg, ignoriši
     if (datumObavijesti < danas) continue;
+    if (datumObavijesti == danas && notifMinuta <= nowMin) continue; 
 
-    // B) Filtriranje: Samo današnje i sutrašnje obavijesti idu na ekran
     if (datumObavijesti == danas || datumObavijesti == sutra) {
       String prefiks = (datumObavijesti == danas) ? " [DANAS] " : " [SUTRA] ";
-      
       obavijestiDio += " |" + prefiks + notifications[i].text + " u " + 
                        (notifications[i].hour < 10 ? "0" : "") + String(notifications[i].hour) + ":" + 
                        (notifications[i].minute < 10 ? "0" : "") + String(notifications[i].minute);
     }
   }
-
-  // Spajamo sve u jednu rečenicu
   newText += obavijestiDio;
 
-  // --- 3. DIO: REFRESH (Tvoj postojeći kod) ---
   if (newText != lastText) {
     text = newText;
     lastText = newText;
-    xPos = 128; // Resetuje scroll na početak svaki put kad se podatak promijeni
+    xPos = 128;
   }
 }
 
@@ -339,9 +324,9 @@ void setup() {
   pinMode(RELAY_PIN, OUTPUT);
   configuration();
 
-  strip.begin();             // Inicijalizacija trake
-  strip.show();              // Ugasi sve LED diode na početku
-  strip.setBrightness(100);  // Podesi jačinu (0-255)
+  strip.begin();             // inicijalizacija trake
+  strip.show();              // ugasi sve LED diode na pocetku
+  strip.setBrightness(100);  // podesi jacinu (0-255)
 
   display = new MatrixPanel_I2S_DMA(mxconfig);
   display->begin();
@@ -359,15 +344,12 @@ void setup() {
   // Pročitaj spaseni WiFi, ako ga nema koristi "lamija7" kao rezervu
   String savedSSID = prefs.getString("wifi_ssid", "lamija7");
   String savedPASS = prefs.getString("wifi_pass", "112345678");
-
-  // Poveži se koristeći te podatke
   WiFi.begin(savedSSID.c_str(), savedPASS.c_str());
 
   while (WiFi.status() != WL_CONNECTED) { delay(500); }
 
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 
-  // Učitaj stare podatke
   String r = prefs.getString("raspored", "");
   if (r != "") handleJson(r);
   String o = prefs.getString("obavijesti", "");
@@ -381,7 +363,7 @@ void loop() {
   
   if (Serial.available()) {
     String podaciIzKabla = Serial.readStringUntil('\n');
-    handleJson(podaciIzKabla); // Proslijedi istoj funkciji koju koristi i Web App
+    handleJson(podaciIzKabla); 
   }
 
   display->fillScreen(0);
@@ -404,8 +386,8 @@ void loop() {
       digitalWrite(RELAY_PIN, LOW);
     }
   } else if (bellTestMode) {
-    display->setTextSize(1); // Manji tekst da sve stane u sredinu
-    display->setTextColor(display->color565(255, 255, 255)); // Bijela boja
+    display->setTextSize(1); 
+    display->setTextColor(display->color565(255, 255, 255)); 
     display->setCursor(5, 5);
     display->print("TESTIRANJE");
     display->setCursor(15, 18);
