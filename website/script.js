@@ -1,5 +1,5 @@
 /**GLOBAL***/
-const ESP_IP = "http://10.132.0.148";
+const ESP_IP = "http://192.168.0.13";
 /*****************BRGER MENI*********************/
 const burger = document.getElementById("burger");
 if (burger) {
@@ -298,6 +298,7 @@ document.addEventListener("DOMContentLoaded", function () {
     testZvona.addEventListener("click", function () {
         aktivno = !aktivno;
         updateUI();
+        pokreniSveZaTest();
     });
 
     updateUI();
@@ -437,6 +438,7 @@ function deleteEvent() {
     listaObavjestenja.splice(list.selectedIndex, 1);
     localStorage.setItem("sacuvanaObavjestenja", JSON.stringify(listaObavjestenja));
     renderList();
+    posaljiNaESP();
 }
 
 /******************* SLANJE NA ESP (DANAS I SUTRA) *******************/
@@ -459,11 +461,20 @@ async function posaljiNaESP() {
     // PRILAGOĐENO TVOM C++ KODU (linija 98-111)
     const podaciZaSlanje = {
         tip: "obavijesti", // Mora biti "obavijesti"
-        lista: zaMatricu.map(e => ({
-            naziv: e.name, // C++ traži "naziv"
-            datumVrijeme: e.time.toISOString().slice(0, 16).replace('T', ' ')
-            // Pretvara u format "YYYY-MM-DD HH:mm" koji tvoj C++ siječe sa substring
-        }))
+        lista: zaMatricu.map(e => {
+    const d = e.time;
+    // Ručno pravimo format YYYY-MM-DD HH:mm bez UTC pomjeranja
+    const formatiranoVrijeme = d.getFullYear() + "-" + 
+        String(d.getMonth() + 1).padStart(2, '0') + "-" + 
+        String(d.getDate()).padStart(2, '0') + " " + 
+        String(d.getHours()).padStart(2, '0') + ":" + 
+        String(d.getMinutes()).padStart(2, '0');
+
+    return {
+        naziv: e.name,
+        datumVrijeme: formatiranoVrijeme
+    };
+})
     };
 
     try {

@@ -111,7 +111,8 @@ void handleJson(String json) {
     classCount = 0;
     for (JsonObject c : doc["casovi"].as<JsonArray>()) {
       if (classCount < 20) {
-        classes[classCount++] = { c["dan"] | "", c["cas"] | 0, c["pocetak"] | "", c["kraj"] | "", c["dezurni"] | "" };
+        int broj = c["cas"] | c["redniBroj"] | 0;
+        classes[classCount++] = { c["dan"] | "", c["cas"].as<int>() | 0, c["pocetak"] | "", c["kraj"] | "", c["dezurni"] | "" };
       }
     }
     prefs.putString("raspored", json);
@@ -124,6 +125,7 @@ void handleJson(String json) {
           o["naziv"] | "", dt.substring(0, 4).toInt(), dt.substring(5, 7).toInt(),
           dt.substring(8, 10).toInt(), dt.substring(11, 13).toInt(), dt.substring(14, 16).toInt()
         };
+        notificationCount++;
       }
     }
     prefs.putString("obavijesti", json);
@@ -133,6 +135,7 @@ void handleJson(String json) {
     sosStep = 0;
   } else if (tip == "zvono") {
     String akcija = doc["akcija"] | "";
+    Serial.print("Primljena komanda za zvono: "); Serial.println(akcija);
     if (akcija == "start") {
       bellTestMode = true;
       digitalWrite(RELAY_PIN, HIGH);
@@ -245,7 +248,7 @@ void buildMainText() {
   if (!getLocalTime(&now)) return;
 
   long danas = (now.tm_year + 1900) * 10000L + (now.tm_mon + 1) * 100 + now.tm_mday;
-  
+
   struct tm sutraTm = now;
   sutraTm.tm_mday += 1;
   mktime(&sutraTm);
@@ -269,7 +272,7 @@ void buildMainText() {
   if (!inClass) {
     if (classCount > 0 && nowMin < timeToMinutes(classes[0].start)) {
       newText = "PRIPREMA ZA NASTAVU";
-    } else if (classCount > 0 && nowMin > timeToMinutes(classes[classCount-1].end)) {
+    } else if (classCount > 0 && nowMin > timeToMinutes(classes[classCount - 1].end)) {
       newText = "KRAJ NASTAVE";
     } else {
       newText = "ODMOR";
@@ -277,18 +280,22 @@ void buildMainText() {
   }
 
   String obavijestiDio = "";
+
   for (int i = 0; i < notificationCount; i++) {
     long datumObavijesti = notifications[i].year * 10000L + notifications[i].month * 100 + notifications[i].day;
-    int notifMinuta = notifications[i].hour * 60 + notifications[i].minute;
 
     if (datumObavijesti < danas) continue;
-    if (datumObavijesti == danas && notifMinuta <= nowMin) continue; 
 
     if (datumObavijesti == danas || datumObavijesti == sutra) {
-      String prefiks = (datumObavijesti == danas) ? " [DANAS] " : " [SUTRA] ";
-      obavijestiDio += " |" + prefiks + notifications[i].text + " u " + 
-                       (notifications[i].hour < 10 ? "0" : "") + String(notifications[i].hour) + ":" + 
-                       (notifications[i].minute < 10 ? "0" : "") + String(notifications[i].minute);
+      String prefiks = (datumObavijesti == danas) ? " DANAS " : " SUTRA ";
+
+      obavijestiDio += " |" + prefiks + notifications[i].text + " u ";
+
+      if (notifications[i].hour < 10) obavijestiDio += "0";
+      obavijestiDio += String(notifications[i].hour) + ":";
+
+      if (notifications[i].minute < 10) obavijestiDio += "0";
+      obavijestiDio += String(notifications[i].minute);
     }
   }
   newText += obavijestiDio;
@@ -335,20 +342,27 @@ void setup() {
   prefs.begin("schoolbell", false);
 
   satR = prefs.getInt("satR", 255);
-  satG = prefs.getInt("satG", 0);
+  satG = prefs.getInt("satG", 150);
   satB = prefs.getInt("satB", 0);
-  textR = prefs.getInt("textR", 0);
+  textR = prefs.getInt("textR", 150);
   textG = prefs.getInt("textG", 255);
   textB = prefs.getInt("textB", 0);
 
   // Pročitaj spaseni WiFi, ako ga nema koristi "lamija7" kao rezervu
-  String savedSSID = prefs.getString("wifi_ssid", "lamija7");
-  String savedPASS = prefs.getString("wifi_pass", "112345678");
+  String savedSSID = prefs.getString("wifi_ssid", "59588d");
+  String savedPASS = prefs.getString("wifi_pass", "273370344");
   WiFi.begin(savedSSID.c_str(), savedPASS.c_str());
 
   while (WiFi.status() != WL_CONNECTED) { delay(500); }
 
-  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  Serial.println("");
+  Serial.println("WiFi povezan.");
+  Serial.print("IP adresa: ");
+  Serial.println(WiFi.localIP());
+
+  configTime(0, 0, "pool.ntp.org");
+  setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0", 1);
+  tzset();
 
   String r = prefs.getString("raspored", "");
   if (r != "") handleJson(r);
@@ -360,10 +374,10 @@ void setup() {
 }
 
 void loop() {
-  
+
   if (Serial.available()) {
     String podaciIzKabla = Serial.readStringUntil('\n');
-    handleJson(podaciIzKabla); 
+    handleJson(podaciIzKabla);
   }
 
   display->fillScreen(0);
@@ -374,6 +388,14 @@ void loop() {
     display->setCursor(45, 8);
     display->print("ETS");
     if (millis() - startTime > 3000) startup = false;
+  } else if (bellTestMode == true) {
+    display->setTextSize(1);
+    display->setTextColor(display->color565(255, 255, 255));
+    display->setCursor(2, 5);
+    display->print("TESTIRANJE");
+    display->setCursor(15, 18);
+    display->print("ZVONA...");
+    return;
   } else if (sosActive) {
     display->fillScreen(((millis() / 300) % 2) ? 0 : display->color565(255, 0, 0));
     if (millis() - sosBellTimer > sosPattern[sosStep]) {
@@ -385,14 +407,8 @@ void loop() {
       sosActive = false;
       digitalWrite(RELAY_PIN, LOW);
     }
-  } else if (bellTestMode) {
-    display->setTextSize(1); 
-    display->setTextColor(display->color565(255, 255, 255)); 
-    display->setCursor(5, 5);
-    display->print("TESTIRANJE");
-    display->setCursor(15, 18);
-    display->print("ZVONA...");
   } else {
+
     display->setTextSize(2);
     display->setTextColor(display->color565(satR, satG, satB));  // boja sata
     display->setCursor(28, 0);
