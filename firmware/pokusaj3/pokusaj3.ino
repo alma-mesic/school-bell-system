@@ -55,7 +55,7 @@ struct Notification {
   String text;
   int year, month, day, hour, minute;
 };
-Notification notifications[10];
+Notification notifications[20];
 int notificationCount = 0;
 
 const char *ntpServer = "pool.ntp.org";
@@ -119,7 +119,7 @@ void handleJson(String json) {
     notificationCount = 0;
     for (JsonObject o : doc["lista"].as<JsonArray>()) {
       String dt = o["datumVrijeme"] | "";
-      if (dt.length() >= 16 && notificationCount < 10) {
+      if (dt.length() >= 16 && notificationCount < 20) {
         notifications[notificationCount++] = {
           o["naziv"] | "", dt.substring(0, 4).toInt(), dt.substring(5, 7).toInt(),
           dt.substring(8, 10).toInt(), dt.substring(11, 13).toInt(), dt.substring(14, 16).toInt()
@@ -247,15 +247,23 @@ void setupRoutes() {
 }
 
 // ---------------- LOGIKA ISPISA I RADA --------------------
-
 void buildMainText() {
   struct tm now;
   if (!getLocalTime(&now)) return;
+
+  // Izračun kodova za poređenje datuma (danas i sutra)
+  long danas = (now.tm_year + 1900) * 10000L + (now.tm_mon + 1) * 100 + now.tm_mday;
+  
+  struct tm sutraTm = now;
+  sutraTm.tm_mday += 1;
+  mktime(&sutraTm);
+  long sutra = (sutraTm.tm_year + 1900) * 10000L + (sutraTm.tm_mon + 1) * 100 + sutraTm.tm_mday;
 
   String newText = "";
   int nowMin = now.tm_hour * 60 + now.tm_min;
   bool inClass = false;
 
+  // --- 1. DIO: ČAS / ODMOR (Tvoj postojeći kod) ---
   for (int i = 0; i < classCount; i++) {
     int start = timeToMinutes(classes[i].start);
     int end = timeToMinutes(classes[i].end);
@@ -267,17 +275,43 @@ void buildMainText() {
     }
   }
 
-  if (!inClass) newText = "ODMOR / NEMA CASA";
-
-  // Dodaj obavijesti za danas/sutra
-  for (int i = 0; i < notificationCount; i++) {
-    newText += " | " + notifications[i].text + " u " + String(notifications[i].hour) + ":" + String(notifications[i].minute);
+  if (!inClass) {
+    // Ako nije čas, provjeravamo da li je odmor ili je kraj nastave
+    if (classCount > 0 && nowMin < timeToMinutes(classes[0].start)) {
+      newText = "PRIPREMA ZA NASTAVU";
+    } else if (classCount > 0 && nowMin > timeToMinutes(classes[classCount-1].end)) {
+      newText = "KRAJ NASTAVE";
+    } else {
+      newText = "ODMOR";
+    }
   }
 
+  // --- 2. DIO: PAMETNE OBAVIJESTI (Nadogradnja) ---
+  String obavijestiDio = "";
+  for (int i = 0; i < notificationCount; i++) {
+    long datumObavijesti = notifications[i].year * 10000L + notifications[i].month * 100 + notifications[i].day;
+
+    // A) Brisanje/Preskakanje starih: Ako je datum manji od današnjeg, ignoriši
+    if (datumObavijesti < danas) continue;
+
+    // B) Filtriranje: Samo današnje i sutrašnje obavijesti idu na ekran
+    if (datumObavijesti == danas || datumObavijesti == sutra) {
+      String prefiks = (datumObavijesti == danas) ? " [DANAS] " : " [SUTRA] ";
+      
+      obavijestiDio += " |" + prefiks + notifications[i].text + " u " + 
+                       (notifications[i].hour < 10 ? "0" : "") + String(notifications[i].hour) + ":" + 
+                       (notifications[i].minute < 10 ? "0" : "") + String(notifications[i].minute);
+    }
+  }
+
+  // Spajamo sve u jednu rečenicu
+  newText += obavijestiDio;
+
+  // --- 3. DIO: REFRESH (Tvoj postojeći kod) ---
   if (newText != lastText) {
     text = newText;
     lastText = newText;
-    xPos = 128;
+    xPos = 128; // Resetuje scroll na početak svaki put kad se podatak promijeni
   }
 }
 
@@ -369,7 +403,9 @@ void loop() {
       sosActive = false;
       digitalWrite(RELAY_PIN, LOW);
     }
-  } else {
+  } 
+  // Zvono je već upaljeno u handleJson, ovdje samo crtamo na matrici
+   else {
     display->setTextSize(2);
     display->setTextColor(display->color565(satR, satG, satB));  // boja sata
     display->setCursor(28, 0);
