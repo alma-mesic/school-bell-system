@@ -403,9 +403,14 @@ void loop() {
       sosActive = false;
       digitalWrite(RELAY_PIN, LOW);
     }
-  } 
-  // Zvono je već upaljeno u handleJson, ovdje samo crtamo na matrici
-   else {
+  } else if (bellTestMode) {
+    display->setTextSize(1); // Manji tekst da sve stane u sredinu
+    display->setTextColor(display->color565(255, 255, 255)); // Bijela boja
+    display->setCursor(5, 5);
+    display->print("TESTIRANJE");
+    display->setCursor(15, 18);
+    display->print("ZVONA...");
+  } else {
     display->setTextSize(2);
     display->setTextColor(display->color565(satR, satG, satB));  // boja sata
     display->setCursor(28, 0);
