@@ -7,55 +7,59 @@ const char* password = "273370344";
 
 WebServer server(80);
 
-void handleFile(String path){
-  if(LittleFS.exists(path)){
+void handleFile(String path) {
+  // LittleFS zahtijeva da putanja počinje sa /
+  if (!path.startsWith("/")) path = "/" + path;
+
+  // Ako se traži samo "/", preusmjeri na login.html
+  if (path == "/") path = "/login.html";
+
+  if (LittleFS.exists(path)) {
     File file = LittleFS.open(path, "r");
     String contentType = "text/plain";
 
-    if(path.endsWith(".html")) contentType = "text/html";
-    else if(path.endsWith(".css")) contentType = "text/css";
-    else if(path.endsWith(".js")) contentType = "application/javascript";
-    else if(path.endsWith(".png")) contentType = "image/png";
-    else if(path.endsWith(".jpg")) contentType = "image/jpeg";
+    if (path.endsWith(".html")) contentType = "text/html";
+    else if (path.endsWith(".css")) contentType = "text/css";
+    else if (path.endsWith(".js")) contentType = "application/javascript";
+    else if (path.endsWith(".png")) contentType = "image/png";
+    else if (path.endsWith(".jpg") || path.endsWith(".jpeg")) contentType = "image/jpeg";
+    else if (path.endsWith(".ico")) contentType = "image/x-icon";
 
     server.streamFile(file, contentType);
     file.close();
   } else {
-    server.send(404, "text/plain", "File not found");
+    Serial.println("Fajl nije pronadjen: " + path);
+    server.send(404, "text/plain", "Fajl nije pronadjen: " + path);
   }
 }
 
 void setup() {
   Serial.begin(115200);
 
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("");
-  Serial.println("WiFi connected.");
-  Serial.println("IP address: ");
+  Serial.println("\nWiFi connected.");
   Serial.println(WiFi.localIP());
 
-  if(!LittleFS.begin()) {
-  Serial.println("An error has occurred while mounting LittleFS");
-  return;
+  if (!LittleFS.begin()) {
+    Serial.println("Greška pri mountovanju LittleFS");
+    return;
   }
-  Serial.println("LittleFS mounted successfully");
 
+  // Glavna ruta
+  server.on("/", []() { handleFile("/login.html"); });
 
-  server.on("/", [](){ handleFile("/login.html"); });
-  server.on("/index.html", [](){ handleFile("/index.html"); });
-  server.on("/style.css", [](){ handleFile("/style.css"); });
-  server.on("/script1.js", [](){ handleFile("/script1.js"); });
+  server.onNotFound([]() {
+    handleFile(server.uri());
+  });
+
   server.begin();
   Serial.println("HTTP server started");
 }
 
 void loop() {
   server.handleClient();
-
 }
