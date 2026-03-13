@@ -1,5 +1,5 @@
 /**GLOBAL***/
-const ESP_IP = "http://192.168.1.14";
+const ESP_IP = "http://192.168.1.14/";
 /*****************BRGER MENI*********************/
 const burger = document.getElementById("burger");
 if (burger) {

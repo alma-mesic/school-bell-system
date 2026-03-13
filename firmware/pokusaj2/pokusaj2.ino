@@ -537,8 +537,8 @@ void buildMainText() {
       ssid = prefs.getString("ssid", "");
       wifiPassword = prefs.getString("wifiPass", "");
       if (ssid == "" || wifiPassword == "") {
-        ssid = "MUJKIC";
-        wifiPassword = "100200300";
+        ssid = "Mesic";
+        wifiPassword = "alma12345";
       }
 
       connectWiFi();

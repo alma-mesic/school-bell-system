@@ -135,7 +135,8 @@ void handleJson(String json) {
     sosStep = 0;
   } else if (tip == "zvono") {
     String akcija = doc["akcija"] | "";
-    Serial.print("Primljena komanda za zvono: "); Serial.println(akcija);
+    Serial.print("Primljena komanda za zvono: ");
+    Serial.println(akcija);
     if (akcija == "start") {
       bellTestMode = true;
       digitalWrite(RELAY_PIN, HIGH);
@@ -204,35 +205,19 @@ void setupRoutes() {
       }
 
       if (naredba == "CLEAR_EEPROM") {
-        // brise sve iz preferences (nvs memorija)
-        //LittleFS.format(); BRISE CITAV FILE SYSTEM
-        prefs.remove("raspored");
-        prefs.remove("obavijesti");
+
+        prefs.clear();  // briše sve iz NVS
+
         classCount = 0;
         notificationCount = 0;
-
-        prefs.remove("satR");
-        prefs.remove("satG");
-        prefs.remove("satB");
-
-        prefs.remove("textR");
-        prefs.remove("textG");
-        prefs.remove("textB");
-
-        prefs.remove("wifi_ssid");
-        prefs.remove("wifi_pass");
-
-        prefs.remove("adminUser");
-        prefs.remove("adminPass");
 
         text = "Cekam raspored...";
         lastText = "";
         xPos = 128;
 
         request->send(200, "application/json", "{\"status\":\"ok\"}");
-        
-        Serial.println("Memorija obrisana. Restartujem...");
-        delay(2000);
+
+        Serial.println("Memorija obrisana");
         ESP.restart();
       }
     });
@@ -377,31 +362,48 @@ void setup() {
     return;
   }
   // Pročitaj spaseni WiFi, ako ga nema koristi "lamija7" kao rezervu
-  String savedSSID = prefs.getString("wifi_ssid", "59588d");
-  String savedPASS = prefs.getString("wifi_pass", "273370344");
+  String savedSSID = prefs.getString("wifi_ssid", "Mesic");
+  String savedPASS = prefs.getString("wifi_pass", "alma12345");
+
+  if (savedSSID == "") {
+    savedSSID = "Mesic";
+    savedPASS = "alma12345";
+  }else{
+    savedSSID = prefs.getString("wifi_ssid", "Mesic");
+    savedPASS = prefs.getString("wifi_pass", "alma12345");
+  }
   WiFi.begin(savedSSID.c_str(), savedPASS.c_str());
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500); 
+  unsigned long startAttempt = millis();
+
+  while (WiFi.status() != WL_CONNECTED && millis() - startAttempt < 10000) {
+    delay(500);
     Serial.print(".");
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\nWiFi connected: " + WiFi.localIP().toString());
+  } else {
+    Serial.println("\nWiFi nije spojen - nastavljam bez WiFi");
+    Serial.println(WiFi.status());
   }
 
   Serial.println("\nWiFi connected: " + WiFi.localIP().toString());
 
-  server.on("/login", HTTP_POST, [](AsyncWebServerRequest *request){
+  server.on("/login", HTTP_POST, [](AsyncWebServerRequest *request) {
     String user = "";
     String pass = "";
-    
+
     if (request->hasParam("username", true)) user = request->getParam("username", true)->value();
     if (request->hasParam("password", true)) pass = request->getParam("password", true)->value();
-    
+
     Serial.println("Pokušaj prijave: " + user + " | " + pass);
     request->send(200, "text/plain", "Podaci primljeni!");
   });
 
   server.serveStatic("/", LittleFS, "/")
-        .setDefaultFile("login.html")
-        .setCacheControl("public, max-age=31536000");
+    .setDefaultFile("login.html")
+    .setCacheControl("public, max-age=31536000");
 
   server.onNotFound([](AsyncWebServerRequest *request) {
     request->send(404, "text/plain", "Fajl nije pronadjen");
