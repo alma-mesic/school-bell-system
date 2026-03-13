@@ -832,6 +832,17 @@ main#systemPage {
     gap: 12px;
 }
 
+/* Simulacija Org_01 - pixel font izgled */
+.org-01 { font-family: 'Courier New', Courier, monospace; font-size: 14px; letter-spacing: 1px; }
+
+/* Mono varijante */
+.mono { font-family: 'Courier New', monospace; }
+.mono-bold { font-family: 'Courier New', monospace; font-weight: bold; }
+
+/* Sans i Serif */
+.sans { font-family: Arial, sans-serif; }
+.serif { font-family: 'Times New Roman', serif; }
+
 #letter_font,
 #clock_font {
     background-color: #2B2D42;
@@ -1343,27 +1354,136 @@ body > main.main-container > .panel > .sendBtn:hover {
 #dezurstvo-main li {
     margin-bottom: 10px;
 }
-
-@media (max-width: 900px) {
-    #dezurstvo-main {
-        padding: 40px 20px;
+/**************** RESPONZIVNOST ****************/
+@media screen and (max-width: 768px) {
+    /* 1. HEADER POPRAVKE */
+    header {
+        padding: 0 15px; /* Manji razmak sa strana */
     }
 
-    #dez-profa {
-        padding: 15px;
+    .logo h1 {
+        font-size: 1.2rem; /* Smanjujemo naslov da ne udara u burger */
+        position: static; /* Vraćamo ga u normalan tok */
+        transform: none;
+        left: 0;
     }
 
-    #dez-profa table {
-        font-size: 13px;
+    .logo img {
+        width: 40px; /* Fiksna veličina loga na mobitelu */
     }
 
-    #dez-profa-buttons {
-        flex-direction: column;
-        align-items: center;
+    .burger_menu {
+        right: 10px;
+        width: calc(100% - 20px); /* Skoro cijela širina ekrana */
+        top: 80px;
+    }
+
+    /* 2. MAIN / HOME PAGE (KARTICE) */
+    main#homePage {
+        padding: 100px 20px 40px 20px; /* Smanjen padding */
+        grid-template-columns: 1fr; /* Samo jedna kolona */
         gap: 20px;
     }
 
+    .card {
+        height: 200px; /* Nešto niže kartice za lakši scroll */
+    }
+
+    /* 3. LOGIN FORMA */
+    .login-container {
+        width: 90%; /* Uzmi 90% širine ekrana umjesto 320px */
+        margin: 80px auto;
+        padding: 25px;
+    }
+
+    /* 4. FOOTER POPRAVKE */
+    footer {
+        padding: 25px 20px;
+    }
+
+    footer .kolone {
+        flex-direction: column; /* Kolone idu jedna ispod druge */
+        align-items: center;
+        text-align: center;
+        padding: 20px 0;
+    }
+
+    footer .information1,
+    footer .information2 {
+        width: 100%; /* Uzmi punu širinu */
+        margin-bottom: 20px;
+    }
+
+    footer .mreze {
+        margin-top: 10px;
+        gap: 15px;
+    }
+
+    /* 5. SETTINGS I PROFILE */
+    #settings-content2 {
+        flex-direction: column; /* Elementi jedan ispod drugog */
+        margin: 15px;
+    }
+
+    #left, #right {
+        width: 100%; /* Profile stranica: slika i podaci jedan ispod drugog */
+        padding: 20px 10px;
+    }
+
+    #upper {
+        gap: 10px; /* Smanjen razmak između ikonica u vrhu */
+        height: auto;
+        padding: 10px;
+    }
+
+    /* 6. TABELE (RASPORED) */
+    .tables-container {
+        flex-direction: column;
+    }
+
+    .raspored-panel {
+        padding: 20px;
+    }
+
+    .primary-btn {
+        width: 100%; /* Dugme preko cijelog ekrana */
+    }
+
+    #dezurstvo-main {
+        margin: 80px 10px 20px 10px; 
+        padding: 20px; 
+        width: calc(100% - 20px);
+    }
+
+    #dezurstvo-main h2 {
+        font-size: 1.2rem; 
+        margin-bottom: 20px;
+    }
+
+    #dez-profa {
+        padding: 10px;
+        margin-bottom: 20px;
+        overflow-x: auto; 
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #dez-profa table {
+        min-width: 600px; 
+    }
+
+    #dez-profa-buttons {
+        flex-direction: column; 
+        align-items: center;
+        gap: 15px;
+    }
+
     #dez-profa-buttons button {
-        width: 80%;
+        width: 100%; 
+        max-width: 300px;
+    }
+
+    /* Napomene i lista */
+    #dezurstvo-main ol {
+        padding-left: 20px;
     }
 }
