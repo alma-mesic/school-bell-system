@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <title>School Bell System</title>
+    <link rel="icon" type="image/x-icon" href="slike/ets_grb.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!------------------HEADER------------------>
+    <header> 
+        <div class="logo">
+            <a href="index.html"><img src="slike/ets_grb.png" alt="company logo"></a>
+            <h1>ETS Bell System</h1>
+        </div>
+        <div class="right">
+            <div class="burger" id="burger">&#9776;</div>
+        </div>
+        <ul class="burger_menu" id="burger_menu">
+            <li><a href="profile.html">Profil</a></li>
+            <li><a href="system.html">Sistem</a></li>
+            <li><a href="settings.html">Postavke</a></li>
+            <br><hr><br>
+            <li><a href="obavjestenja.html">Obavještenja</a></li>
+            <li><a href="raspored.html">Raspored zvonjenja</a></li>
+            <li><a href="dezurstvo.html">Dežurstvo</a></li>
+            <li><a href="test.html">Testiranje zvona</a></li>
+            <br><hr><br>
+            <li><a href="login.html">Log out</a></li>
+        </ul>
+
+    </header>
+
+    <!------------------MAIN------------------>
+    <main id="systemPage">
+        <div class="system-panel">
+            <p>Pritiskom na dugme "Pokreni" oglasit će se zvono koje će prestati s radom samo kada ponovo pritisnete dugme s natpisom "Zaustavi".</p>
+            <div class="status-indicator" id="statusIndicator">
+                Status: <span>Neaktivno</span>
+            </div>
+            <button id="test_zvona" class="primary-btn" onclick="pokreniSveZaTest()">Pokreni</button>
+            <p class="emergency-text">U slučaju nužde pritisnite dugme za hitan slučaj:</p>
+            <button class="emergency-btn" onclick="pokreniSveZaEmergency()">Emergency</button>
+        </div>
+    </main>
+
+    <!------------------FOOTER------------------>
+    <footer>
+        <div class="kolone">
+            <div class="information1">
+                <p>Adressa: Ul. Muhameda Hevaija Uskufija br.2 Tuzla<br> Grad 75000 Bosna i Hercegovina</p>
+                <p>Radno vrijeme: Pon-Pet: 07:00-19:00</p>
+            </div>
+            <div class="information2">
+                <p>Telefon: +387 35 281 167</p>
+                <p type="email">E-mail: ets.tuzla@montk.gov.ba</p>
+                <p>https://etstuzla.skolatk.edu.ba/</p>
+            </div>
+        </div>
+        <div class="mreze">
+            <a href="https://www.instagram.com/etstuzla/"><i class="fab fa-instagram"></i></a>
+            <a href="https://www.youtube.com/@elektrotehnickaskolatuzla1788"><i class="fab fa-youtube"></i></a>
+            <a href="https://www.facebook.com/ETSTZ/?locale=hr_HR"><i class="fab fa-square-facebook"></i></a>
+        </div>
+       <p>© 2026 ETS Bell System. All rights reserved.<br><br> Design by Alma Mešić and Lamija Mujkić.</p>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>
