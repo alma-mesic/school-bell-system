@@ -411,11 +411,14 @@ function addEvent() {
     // Sortiranje: najbliži događaji idu prvi
     listaObavjestenja.sort((a, b) => a.time - b.time);
 
+    azurirajSve();
+    document.getElementById("eventName").value = "";
+
     //  Da ostane tu i nakon osvježavanja stranice
-    localStorage.setItem("sacuvanaObavjestenja", JSON.stringify(listaObavjestenja));
+    /*localStorage.setItem("sacuvanaObavjestenja", JSON.stringify(listaObavjestenja));
 
     renderList();
-    document.getElementById("eventName").value = "";
+    document.getElementById("eventName").value = "";*/
 }
 
 function renderList() {
@@ -436,45 +439,64 @@ function deleteEvent() {
     if (!list || list.selectedIndex < 0) return;
 
     listaObavjestenja.splice(list.selectedIndex, 1);
+
+    azurirajSve();
+    
+    /*localStorage.setItem("sacuvanaObavjestenja", JSON.stringify(listaObavjestenja));
+    renderList();*/
+    posaljiNaESP(true);
+}
+
+function azurirajSve() {
     localStorage.setItem("sacuvanaObavjestenja", JSON.stringify(listaObavjestenja));
     renderList();
-    posaljiNaESP();
 }
 
 /******************* SLANJE NA ESP (DANAS I SUTRA) *******************/
 
-async function posaljiNaESP() {
-    if (listaObavjestenja.length === 0) {
+async function posaljiNaESP(tihoSlanje = false) {
+
+    if (listaObavjestenja.length === 0 && !tihoSlanje) {
         alert("Lista obavještenja je prazna!");
         return;
     }
 
+    ////////////
+    const sada = new Date();
+    const krajSutra = new Date();
+    krajSutra.setDate(krajSutra.getDate() + 1);
+    krajSutra.setHours(23, 59, 59, 999);
+    ///////////
+
     const zaMatricu = listaObavjestenja.filter(e => {
         const t = new Date(e.time);
-        const sada = new Date();
+        /*const sada = new Date();
         const krajSutra = new Date();
         krajSutra.setDate(krajSutra.getDate() + 1);
-        krajSutra.setHours(23, 59, 59, 999);
+        krajSutra.setHours(23, 59, 59, 999);*/
         return t >= sada && t <= krajSutra;
     });
 
-    // PRILAGOĐENO TVOM C++ KODU (linija 98-111)
     const podaciZaSlanje = {
-        tip: "obavijesti", // Mora biti "obavijesti"
+        tip: "obavijesti", 
         lista: zaMatricu.map(e => {
-    const d = e.time;
-    // Ručno pravimo format YYYY-MM-DD HH:mm bez UTC pomjeranja
-    const formatiranoVrijeme = d.getFullYear() + "-" + 
-        String(d.getMonth() + 1).padStart(2, '0') + "-" + 
-        String(d.getDate()).padStart(2, '0') + " " + 
-        String(d.getHours()).padStart(2, '0') + ":" + 
-        String(d.getMinutes()).padStart(2, '0');
+            const d = e.time;
+            return{
+                naziv: e.name,
+                datumVrijeme: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+            };
+    
+            /*const formatiranoVrijeme = d.getFullYear() + "-" + 
+            String(d.getMonth() + 1).padStart(2, '0') + "-" + 
+            String(d.getDate()).padStart(2, '0') + " " + 
+            String(d.getHours()).padStart(2, '0') + ":" + 
+            String(d.getMinutes()).padStart(2, '0');*/
 
-    return {
-        naziv: e.name,
-        datumVrijeme: formatiranoVrijeme
-    };
-})
+            /*return {
+                naziv: e.name,
+                datumVrijeme: formatiranoVrijeme
+            };*/
+        })
     };
 
     try {
@@ -484,20 +506,31 @@ async function posaljiNaESP() {
             body: JSON.stringify(podaciZaSlanje)
         });
 
-        if (response.ok) alert("Obavještenja poslana!");
-        else alert("Greška na serveru.");
+        if (response.ok && !tihoSlanje) {
+            alert("Podaci na matrici ažurirani!");
+        }
+        ///////////
+
+        /*if (response.ok) alert("Obavještenja poslana!");
+        else alert("Greška na serveru.");*/
     } catch (error) {
         alert("ESP32 nedostupan.");
     }
 }
 // Inicijalizacija
-document.addEventListener("DOMContentLoaded", function () {
+/*document.addEventListener("DOMContentLoaded", function () {
     renderList();
 
     const sendBtn = document.querySelector(".sendBtn");
     if (sendBtn) {
         sendBtn.onclick = posaljiNaESP;
     }
+});*/
+
+document.addEventListener("DOMContentLoaded", () => {
+    renderList();
+    const sendBtn = document.querySelector(".sendBtn");
+    if (sendBtn) sendBtn.onclick = () => posaljiNaESP();
 });
 
 // Automatsko čišćenje starih obavještenja svakih 10 sekundi
@@ -509,8 +542,10 @@ setInterval(() => {
     listaObavjestenja = listaObavjestenja.filter(e => new Date(e.time) > now);
 
     if (listaObavjestenja.length !== prethodnaDuzina) {
-        localStorage.setItem("sacuvanaObavjestenja", JSON.stringify(listaObavjestenja));
-        renderList();
+        /*localStorage.setItem("sacuvanaObavjestenja", JSON.stringify(listaObavjestenja));
+        renderList();*/
+        azurirajSve();
+        posaljiNaESP(true);
     }
 }, 10000);
 
@@ -920,4 +955,61 @@ document.addEventListener("DOMContentLoaded", function () {
     setupColorPreview('marix_time_color_change', 'marix_time_color_preview');
     setupColorPreview('matrix_letter_color_change', 'matrix_letter_color_preview');
 
+    // Osluškuj promjene na select menijima
+    const selectLetter = document.getElementById('select_letter_font');
+    const selectClock = document.getElementById('select_clock_font');
+
+    if (selectLetter) {
+        selectLetter.addEventListener('change', updatePreview);
+    }
+    if (selectClock) {
+        selectClock.addEventListener('change', updatePreview);
+    }
+    updatePreview();
+
 });
+
+function updatePreview() {
+    // 1. Uzmi vrijednosti iz select menija
+    const letterFont = document.getElementById('select_letter_font').value;
+    const clockFont = document.getElementById('select_clock_font').value;
+
+    // 2. Pronađi elemente u panelu
+    const clockElement = document.getElementById('preview_clock');
+    const textElements = [document.getElementById('preview_text1'), document.getElementById('preview_text2')];
+
+    // 3. Primijeni klase za Sat
+    clockElement.className = ''; // Briše stare klase
+    clockElement.classList.add(clockFont);
+
+    // 4. Primijeni klase za Obavještenja
+    textElements.forEach(el => {
+        el.className = ''; 
+        el.classList.add(letterFont);
+    });
+}
+
+// Pozovi jednom pri učitavanju da se inicijalizuje prikaz
+window.onload = updatePreview;
+
+async function sacuvajFontoveNaESP() {
+    const letterFont = document.getElementById('select_letter_font').value;
+    const clockFont = document.getElementById('select_clock_font').value;
+
+    const paket = {
+        naredba: "SET_FONTS",
+        font_tekst: letterFont,
+        font_sat: clockFont
+    };
+
+    try {
+        const response = await fetch(`${ESP_IP}/api/settings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(paket)
+        });
+        if (response.ok) alert("Fontovi su uspješno poslati na matricu!");
+    } catch (error) {
+        alert("Greška: ESP32 nije dostupan.");
+    }
+}
