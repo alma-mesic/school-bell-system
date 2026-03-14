@@ -802,29 +802,6 @@ function pokreniSveZaTest() {
 
 
 /**********************SYSTEM (slanje)**********************/
-// --- FUNKCIJA ZA BRISANJE EEPROM-A ---
-function obrisiSvePodatke() {
-    if (confirm("Da li ste sigurni? Svi podaci (raspored, obavještenja, WiFi) će biti obrisani!")) {
-        fetch(`${ESP_IP}/api/settings`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                naredba: "CLEAR_EEPROM"
-            })
-        })
-            .then(response => {
-                if (response.ok) {
-                    alert("Memorija se čisti. Sistem će se sada restartovati.");
-                } else {
-                    alert("Greška pri komunikaciji sa sistemom.");
-                }
-            })
-            .catch(error => console.error('Error:', error));
-    }
-}
-
 // --- FUNKCIJA ZA LED TRAKU ---
 let ledUpaljen = true;
 function upravljajLedTrakom(dugme) {
@@ -899,13 +876,74 @@ async function posaljiBoju(tip, inputId) {
         alert(`Nije moguće povezati se na ESP32. RGB: ${rgb.r}, ${rgb.g}, ${rgb.b}`);
     }
 }
+function updatePreview() {
+    // 1. Uzmi vrijednosti iz select menija
+    const letterFont = document.getElementById('select_letter_font').value;
+    const clockFont = document.getElementById('select_clock_font').value;
 
+    // 2. Pronađi elemente u panelu
+    const clockElement = document.getElementById('preview_clock');
+    const textElements = [document.getElementById('preview_text1'), document.getElementById('preview_text2')];
+
+    // 3. Primijeni klase za Sat
+    clockElement.className = ''; // Briše stare klase
+    clockElement.classList.add(clockFont);
+
+    // 4. Primijeni klase za Obavještenja
+    textElements.forEach(el => {
+        el.className = ''; 
+        el.classList.add(letterFont);
+    });
+}
+
+// Pozovi jednom pri učitavanju da se inicijalizuje prikaz
+window.onload = updatePreview;
+
+async function sacuvajFontoveNaESP() {
+    const letterFont = document.getElementById('select_letter_font').value;
+    const clockFont = document.getElementById('select_clock_font').value;
+
+    const paket = {
+        naredba: "SET_FONTS",
+        font_tekst: letterFont,
+        font_sat: clockFont
+    };
+
+    try {
+        const response = await fetch(`${ESP_IP}/api/settings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(paket)
+        });
+        if (response.ok) alert("Fontovi su uspješno poslati na matricu!");
+    } catch (error) {
+        alert("Greška: ESP32 nije dostupan.");
+    }
+}
 
 
 /********************** PROFIL & WIFI POSTAVKE **********************/
+function showPopup(message) {
+  const popup = document.createElement('div');
+  popup.textContent = message;
+  popup.style.position = 'fixed';
+  popup.style.bottom = '20px';
+  popup.style.right = '20px';
+  popup.style.backgroundColor = '#4caf50';
+  popup.style.color = '#fff';
+  popup.style.padding = '10px 20px';
+  popup.style.borderRadius = '5px';
+  popup.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+  popup.style.zIndex = 1000;
+  document.body.appendChild(popup);
 
-// 1. Promjena Username-a
+  setTimeout(() => {
+    popup.remove();
+  }, 1000); // nestaje nakon 1 sekunde
+}
+
 async function promijeniUsername() {
+    console.log("Kliknuto promjeni username");
     const staro = document.getElementById("user-name-old").value;
     const novo = document.getElementById("user-name-new").value;
     const potvrda = document.getElementById("user-name-new-confirmation").value;
@@ -919,8 +957,9 @@ async function promijeniUsername() {
     posaljiNaProfilAPI(paket, "Username uspješno promijenjen!");
 }
 
-// 2. Promjena Šifre
+
 async function promijeniSifru() {
+    console.log("Kliknuto promjeni sifru");
     const stara = document.getElementById("password-old").value;
     const nova = document.getElementById("password-new").value;
     const potvrda = document.getElementById("password-new-confirmation").value;
@@ -934,8 +973,9 @@ async function promijeniSifru() {
     posaljiNaProfilAPI(paket, "Šifra uspješno promijenjena!");
 }
 
-// 3. Promjena WiFi postavki
+
 async function sacuvajWifi() {
+    console.log("Kliknuto Sačuvaj WiFi");
     const ssid = document.getElementById("wifi-name").value;
     const pass = document.getElementById("wifi-password").value;
 
@@ -956,7 +996,7 @@ async function posaljiNaProfilAPI(paket, poruka) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(paket)
         });
-        if (response.ok) alert(poruka);
+        if (response.ok) showPopup("Promjene sačuvane!");
         else alert("Greška: Server nije prihvatio promjene.");
     } catch (error) {
         alert("Greška pri komunikaciji sa ESP32.");
@@ -1011,48 +1051,3 @@ document.addEventListener("DOMContentLoaded", function () {
     updatePreview();
 
 });
-
-function updatePreview() {
-    // 1. Uzmi vrijednosti iz select menija
-    const letterFont = document.getElementById('select_letter_font').value;
-    const clockFont = document.getElementById('select_clock_font').value;
-
-    // 2. Pronađi elemente u panelu
-    const clockElement = document.getElementById('preview_clock');
-    const textElements = [document.getElementById('preview_text1'), document.getElementById('preview_text2')];
-
-    // 3. Primijeni klase za Sat
-    clockElement.className = ''; // Briše stare klase
-    clockElement.classList.add(clockFont);
-
-    // 4. Primijeni klase za Obavještenja
-    textElements.forEach(el => {
-        el.className = ''; 
-        el.classList.add(letterFont);
-    });
-}
-
-// Pozovi jednom pri učitavanju da se inicijalizuje prikaz
-window.onload = updatePreview;
-
-async function sacuvajFontoveNaESP() {
-    const letterFont = document.getElementById('select_letter_font').value;
-    const clockFont = document.getElementById('select_clock_font').value;
-
-    const paket = {
-        naredba: "SET_FONTS",
-        font_tekst: letterFont,
-        font_sat: clockFont
-    };
-
-    try {
-        const response = await fetch(`${ESP_IP}/api/settings`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(paket)
-        });
-        if (response.ok) alert("Fontovi su uspješno poslati na matricu!");
-    } catch (error) {
-        alert("Greška: ESP32 nije dostupan.");
-    }
-}

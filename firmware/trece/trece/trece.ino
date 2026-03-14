@@ -240,11 +240,19 @@ void setupRoutes() {
         String noviUser = doc["novo"];
         prefs.putString("adminUser", noviUser);
         request->send(200, "application/json", "{\"status\":\"ok\"}");
-      } else if (naredba == "UPDATE_PASS") {
+      } 
+      else if (naredba == "UPDATE_PASS") {
+        // provjera stare šifre
+        if (doc["stara"] != prefs.getString("adminPass", "admin")) {
+          request->send(403, "application/json", "{\"status\":\"fail\"}");
+          return;
+        }
+
         String novaSifra = doc["nova"];
         prefs.putString("adminPass", novaSifra);
         request->send(200, "application/json", "{\"status\":\"ok\"}");
-      } else if (naredba == "UPDATE_WIFI") {
+      } 
+      else if (naredba == "UPDATE_WIFI") {
         String ssid = doc["ssid"];
         String pass = doc["pass"];
         prefs.putString("wifi_ssid", ssid);
@@ -254,6 +262,11 @@ void setupRoutes() {
         delay(2000);
         ESP.restart();  // restartujemo da bi se povezo na novi WiFi
       }
+    });
+
+    server.on("/api/get_user", HTTP_GET, [](AsyncWebServerRequest *request) {
+        String user = prefs.getString("adminUser", "admin");
+        request->send(200, "text/plain", user);
     });
   //server.begin();
 }
@@ -303,7 +316,7 @@ void buildMainText() {
 
     if (datumObavijesti < danas) continue;
     if (datumObavijesti == danas) {
-      if (currentTotalMinutes > (notifTotalMinutes + 1)) continue; 
+      if (currentTotalMinutes > (notifTotalMinutes + 1)) continue;
     }
 
     if (datumObavijesti == danas || datumObavijesti == sutra) {
@@ -344,29 +357,45 @@ void checkBell() {
 }
 
 void removeExpiredNotifications() {
-    time_t now;
-    struct tm timeinfo;
-    if (!getLocalTime(&timeinfo)) return;
+  time_t now;
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) return;
 
-    now = mktime(&timeinfo);
+  now = mktime(&timeinfo);
 
-    int j = 0;
-    for (int i = 0; i < notificationCount; i++) {
-        struct tm notifTime;
-        notifTime.tm_year = notifications[i].year - 1900;
-        notifTime.tm_mon  = notifications[i].month - 1;
-        notifTime.tm_mday = notifications[i].day;
-        notifTime.tm_hour = notifications[i].hour;
-        notifTime.tm_min  = notifications[i].minute;
-        notifTime.tm_sec  = 0;
-        time_t notifEpoch = mktime(&notifTime);
+  int j = 0;
+  for (int i = 0; i < notificationCount; i++) {
+    struct tm notifTime;
+    notifTime.tm_year = notifications[i].year - 1900;
+    notifTime.tm_mon = notifications[i].month - 1;
+    notifTime.tm_mday = notifications[i].day;
+    notifTime.tm_hour = notifications[i].hour;
+    notifTime.tm_min = notifications[i].minute;
+    notifTime.tm_sec = 0;
+    time_t notifEpoch = mktime(&notifTime);
 
-        if (difftime(notifEpoch, now) > 0) {
-            // Notifikacija još traje, čuvamo je
-            notifications[j++] = notifications[i];
-        }
+    if (difftime(notifEpoch, now) > 0) {
+      // Notifikacija još traje, čuvamo je
+      notifications[j++] = notifications[i];
     }
-    notificationCount = j;  // update count
+  }
+  notificationCount = j;  // update count
+}
+
+void promijeniUsername(String noviUsername) {
+  prefs.putString("username", noviUsername);
+}
+
+void promijeniSifru(String novaSifra) {
+  prefs.putString("password", novaSifra);
+}
+
+String ucitajUsername() {
+  return prefs.getString("username", "defaultUser");
+}
+
+String ucitajSifru() {
+  return prefs.getString("password", "1234");
 }
 
 // ---------------- SETUP I LOOP --------------------
@@ -385,6 +414,7 @@ void setup() {
   display->setBrightness8(120);
 
   prefs.begin("schoolbell", false);
+  prefs.begin("user-data", false);
 
   satR = prefs.getInt("satR", 255);
   satG = prefs.getInt("satG", 150);
@@ -518,9 +548,9 @@ void loop() {
       display->print(text);
     }
 
-    
+
     xPos--;
-    
+
     int textWidth = text.length() * 12;
     if (xPos < -textWidth) {
       xPos = 128;
@@ -545,10 +575,10 @@ void loop() {
   }
 
   static unsigned long lastBuildTime = 0;
-  if (millis() - lastBuildTime > 2000) { // Ažuriraj tekst svake 2 sekunde
+  if (millis() - lastBuildTime > 2000) {  // Ažuriraj tekst svake 2 sekunde
     buildMainText();
     lastBuildTime = millis();
   }
-  
+
   delay(20);
 }
