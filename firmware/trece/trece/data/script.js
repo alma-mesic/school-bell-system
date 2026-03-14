@@ -296,25 +296,18 @@ async function posaljiZvono(status) {
 
 
 async function posaljiEmergency(aktivno) {
-
     try {
-
         await fetch(`${ESP_IP}/api/data`, {
-
             method: 'POST',
-
             headers: { 'Content-Type': 'application/json' },
-
             body: JSON.stringify({
-
-                tip: aktivno ? "emergency" : "raspored" // Kad gasimo, šaljemo bilo šta da resetuje mod
-
+                tip: "emergency",
+                stanje: aktivno
             })
 
         });
 
     } catch (e) { console.log("ESP offline"); }
-
 }
 
 
@@ -360,97 +353,62 @@ document.addEventListener("DOMContentLoaded", function () {
 
 /*****************EMERGENCY*********************/
 let emergencyActive = false;
+
 const emergencyBtn = document.querySelector(".emergency-btn");
 const burgerBtn = document.getElementById("burger");
 
 if (emergencyBtn) {
-    emergencyBtn.addEventListener("click", function () {
-
+    emergencyBtn.onclick = async function (e) {
         if (!emergencyActive) {
-
-            /*const potvrda = confirm("Da li ste sigurni da želite aktivirati HITNO ZVONO?");
+            const potvrda = confirm("Da li ste sigurni da želite aktivirati HITNO ZVONO?");
             if (!potvrda) return;
 
             emergencyActive = true;
-            activateEmergency();*/
-
-              if (confirm("Da li ste sigurni da želite aktivirati HITNO ZVONO?")) {
-
-                emergencyActive = true;
-
-                activateEmergency();
-
-                posaljiEmergency(true);
-               }         
-
-        }
-        else {
-
-             /*const potvrdaStop = confirm("Da li želite zaustaviti emergency stanje?");
-
+            activateEmergency();
+            await posaljiEmergency(true);
+        }else {
+            const potvrdaStop = confirm("Da li želite zaustaviti emergency stanje?");
             if (!potvrdaStop) return;
 
-
-
             emergencyActive = false;
-
-            deactivateEmergency();*/
-
-
-
-            if (confirm("Da li želite zaustaviti emergency stanje?")) {
-
-                emergencyActive = false;
-
-                deactivateEmergency();
-
-                location.reload();
-
-            }
-
+            deactivateEmergency();
+            await posaljiEmergency(false);
         }
-
+    };
+}
+function activateEmergency() {
+    const sviElementi = document.querySelectorAll("button, a, input");
+    sviElementi.forEach(el => {
+        if (!el.classList.contains("emergency-btn")) {
+            el.disabled = true;
+            el.style.opacity = "1";
+            el.style.pointerEvents = "none"
+        }
     });
 
+    emergencyBtn.classList.add("emergency-active");
+    systemPanel.classList.add("emergency-active");
+    emergencyBtn.textContent = "DEAKTIVIRAJ HITNO";
 
-    function activateEmergency() {
-
-        const sviElementi = document.querySelectorAll("button, a, input");
-
-        sviElementi.forEach(el => {
-            if (!el.classList.contains("emergency-btn")) {
-                el.disabled = true;
-                el.style.opacity = "1";
-                el.style.pointerEvents = "none"
-            }
-        });
-
-        emergencyBtn.classList.add("emergency-active");
-        systemPanel.classList.add("emergency-active");
-        emergencyBtn.textContent = "DEAKTIVIRAJ HITNO";
-
-        if (testZvona) testZvona.disabled = true;
-        if (burger) burger.classList.add("blocked");
-    }
+    if (testZvona) testZvona.disabled = true;
+    if (burger) burger.classList.add("blocked");
+}
 
 
-    function deactivateEmergency() {
+function deactivateEmergency() {
+    const sviElementi = document.querySelectorAll("button, a, input");
+    sviElementi.forEach(el => {
+        el.disabled = false;
+        el.style.pointerEvents = "";
+        el.style.opacity = "";
+    });
 
-        const sviElementi = document.querySelectorAll("button, a, input");
+    emergencyBtn.classList.remove("emergency-active");
+    systemPanel.classList.remove("emergency-active");
+    emergencyBtn.textContent = "Emergency";
 
-        sviElementi.forEach(el => {
-            el.disabled = false;
-            el.style.pointerEvents = "";
-            el.style.opacity = "";
-        });
-
-        emergencyBtn.classList.remove("emergency-active");
-        systemPanel.classList.remove("emergency-active");
-        emergencyBtn.textContent = "Emergency";
-
-        if (testZvona) testZvona.disabled = false;
-        if (burger) burger.classList.remove("blocked");
-    }
+    if (testZvona) testZvona.disabled = false;
+    if (burger) burger.classList.remove("blocked");
 }
 
 
@@ -842,22 +800,6 @@ function pokreniSveZaTest() {
     d.textContent = testAktivno ? "Zaustavi" : "Pokreni";
 }
 
-function pokreniSveZaEmergency() {
-    if (!emergencyActive) {
-        activateEmergency(); 
-    } else {
-        deactivateEmergency();
-    }
-
-    fetch(`${ESP_IP}/api/data`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-            tip: "emergency", 
-            akcija: emergencyActive ? "start" : "stop" 
-        })
-    });
-}
 
 /**********************SYSTEM (slanje)**********************/
 // --- FUNKCIJA ZA BRISANJE EEPROM-A ---

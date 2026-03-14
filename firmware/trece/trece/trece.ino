@@ -97,9 +97,9 @@ String getTimeString() {
   if (!getLocalTime(&t)) return "00:00";
   char buf[6];
   if ((millis() / 500) % 2 == 0) {
-    strftime(buf, 6, "%H:%M", &t); 
+    strftime(buf, 6, "%H:%M", &t);
   } else {
-    strftime(buf, 6, "%H %M", &t); 
+    strftime(buf, 6, "%H %M", &t);
   }
   return String(buf);
 }
@@ -107,10 +107,10 @@ String getTimeString() {
 int timeToMinutes(const String &t) {
   int separatorIndex = t.indexOf(':');
   if (separatorIndex == -1) return 0;
-  
+
   int sati = t.substring(0, separatorIndex).toInt();
   int minuti = t.substring(separatorIndex + 1).toInt();
-  
+
   return sati * 60 + minuti;
 }
 
@@ -144,9 +144,15 @@ void handleJson(String json) {
     }
     prefs.putString("obavijesti", json);
   } else if (tip == "emergency") {
-    sosActive = true;
-    sosStartTime = millis();
-    sosStep = 0;
+    bool stanje = doc["stanje"] | false;
+    if (stanje) {
+      sosActive = true;
+      sosStartTime = millis();
+      sosStep = 0;
+    } else {
+      sosActive = false;
+      digitalWrite(RELAY_PIN, LOW);
+    }
   } else if (tip == "zvono") {
     String akcija = doc["akcija"] | "";
     Serial.print("Primljena komanda za zvono: ");
@@ -158,7 +164,7 @@ void handleJson(String json) {
       bellTestMode = false;
       digitalWrite(RELAY_PIN, LOW);
     }
-  }else if (tip == "emergency_stop") {
+  } else if (tip == "emergency_stop") {
     sosActive = false;
     digitalWrite(RELAY_PIN, LOW);
   }
@@ -394,14 +400,12 @@ void setup() {
   textG = prefs.getInt("textG", 255);
   textB = prefs.getInt("textB", 0);
 
-  if (!LittleFS.begin())
-  {
+  if (!LittleFS.begin()) {
     Serial.println("FS fail");
 
     LittleFS.format();
 
-    if (!LittleFS.begin())
-    {
+    if (!LittleFS.begin()) {
       Serial.println("FS fatal");
     }
   }
@@ -413,19 +417,18 @@ void setup() {
 
   int pokusaji = 0;
   while (WiFi.status() != WL_CONNECTED && pokusaji < 20) {
-    delay(500); 
+    delay(500);
     Serial.print(".");
     pokusaji++;
   }
 
   //Ako se desi greška, ESP32 prestaje biti "klijent" i postaje "ruter".
-  if (WiFi.status() != WL_CONNECTED)
-  {
+  if (WiFi.status() != WL_CONNECTED) {
     Serial.println("WiFi fail → AP mode");
 
     WiFi.softAP("SchoolBell", "12345678");
     Serial.println(WiFi.softAPIP());
-  }else {
+  } else {
     Serial.println("\nPovezan na WiFi!");
     Serial.print("IP adresa: ");
     Serial.println(WiFi.localIP());
@@ -433,12 +436,10 @@ void setup() {
 
   Serial.println("\nWiFi connected: " + WiFi.localIP().toString());
 
-  server.on("/login", HTTP_POST, [](AsyncWebServerRequest *request){
-
-    if (!request->hasParam("username", true) || !request->hasParam("password", true)) 
-    {
-        request->send(400, "text/plain", "Fale podaci");
-        return;
+  server.on("/login", HTTP_POST, [](AsyncWebServerRequest *request) {
+    if (!request->hasParam("username", true) || !request->hasParam("password", true)) {
+      request->send(400, "text/plain", "Fale podaci");
+      return;
     }
 
     String user = request->getParam("username", true)->value();
@@ -447,15 +448,12 @@ void setup() {
     String savedUser = prefs.getString("adminUser", "admin");
     String savedPass = prefs.getString("adminPass", "admin");
 
-    if (user == savedUser && pass == savedPass)
-    {
-        request->send(200, "text/plain", "OK");
+    if (user == savedUser && pass == savedPass) {
+      request->send(200, "text/plain", "OK");
+    } else {
+      request->send(401, "text/plain", "FAIL");
     }
-    else
-    {
-        request->send(401, "text/plain", "FAIL");
-    }
-    
+
     /*if (request->hasParam("username", true)) user = request->getParam("username", true)->value();
     if (request->hasParam("password", true)) pass = request->getParam("password", true)->value();
     
@@ -516,13 +514,13 @@ void loop() {
     display->setCursor(28, 0);
     display->print(getTimeString());
 
-    if (bellTestMode){
+    if (bellTestMode) {
       display->setTextSize(1);
       display->setTextColor(display->color565(255, 255, 255));
       display->setCursor(xPos, 18);
       display->print("--- TEST ZVONA ---");
-    }else {
-      display->setTextSize(2); 
+    } else {
+      display->setTextSize(2);
       display->setTextColor(display->color565(textR, textG, textB));
       display->setCursor(xPos, 17);
       display->print(text);
@@ -536,19 +534,16 @@ void loop() {
 
     //checkBell();
     struct tm now;
-    if (getLocalTime(&now))
-    {
-      if (now.tm_min != lastMinuteChecked)
-      {
+    if (getLocalTime(&now)) {
+      if (now.tm_min != lastMinuteChecked) {
         lastMinuteChecked = now.tm_min;
         checkBell();
       }
     }
 
-    if (bellActive && millis() - bellStart > 2000)
-    {
-        digitalWrite(RELAY_PIN, LOW);
-        bellActive = false;
+    if (bellActive && millis() - bellStart > 2000) {
+      digitalWrite(RELAY_PIN, LOW);
+      bellActive = false;
     }
     buildMainText();
   }
