@@ -227,40 +227,6 @@ void setupRoutes() {
 
         request->send(200, "application/json", "{\"status\":\"ok\"}");
       }
-
-      if (naredba == "CLEAR_EEPROM") {
-        // brise sve iz preferences (nvs memorija)
-        //LittleFS.format(); BRISE CITAV FILE SYSTEM
-        prefs.remove("raspored");
-        prefs.remove("obavijesti");
-        classCount = 0;
-        notificationCount = 0;
-
-        prefs.remove("satR");
-        prefs.remove("satG");
-        prefs.remove("satB");
-
-        prefs.remove("textR");
-        prefs.remove("textG");
-        prefs.remove("textB");
-
-        prefs.remove("wifi_ssid");
-        prefs.remove("wifi_pass");
-
-        prefs.remove("adminUser");
-        prefs.remove("adminPass");
-
-
-        text = "Cekam raspored...";
-        lastText = "";
-        xPos = 128;
-
-        request->send(200, "application/json", "{\"status\":\"ok\"}");
-
-        Serial.println("Memorija obrisana");
-        delay(10);
-        ESP.restart();
-      }
     });
   server.on(
     "/api/profile", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL,
@@ -298,6 +264,7 @@ void buildMainText() {
   if (!getLocalTime(&now)) return;
 
   long danas = (now.tm_year + 1900) * 10000L + (now.tm_mon + 1) * 100 + now.tm_mday;
+  int currentTotalMinutes = now.tm_hour * 60 + now.tm_min;
 
   struct tm sutraTm = now;
   sutraTm.tm_mday += 1;
@@ -305,14 +272,14 @@ void buildMainText() {
   long sutra = (sutraTm.tm_year + 1900) * 10000L + (sutraTm.tm_mon + 1) * 100 + sutraTm.tm_mday;
 
   String newText = "";
-  int nowMin = now.tm_hour * 60 + now.tm_min;
+  int nowMin = currentTotalMinutes;
   bool inClass = false;
 
   for (int i = 0; i < classCount; i++) {
     int start = timeToMinutes(classes[i].start);
     int end = timeToMinutes(classes[i].end);
     if (nowMin >= start && nowMin < end) {
-      newText = String(classes[i].number) + ". cas | Kraj: " + classes[i].end + " | Jos " + String(end - nowMin) + " min";
+      newText = String(classes[i].number) + ". cas | Kraj casa u: " + classes[i].end + " | Jos " + String(end - nowMin) + " min";
       if (classes[i].dezurni != "") newText += " | Dezurni: " + classes[i].dezurni;
       inClass = true;
       break;
@@ -330,20 +297,20 @@ void buildMainText() {
   }
 
   String obavijestiDio = "";
-
   for (int i = 0; i < notificationCount; i++) {
     long datumObavijesti = notifications[i].year * 10000L + notifications[i].month * 100 + notifications[i].day;
+    int notifTotalMinutes = notifications[i].hour * 60 + notifications[i].minute;
 
     if (datumObavijesti < danas) continue;
+    if (datumObavijesti == danas) {
+      if (currentTotalMinutes > (notifTotalMinutes + 1)) continue; 
+    }
 
     if (datumObavijesti == danas || datumObavijesti == sutra) {
       String prefiks = (datumObavijesti == danas) ? " DANAS " : " SUTRA ";
-
       obavijestiDio += " |" + prefiks + notifications[i].text + " u ";
-
       if (notifications[i].hour < 10) obavijestiDio += "0";
       obavijestiDio += String(notifications[i].hour) + ":";
-
       if (notifications[i].minute < 10) obavijestiDio += "0";
       obavijestiDio += String(notifications[i].minute);
     }
@@ -374,6 +341,32 @@ void checkBell() {
       break;
     }
   }
+}
+
+void removeExpiredNotifications() {
+    time_t now;
+    struct tm timeinfo;
+    if (!getLocalTime(&timeinfo)) return;
+
+    now = mktime(&timeinfo);
+
+    int j = 0;
+    for (int i = 0; i < notificationCount; i++) {
+        struct tm notifTime;
+        notifTime.tm_year = notifications[i].year - 1900;
+        notifTime.tm_mon  = notifications[i].month - 1;
+        notifTime.tm_mday = notifications[i].day;
+        notifTime.tm_hour = notifications[i].hour;
+        notifTime.tm_min  = notifications[i].minute;
+        notifTime.tm_sec  = 0;
+        time_t notifEpoch = mktime(&notifTime);
+
+        if (difftime(notifEpoch, now) > 0) {
+            // Notifikacija još traje, čuvamo je
+            notifications[j++] = notifications[i];
+        }
+    }
+    notificationCount = j;  // update count
 }
 
 // ---------------- SETUP I LOOP --------------------
@@ -482,7 +475,6 @@ void setup() {
 
 
 void loop() {
-
   if (Serial.available()) {
     String podaciIzKabla = Serial.readStringUntil('\n');
     handleJson(podaciIzKabla);
@@ -551,5 +543,12 @@ void loop() {
     }
     buildMainText();
   }
-  delay(30);
+
+  static unsigned long lastBuildTime = 0;
+  if (millis() - lastBuildTime > 2000) { // Ažuriraj tekst svake 2 sekunde
+    buildMainText();
+    lastBuildTime = millis();
+  }
+  
+  delay(20);
 }
