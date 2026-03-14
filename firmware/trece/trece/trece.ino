@@ -515,9 +515,9 @@ void loop() {
     display->print(getTimeString());
 
     if (bellTestMode) {
-      display->setTextSize(1);
+      display->setTextSize(2);
       display->setTextColor(display->color565(255, 255, 255));
-      display->setCursor(xPos, 18);
+      display->setCursor(xPos, 17);
       display->print("--- TEST ZVONA ---");
     } else {
       display->setTextSize(2);
@@ -526,9 +526,13 @@ void loop() {
       display->print(text);
     }
 
+    
     xPos--;
-    int limit = bellTestMode ? -150 : -((int)text.length() * 12);
-    if (xPos < limit) xPos = 128;
+    
+    int textWidth = text.length() * 12;
+    if (xPos < -textWidth) {
+      xPos = 128;
+    }
 
     //if (xPos < -((int)text.length() * 12)) xPos = 128;
 
