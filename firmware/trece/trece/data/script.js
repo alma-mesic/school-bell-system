@@ -754,7 +754,7 @@ function osvjeziStatus() {
 }
 
 // Pokretanje svega
-prikaziRasporede();
+//prikaziRasporede();
 setInterval(osvjeziStatus, 1000); // Radi svake sekunde kao Timer u C#
 
 function posaljiRasporedNaESP() {
