@@ -821,12 +821,43 @@ function upravljajLedTrakom(dugme) {
             if (ledUpaljen) {
                 dugme.textContent = "Ugasi LED traku";
                 dugme.style.backgroundColor = "";
+                alert("LED traka je uključena. Sistem aktivan.");
             } else {
                 dugme.textContent = "Upali LED traku";
                 dugme.style.backgroundColor = "#2c3e50";
+                alert("LED traka je ugašena. Sistem neaktivan.");
             }
         })
         .catch(err => alert("ESP32 nedostupan za LED kontrolu."));
+}
+
+async function posaljiBoju(tip, elementId) {
+    const colorInput = document.getElementById(elementId);
+    if (!colorInput) return;
+
+    // uzmi hex kod boje i pretvori u RGB
+    const hex = colorInput.value;
+    const r = parseInt(hex.substring(1, 3), 16);
+    const g = parseInt(hex.substring(3, 5), 16);
+    const b = parseInt(hex.substring(5, 7), 16);
+
+    try {
+        await fetch(`${ESP_IP}/api/settings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                naredba: "SET_COLOR",
+                tip: tip,
+                r: r,
+                g: g,
+                b: b
+            })
+        });
+        alert(`Boja za "${tip}" je poslana: R=${r}, G=${g}, B=${b}`);
+    } catch (e) {
+        console.log("ESP offline ili greška u slanju boje");
+        alert("Neuspjelo slanje boje. Provjeri ESP32.");
+    }
 }
 /*********************** SETTINGS & BOJE ************************/
 
