@@ -922,6 +922,31 @@ async function sacuvajFontoveNaESP() {
 }
 
 
+document.getElementById("ponudjeni-stil").addEventListener("click", async () => {
+    const selected = document.querySelector('input[name="tip"]:checked');
+    if (!selected) {
+        alert("Izaberi stil");
+        return;
+    }
+    const json = {
+        naredba: "LED_MODE",
+        mode: selected.value
+    };
+    try {
+        await fetch("/api/settings", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(json)
+        });
+        console.log("Poslano:", json);
+    } catch (err) {
+        console.error(err);
+    }
+});
+
+
 /********************** PROFIL & WIFI POSTAVKE **********************/
 function showPopup(message) {
   const popup = document.createElement('div');

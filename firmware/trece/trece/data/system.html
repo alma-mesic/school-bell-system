@@ -21,8 +21,8 @@
         </div>
         <ul class="burger_menu" id="burger_menu">
             <li><a href="profile.html">Profil</a></li>
-            <li><a href="system.html">Sistem</a></li>
-            <li><a href="settings.html">Postavke</a></li>
+            <li><a href="system.html">LED traka</a></li>
+            <li><a href="settings.html">Matrica</a></li>
             <br><hr><br>
             <li><a href="obavjestenja.html">Obavještenja</a></li>
             <li><a href="raspored.html">Raspored zvonjenja</a></li>
@@ -39,16 +39,32 @@
             <a href="profile.html"><img src="slike/user.png" alt="profile"></a>
             <a href="settings.html"><img src="slike/setting.png" alt="settings"></a>
     </div>
-    <div id="settings2"> <!--icons by: https://www.flaticon.com/authors/good-ware and https://www.flaticon.com/authors/picons-->
-        <div id="clear_eeprom">
-            <img src="slike/warning.png" alt="warning">
-            <p>Pritiskom na ovo dugme desit će se brisanje svih podataka prisutnih na ESP32 mikrokontroleru. Samim tim spremljeni raspored, plan dežurstva i sva obavještenja biti će izbrisana.</p>
-            <p style="color: #e74c3c; font-weight: bold; margin-top: 10px;">
-                <i class="fas fa-exclamation-triangle"></i> 
-                Napomena: Nakon brisanja, sistem će biti prazan. Morate ponovo poslati raspored i obavještenja sa odgovarajućih stranica kako bi matrica ponovo radila.
-            </p>
+    <br><br><h3 class="h3">Pozadina slova ploče (LED traka)</h3>
+    <div id="settings2"> <!--icons by: https://www.flaticon.com/authors/good-ware, https://www.flaticon.com/authors/freepik-->
+        <div id="traka_stil">
+            <img src="slike/eco-paint.png" alt="paint">
+            <div id="stilovi" class="radio-group">
+                <label>
+                    <input type="radio" name="tip" value="rainbow">
+                    rainbow
+                </label>
+                <label>
+                    <input type="radio" name="tip" value="theaterChase">
+                    theaterChase - BIJELA
+                </label>
+                <label>
+                    <input type="radio" name="tip" value="theaterChaseRainbow">
+                    theaterChaseRainbow
+                </label>
+                <button id="ponudjeni-stil">Sačuvaj</button>
+            </div>
+            <div id="letter_color" style="margin-top: -20px;">
+                <div class="color-picker-row">
+                    <input type="color" id="letter_color_change">
+                    <button onclick="posaljiBoju('led_traka', 'letter_color_change')">Sačuvaj</button>
+                </div>
+            </div>
             
-            <button onclick="obrisiSvePodatke()">Očisti EEPROM</button>
         </div>
         <div id="turn_letters_off">
             <img src="slike/lightbulb.png" alt="lightbulb">
