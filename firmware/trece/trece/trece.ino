@@ -87,11 +87,11 @@ int textR = 0, textG = 255, textB = 0;   // Boja scroll teksta
 
 void configuration() {
   mxconfig.gpio.r1 = 25;
-  mxconfig.gpio.g1 = 27;
-  mxconfig.gpio.b1 = 26;
+  mxconfig.gpio.g1 = 26;//27 zamjenjeno zbog problema prikaza boje (kod racuna RBG umjesto RGB)
+  mxconfig.gpio.b1 = 27;//26
   mxconfig.gpio.r2 = 14;
-  mxconfig.gpio.g2 = 13;
-  mxconfig.gpio.b2 = 12;
+  mxconfig.gpio.g2 = 12;//13
+  mxconfig.gpio.b2 = 13;//12
   mxconfig.gpio.a = 23;
   mxconfig.gpio.b = 19;
   mxconfig.gpio.c = 5;

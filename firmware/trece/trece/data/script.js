@@ -902,9 +902,21 @@ async function posaljiBoju(tip, inputId) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(paket)
         });
-        if (response.ok) alert(`Boja za ${tip} uspješno sačuvana!`);
+        if (response.ok) {
+            let naziv = "";
+            if (tip === "boja_sata") {
+                naziv = "Boja sata";
+            }
+            else if (tip === "boja_scroll") {
+                naziv = "Boja obavijesti";
+            }
+            else {
+                naziv = tip;
+            }
+            alert(`${naziv} sačuvana!\nRGB: ${rgb.r}, ${rgb.g}, ${rgb.b}`);
+        }
     } catch (error) {
-        alert(`Nije moguće povezati se na ESP32. RGB: ${rgb.r}, ${rgb.g}, ${rgb.b}`);
+        alert(`Greška pri slanju boje!\nRGB: ${rgb.r}, ${rgb.g}, ${rgb.b}`);
     }
 }
 function updatePreview() {
