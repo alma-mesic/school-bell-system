@@ -1,5 +1,5 @@
 /**GLOBAL***/
-const ESP_IP = "http://192.168.1.14";
+const ESP_IP = "http://192.168.0.13";
 /*****************BRGER MENI*********************/
 const burger = document.getElementById("burger");
 if (burger) {
@@ -862,7 +862,7 @@ async function posaljiBoju(tip, elementId) {
 /*********************** SETTINGS & BOJE ************************/
 
 // 1. Funkcija za uživo ažuriranje kvadratića (već je imaš u kodu)
-function setupColorPreview(inputId, previewId) {
+/*function setupColorPreview(inputId, previewId) {
     const colorInput = document.getElementById(inputId);
     const preview = document.getElementById(previewId);
 
@@ -872,7 +872,7 @@ function setupColorPreview(inputId, previewId) {
             preview.style.backgroundColor = colorInput.value;
         });
     }
-}
+}*/
 
 // 2. Pomoćna funkcija za pretvaranje HEX u RGB
 function hexToRgb(hex) {
@@ -883,7 +883,7 @@ function hexToRgb(hex) {
 }
 
 // 3. Glavna funkcija koja šalje JSON paket na ESP32
-async function posaljiBoju(tip, inputId) {
+/*async function posaljiBoju(tip, inputId) {
     const colorInput = document.getElementById(inputId);
     if (!colorInput) return;
 
@@ -918,15 +918,15 @@ async function posaljiBoju(tip, inputId) {
     } catch (error) {
         alert(`Greška pri slanju boje!\nRGB: ${rgb.r}, ${rgb.g}, ${rgb.b}`);
     }
-}
-function updatePreview() {
+}*/
+/*function updatePreview() {
     // 1. Uzmi vrijednosti iz select menija
     const letterFont = document.getElementById('select_letter_font').value;
     const clockFont = document.getElementById('select_clock_font').value;
 
     // 2. Pronađi elemente u panelu
-    const clockElement = document.getElementById('preview_clock');
-    const textElements = [document.getElementById('preview_text1'), document.getElementById('preview_text2')];
+    //const clockElement = document.getElementById('preview_clock');
+    //const textElements = [document.getElementById('preview_text1'), document.getElementById('preview_text2')];
 
     // 3. Primijeni klase za Sat
     clockElement.className = ''; // Briše stare klase
@@ -937,12 +937,12 @@ function updatePreview() {
         el.className = ''; 
         el.classList.add(letterFont);
     });
-}
+}*/
 
 // Pozovi jednom pri učitavanju da se inicijalizuje prikaz
-window.onload = updatePreview;
+//window.onload = updatePreview;
 
-async function sacuvajFontoveNaESP() {
+/*async function sacuvajFontoveNaESP() {
     const letterFont = document.getElementById('select_letter_font').value;
     const clockFont = document.getElementById('select_clock_font').value;
 
@@ -958,13 +958,68 @@ async function sacuvajFontoveNaESP() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(paket)
         });
-        if (response.ok) alert("Fontovi su uspješno poslati na matricu!");
+        if (response.ok) {
+            alert("Fontovi poslani: " + letterFont + " / " + clockFont);
+        }
     } catch (error) {
-        alert("Greška: ESP32 nije dostupan.");
+        alert("ESP32 nije dostupan");
+    }
+}*/
+
+// Funkcija za slova
+async function sacuvajFontSlova() {
+    const letterFont = document.getElementById('select_letter_font').value;
+
+    const paket = {
+        naredba: "SET_FONT_LETTER",
+        font_tekst: letterFont
+    };
+
+    try {
+        const response = await fetch(`${ESP_IP}/api/settings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(paket)
+        });
+
+        if (response.ok) {
+            alert("Font slova poslan: " + letterFont);
+        } else {
+            alert("Greška prilikom slanja fonta slova");
+        }
+    } catch (error) {
+        alert("ESP32 nije dostupan");
+    }
+}
+
+// Funkcija za sat
+async function sacuvajFontSata() {
+    const clockFont = document.getElementById('select_clock_font').value;
+
+    const paket = {
+        naredba: "SET_FONT_CLOCK",
+        font_sat: clockFont
+    };
+
+    try {
+        const response = await fetch(`${ESP_IP}/api/settings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(paket)
+        });
+
+        if (response.ok) {
+            alert("Font sata poslan: " + clockFont);
+        } else {
+            alert("Greška prilikom slanja fonta sata");
+        }
+    } catch (error) {
+        alert("ESP32 nije dostupan");
     }
 }
 
 
+//led mode za traku
 document.getElementById("ponudjeni-stil").addEventListener("click", async () => {
     const selected = document.querySelector('input[name="tip"]:checked');
     if (!selected) {
@@ -976,7 +1031,7 @@ document.getElementById("ponudjeni-stil").addEventListener("click", async () => 
         mode: selected.value
     };
     try {
-        await fetch("/api/settings", {
+        await fetch(`${ESP_IP}/api/settings`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -1102,20 +1157,20 @@ document.addEventListener("DOMContentLoaded", function () {
     if (btnPass) btnPass.onclick = promijeniSifru;
     if (btnWifi) btnWifi.onclick = sacuvajWifi;
 
-    setupColorPreview('letter_color_change', 'letter_color_preview');
-    setupColorPreview('marix_time_color_change', 'marix_time_color_preview');
-    setupColorPreview('matrix_letter_color_change', 'matrix_letter_color_preview');
+    //setupColorPreview('letter_color_change', 'letter_color_preview');
+    //setupColorPreview('marix_time_color_change', 'marix_time_color_preview');
+    //setupColorPreview('matrix_letter_color_change', 'matrix_letter_color_preview');
 
     // Osluškuj promjene na select menijima
     const selectLetter = document.getElementById('select_letter_font');
     const selectClock = document.getElementById('select_clock_font');
 
-    if (selectLetter) {
+    /*if (selectLetter) {
         selectLetter.addEventListener('change', updatePreview);
     }
     if (selectClock) {
         selectClock.addEventListener('change', updatePreview);
     }
-    updatePreview();
+    updatePreview();*/
 
 });

@@ -12,6 +12,13 @@
 #endif
 #include "LittleFS.h"
 
+#include <Fonts/FreeMono9pt7b.h>
+#include <Fonts/FreeMonoBold9pt7b.h>
+#include <Fonts/FreeMonoBoldOblique9pt7b.h>
+#include <Fonts/FreeSansBold9pt7b.h>
+#include <Fonts/FreeSerifBold9pt7b.h>
+#include <Fonts/FreeSerifBold9pt7b.h>
+
 // ---------------- KONFIGURACIJA ---------------------
 #define RELAY_PIN 18
 #define PANEL_RES_X 64
@@ -35,6 +42,9 @@ Preferences prefs;
 AsyncWebServer server(80);
 
 // ---------------- GLOBALNE PROMJENLJIVE --------------------
+String fontTekst = "org-01";
+String fontSat = "org-01";
+
 bool startup = true;
 unsigned long startTime;
 int xPos = 128;
@@ -262,6 +272,25 @@ void setupRoutes() {
       }
       prefs.putInt("ledMode", ledMode); // spremanje u memoriju
     }
+    else if (naredba == "SET_FONTS") {
+      fontTekst = doc["font_tekst"].as<String>();
+      fontSat = doc["font_sat"].as<String>();
+
+      prefs.putString("fontTekst", fontTekst);
+      prefs.putString("fontSat", fontSat);
+
+      Serial.println("Font tekst: " + fontTekst);
+      Serial.println("Font sat: " + fontSat);
+    }
+    /*else if (naredba == "LED_CONTROL") { ovo je za gasenje trake (provjeriti da li je potrebno)
+      String stanje = doc["stanje"];
+      if (stanje == "ON") {
+        ledMode = LED_MODE_COLOR;
+      } else {
+        ledMode = LED_MODE_OFF;
+      }
+      prefs.putInt("ledMode", ledMode);
+    }*/
     request->send(200, "application/json", "{\"status\":\"ok\"}");
    
   });
@@ -484,10 +513,94 @@ void colorWipe(uint32_t color, int wait) {
     }
 }
 
+// -------------------- FONTOVI --------------------
+int x,y,size;
+void setFontSat() {
+
+  if (fontSat == "default") {
+    display->setFont();
+    x=28;
+    y=0;
+    size=2;
+  }
+  else if (fontSat == "mono") {
+    display->setFont(&FreeMono9pt7b);
+    x=37;
+    y=12;
+    size=1;
+  }
+  else if (fontSat == "mono-bold") {
+    display->setFont(&FreeMonoBold9pt7b);
+    x=37;
+    y=12;
+    size=1;
+  }
+  else if(fontSat == "mono-bold-oblique"){
+    display->setFont(&FreeMonoBoldOblique9pt7b); 
+    x=37;
+    y=12;
+    size=1;
+  }
+  else if(fontSat == "sans"){
+    display->setFont(&FreeSansBold9pt7b); 
+    x=42;
+    y=14;
+    size=1;
+  }
+  else if(fontSat == "serif"){
+    display->setFont(&FreeSerifBold9pt7b); 
+    x=47;
+    y=14;
+    size=1;
+  }
+}
+int x1,y2,size1;
+void setFontText() {
+
+  if (fontTekst == "default") {
+    display->setFont();
+    x1=xPos;
+    y2=17;
+    size1=2;
+  }
+  else if (fontTekst == "mono") {
+    display->setFont(&FreeMono9pt7b);
+    x1=xPos;
+    y2=28;
+    size1=1;
+  }
+  else if (fontTekst == "mono-bold") {
+    display->setFont(&FreeMonoBold9pt7b);
+    x1=xPos;
+    y2=28;
+    size1=1;
+  }
+  else if (fontTekst == "mono-bold-oblique") {
+    display->setFont(&FreeMonoBoldOblique9pt7b); 
+    x1=xPos;
+    y2=28;
+    size1=1;
+  }
+  else if (fontTekst == "sans") {
+    display->setFont(&FreeSansBold9pt7b); 
+    x1=xPos;
+    y2=28;
+    size1=1;
+  }
+  else if (fontTekst == "serif") {
+    display->setFont(&FreeSerifBold9pt7b); 
+    x1=xPos;
+    y2=28;
+    size1=1;
+  }
+
+}
 // ---------------- SETUP I LOOP --------------------
 
 void setup() {
   Serial.begin(115200);
+  //setFontSat();
+  //setFontText();
 
   #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
     clock_prescale_set(clock_div_1);
@@ -506,6 +619,9 @@ void setup() {
 
   prefs.begin("schoolbell", false);
   //prefs.begin("user-data", false);
+
+  fontTekst = prefs.getString("fontTekst", "org-01");
+  fontSat = prefs.getString("fontSat", "org-01");
 
   satR = prefs.getInt("satR", 255);
   satG = prefs.getInt("satG", 150);
@@ -536,8 +652,8 @@ void setup() {
     }
   }
   // Pročitaj spaseni WiFi, ako ga nema koristi "lamija7" kao rezervu
-  String savedSSID = prefs.getString("wifi_ssid", "Mesic");
-  String savedPASS = prefs.getString("wifi_pass", "alma12345");
+  String savedSSID = prefs.getString("wifi_ssid", "59588d");
+  String savedPASS = prefs.getString("wifi_pass", "273370344");
 
   WiFi.begin(savedSSID.c_str(), savedPASS.c_str());
 
@@ -616,9 +732,9 @@ void loop() {
     display->fillScreen(0);
 
     if (startup) {
-      display->setTextSize(2);
+      display->setTextSize(size);
       display->setTextColor(display->color565(255, 150, 0));
-      display->setCursor(45, 8);
+      display->setCursor(x, y);
       display->print("ETS");
       if (millis() - startTime > 3000) startup = false;
     } else if (sosActive) {
@@ -633,28 +749,28 @@ void loop() {
         digitalWrite(RELAY_PIN, LOW);
       }
     } else {
-
-      display->setTextSize(2);
+      setFontSat();
+      display->setTextSize(size);
       display->setTextColor(display->color565(satR, satG, satB));  // boja sata
-      display->setCursor(28, 0);
+      display->setCursor(x, y);
       display->print(getTimeString());
 
       if (bellTestMode) {
-        display->setTextSize(2);
+        display->setTextSize(size);
         display->setTextColor(display->color565(255, 255, 255));
-        display->setCursor(xPos, 17);
+        display->setCursor(x1, y2);
         display->print("--- TEST ZVONA ---");
       } else {
-        display->setTextSize(2);
+        setFontText();
+        display->setTextSize(size);
         display->setTextColor(display->color565(textR, textG, textB));
-        display->setCursor(xPos, 17);
+        display->setCursor(x1, y2);
         display->print(text);
       }
 
-
       xPos--;
 
-      int textWidth = text.length() * 12;
+      int textWidth = text.length() * 10; //(*12) *(size1*6)
       if (xPos < -textWidth) {
         xPos = 128;
       }

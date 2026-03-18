@@ -47,27 +47,27 @@
         <div id="other">
             <div id="letter_font">
                 <h3>Font slova na matrici - obavještenja</h3>
-                <select><!--opcije fontova za matricu-->
-                    <option value="org-01">Org_01</option>
+                <select id="select_letter_font"><!--opcije fontova za matricu-->
+                    <option value="default">Default</option>
                     <option value="mono">Mono</option>
                     <option value="mono-bold">MonoBold</option>
                     <option value="mono-bold-oblique">MonoBoldOblique</option>
                     <option value="sans">Sans</option>
                     <option value="serif">Serif</option>
                 </select>
-                <button>Sačuvaj</button>
+                <button onclick="sacuvajFontSlova()">Sačuvaj</button>
             </div>
             <div id="clock_font">
                 <h3>Font slova na matrici - sat</h3>
-                <select><!--opcije fontova za matricu-->
-                    <option value="org-01">Org_01</option>
+                <select id="select_clock_font"><!--opcije fontova za matricu-->
+                    <option value="default">Default</option>
                     <option value="mono">Mono</option>
                     <option value="mono-bold">MonoBold</option>
                     <option value="mono-bold-oblique">MonoBoldOblique</option>
                     <option value="sans">Sans</option>
                     <option value="serif">Serif</option>
                 </select>
-                <button>Sačuvaj</button>
+                <button onclick="sacuvajFontSata()">Sačuvaj</button>
             </div>
         </div>
         <div id="color">
