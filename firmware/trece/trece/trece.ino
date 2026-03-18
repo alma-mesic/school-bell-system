@@ -12,13 +12,11 @@
 #endif
 #include "LittleFS.h"
 
-#include <Fonts/Org_01.h>
 #include <Fonts/FreeMono9pt7b.h>
 #include <Fonts/FreeMonoBold9pt7b.h>
 #include <Fonts/FreeMonoBoldOblique9pt7b.h>
-#include <Fonts/FreeSansBold9pt7b.h>
-#include <Fonts/FreeSerifBold9pt7b.h>
-#include <Fonts/FreeSerifBold9pt7b.h>
+#include <Fonts/FreeSans9pt7b.h>
+#include <Fonts/FreeSerif9pt7b.h>
 
 // ---------------- KONFIGURACIJA ---------------------
 #define RELAY_PIN 18
@@ -43,8 +41,26 @@ Preferences prefs;
 AsyncWebServer server(80);
 
 // ---------------- GLOBALNE PROMJENLJIVE --------------------
-String fontTekst = "org-01";
-String fontSat = "org-01";
+enum FontType {
+  FONT_DEFAULT,
+  FONT_MONO,
+  FONT_MONO_BOLD,
+  FONT_MONO_BOLD_OBLIQUE,
+  FONT_SANS,
+  FONT_SERIF
+};
+
+FontType fontText = FONT_DEFAULT;
+FontType fontClock = FONT_DEFAULT;
+
+int fontTextX = 0;
+int fontTextY = 17;
+int fontTextSize = 2;
+
+int fontClockX = 28;
+int fontClockY = 0;
+int fontClockSize = 2;
+
 
 bool startup = true;
 unsigned long startTime;
@@ -273,25 +289,30 @@ void setupRoutes() {
       }
       prefs.putInt("ledMode", ledMode); // spremanje u memoriju
     }
-    else if (naredba == "SET_FONTS") {
-      fontTekst = doc["font_tekst"].as<String>();
-      fontSat = doc["font_sat"].as<String>();
+    else if (naredba == "SET_FONT_LETTER") {
+      String f = doc["font_tekst"];
 
-      prefs.putString("fontTekst", fontTekst);
-      prefs.putString("fontSat", fontSat);
+      if (f == "default") fontText = FONT_DEFAULT;
+      else if (f == "mono") fontText = FONT_MONO;
+      else if (f == "mono-bold") fontText = FONT_MONO_BOLD;
+      else if (f == "mono-bold-oblique") fontText = FONT_MONO_BOLD_OBLIQUE;
+      else if (f == "sans") fontText = FONT_SANS;
+      else if (f == "serif") fontText = FONT_SERIF;
 
-      Serial.println("Font tekst: " + fontTekst);
-      Serial.println("Font sat: " + fontSat);
+      prefs.putInt("fontText", fontText);
     }
-    /*else if (naredba == "LED_CONTROL") { ovo je za gasenje trake (provjeriti da li je potrebno)
-      String stanje = doc["stanje"];
-      if (stanje == "ON") {
-        ledMode = LED_MODE_COLOR;
-      } else {
-        ledMode = LED_MODE_OFF;
-      }
-      prefs.putInt("ledMode", ledMode);
-    }*/
+    else if (naredba == "SET_FONT_CLOCK") {
+      String f = doc["font_sat"];
+
+      if (f == "default") fontClock = FONT_DEFAULT;
+      else if (f == "mono") fontClock = FONT_MONO;
+      else if (f == "mono-bold") fontClock = FONT_MONO_BOLD;
+      else if (f == "mono-bold-oblique") fontClock = FONT_MONO_BOLD_OBLIQUE;
+      else if (f == "sans") fontClock = FONT_SANS;
+      else if (f == "serif") fontClock = FONT_SERIF;
+
+      prefs.putInt("fontClock", fontClock);
+    }
     request->send(200, "application/json", "{\"status\":\"ok\"}");
    
   });
@@ -513,86 +534,129 @@ void colorWipe(uint32_t color, int wait) {
       delay(wait);
     }
 }
+// --------------------- FONT ----------------------
+void setMatrixFont(FontType f) {
+  switch (f) {
 
-// -------------------- FONTOVI --------------------
-int x,y,size;
-void setFontSat() {
-  if(fontSat=="org_01"){
-    display->setFont(&Org_01);
-    x=45;
-    y=12;
-    size=2;
-  }
-  else if (fontSat == "mono") {
-    display->setFont(&FreeMono9pt7b);
-    x=37;
-    y=12;
-    size=1;
-  }
-  else if (fontSat == "mono-bold") {
-    display->setFont(&FreeMonoBold9pt7b);
-    x=37;
-    y=12;
-    size=1;
-  }
-  else if(fontSat == "mono-bold-oblique"){
-    display->setFont(&FreeMonoBoldOblique9pt7b); 
-    x=37;
-    y=12;
-    size=1;
-  }
-  else if(fontSat == "sans"){
-    display->setFont(&FreeSansBold9pt7b); 
-    x=50;
-    y=14;
-    size=1;
-  }
-  else if(fontSat == "serif"){
-    display->setFont(&FreeSerifBold9pt7b); 
-    x=50;
-    y=14;
-    size=1;
+    case FONT_DEFAULT:
+      display->setFont(); // built-in
+      break;
+
+    case FONT_MONO:
+      display->setFont(&FreeMono9pt7b);
+      break;
+
+    case FONT_MONO_BOLD:
+      display->setFont(&FreeMonoBold9pt7b);
+      break;
+
+    case FONT_MONO_BOLD_OBLIQUE:
+      display->setFont(&FreeMonoBoldOblique9pt7b);
+      break;
+
+    case FONT_SANS:
+      display->setFont(&FreeSans9pt7b);
+      break;
+
+    case FONT_SERIF:
+      display->setFont(&FreeSerif9pt7b);
+      break;
   }
 }
-int x1,y2,size1;
-void setFontText() {
-  if(fontTekst=="org_01"){
-    display->setFont(&Org_01);
-    x1=xPos;
-    y2=28;
-    size=2;
-  }
-  else if (fontTekst == "mono") {
-    display->setFont(&FreeMono9pt7b);
-    x1=xPos;
-    y2=28;
-    size1=1;
-  }
-  else if (fontTekst == "mono-bold") {
-    display->setFont(&FreeMonoBold9pt7b);
-    x1=xPos;
-    y2=28;
-    size1=1;
-  }
-  else if (fontTekst == "mono-bold-oblique") {
-    display->setFont(&FreeMonoBoldOblique9pt7b); 
-    x1=xPos;
-    y2=28;
-    size1=1;
-  }
-  else if (fontTekst == "sans") {
-    display->setFont(&FreeSansBold9pt7b); 
-    x1=xPos;
-    y2=28;
-    size1=1;
-  }
-  else if (fontTekst == "serif") {
-    display->setFont(&FreeSerifBold9pt7b); 
-    x1=xPos;
-    y2=28;
-    size1=1;
-  }
+void applyFont(FontType f, bool isClock)
+{
+  if (isClock)
+  {
+    switch (f)
+    {
+      case FONT_DEFAULT:
+        display->setFont();
+        fontClockSize = 2;
+        fontClockX = 28;
+        fontClockY = 0;
+        break;
 
+      case FONT_MONO:
+        display->setFont(&FreeMono9pt7b);
+        fontClockSize = 1;
+        fontClockX = 5;
+        fontClockY = 14;
+        break;
+
+      case FONT_MONO_BOLD:
+        display->setFont(&FreeMonoBold9pt7b);
+        fontClockSize = 1;
+        fontClockX = 2;
+        fontClockY = 14;
+        break;
+
+      case FONT_MONO_BOLD_OBLIQUE:
+        display->setFont(&FreeMonoBoldOblique9pt7b);
+        fontClockSize = 1;
+        fontClockX = 2;
+        fontClockY = 14;
+        break;
+
+      case FONT_SANS:
+        display->setFont(&FreeSans9pt7b);
+        fontClockSize = 1;
+        fontClockX = 6;
+        fontClockY = 14;
+        break;
+
+      case FONT_SERIF:
+        display->setFont(&FreeSerif9pt7b);
+        fontClockSize = 1;
+        fontClockX = 4;
+        fontClockY = 14;
+        break;
+    }
+
+    display->setTextSize(fontClockSize);
+  }
+  else
+  {
+    switch (f)
+    {
+      case FONT_DEFAULT:
+        display->setFont();
+        fontTextSize = 2;
+        fontTextY = 17;
+        break;
+
+      case FONT_MONO:
+        display->setFont(&FreeMono9pt7b);
+        fontTextSize = 1;
+        fontTextY = 28;
+        break;
+
+      case FONT_MONO_BOLD:
+        display->setFont(&FreeMonoBold9pt7b);
+        fontTextSize = 1;
+        fontTextY = 28;
+        break;
+
+      case FONT_MONO_BOLD_OBLIQUE:
+        display->setFont(&FreeMonoBoldOblique9pt7b);
+        fontTextSize = 1;
+        fontTextY = 28;
+        break;
+
+      case FONT_SANS:
+        display->setFont(&FreeSans9pt7b);
+        fontTextSize = 1;
+        fontTextY = 28;
+        break;
+
+      case FONT_SERIF:
+        display->setFont(&FreeSerif9pt7b);
+        fontTextSize = 1;
+        fontTextY = 28;
+        break;
+    }
+
+    display->setTextSize(fontTextSize);
+  }
 }
 // ---------------- SETUP I LOOP --------------------
 
@@ -616,9 +680,6 @@ void setup() {
 
   prefs.begin("schoolbell", false);
   //prefs.begin("user-data", false);
-
-  fontTekst = prefs.getString("fontTekst", "org_01");
-  fontSat = prefs.getString("fontSat", "org_01");
 
   satR = prefs.getInt("satR", 255);
   satG = prefs.getInt("satG", 150);
@@ -649,8 +710,8 @@ void setup() {
     }
   }
   // Pročitaj spaseni WiFi, ako ga nema koristi "lamija7" kao rezervu
-  String savedSSID = prefs.getString("wifi_ssid", "59588d");
-  String savedPASS = prefs.getString("wifi_pass", "273370344");
+  String savedSSID = prefs.getString("wifi_ssid", "Mesic");
+  String savedPASS = prefs.getString("wifi_pass", "alma12345");
 
   WiFi.begin(savedSSID.c_str(), savedPASS.c_str());
 
@@ -674,6 +735,9 @@ void setup() {
   }
 
   Serial.println("\nWiFi connected: " + WiFi.localIP().toString());
+
+  Serial.println(display->width());
+  Serial.println(display->height());
 
   server.on("/login", HTTP_POST, [](AsyncWebServerRequest *request) {
     if (!request->hasParam("username", true) || !request->hasParam("password", true)) {
@@ -717,8 +781,11 @@ void setup() {
 
   server.begin();
   Serial.println("HTTP server started");
-}
 
+  fontText = (FontType)prefs.getInt("fontText", FONT_DEFAULT);
+  fontClock = (FontType)prefs.getInt("fontClock", FONT_DEFAULT);
+
+}
 
 void loop() {
     if (Serial.available()) {
@@ -729,9 +796,9 @@ void loop() {
     display->fillScreen(0);
 
     if (startup) {
-      display->setTextSize(size);
+      display->setTextSize(2);
       display->setTextColor(display->color565(255, 150, 0));
-      display->setCursor(x, y);
+      display->setCursor(45, 8);
       display->print("ETS");
       if (millis() - startTime > 3000) startup = false;
     } else if (sosActive) {
@@ -746,28 +813,29 @@ void loop() {
         digitalWrite(RELAY_PIN, LOW);
       }
     } else {
-      setFontSat();
-      display->setTextSize(size);
+      applyFont(fontClock, true);
+      display->setTextSize(fontClockSize);
       display->setTextColor(display->color565(satR, satG, satB));  // boja sata
-      display->setCursor(x, y);
+      display->setCursor(fontClockX, fontClockY);
       display->print(getTimeString());
 
       if (bellTestMode) {
-        display->setTextSize(size);
+        display->setTextSize(2);
         display->setTextColor(display->color565(255, 255, 255));
-        display->setCursor(x1, y2);
+        display->setCursor(xPos, 17);
         display->print("--- TEST ZVONA ---");
       } else {
-        setFontText();
-        display->setTextSize(size);
+        applyFont(fontText, false);
+        display->setTextSize(fontTextSize);
         display->setTextColor(display->color565(textR, textG, textB));
-        display->setCursor(x1, y2);
+        display->setCursor(xPos, fontTextY);
         display->print(text);
       }
 
+
       xPos--;
 
-      int textWidth = text.length() * 10; //(*12) *(size1*6)
+      int textWidth = text.length() * 12;
       if (xPos < -textWidth) {
         xPos = 128;
       }
