@@ -12,6 +12,7 @@
 #endif
 #include "LittleFS.h"
 
+#include <Fonts/Org_01.h>
 #include <Fonts/FreeMono9pt7b.h>
 #include <Fonts/FreeMonoBold9pt7b.h>
 #include <Fonts/FreeMonoBoldOblique9pt7b.h>
@@ -516,11 +517,10 @@ void colorWipe(uint32_t color, int wait) {
 // -------------------- FONTOVI --------------------
 int x,y,size;
 void setFontSat() {
-
-  if (fontSat == "default") {
-    display->setFont();
-    x=28;
-    y=0;
+  if(fontSat=="org_01"){
+    display->setFont(&Org_01);
+    x=45;
+    y=12;
     size=2;
   }
   else if (fontSat == "mono") {
@@ -543,25 +543,24 @@ void setFontSat() {
   }
   else if(fontSat == "sans"){
     display->setFont(&FreeSansBold9pt7b); 
-    x=42;
+    x=50;
     y=14;
     size=1;
   }
   else if(fontSat == "serif"){
     display->setFont(&FreeSerifBold9pt7b); 
-    x=47;
+    x=50;
     y=14;
     size=1;
   }
 }
 int x1,y2,size1;
 void setFontText() {
-
-  if (fontTekst == "default") {
-    display->setFont();
+  if(fontTekst=="org_01"){
+    display->setFont(&Org_01);
     x1=xPos;
-    y2=17;
-    size1=2;
+    y2=28;
+    size=2;
   }
   else if (fontTekst == "mono") {
     display->setFont(&FreeMono9pt7b);
@@ -599,8 +598,6 @@ void setFontText() {
 
 void setup() {
   Serial.begin(115200);
-  //setFontSat();
-  //setFontText();
 
   #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
     clock_prescale_set(clock_div_1);
@@ -620,8 +617,8 @@ void setup() {
   prefs.begin("schoolbell", false);
   //prefs.begin("user-data", false);
 
-  fontTekst = prefs.getString("fontTekst", "org-01");
-  fontSat = prefs.getString("fontSat", "org-01");
+  fontTekst = prefs.getString("fontTekst", "org_01");
+  fontSat = prefs.getString("fontSat", "org_01");
 
   satR = prefs.getInt("satR", 255);
   satG = prefs.getInt("satG", 150);
