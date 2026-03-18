@@ -681,7 +681,7 @@ int getCurrentDayIndex()
   struct tm now;
   if (!getLocalTime(&now)) return -1;
   int d = now.tm_wday; // 0 nedjelja
-  if (d == 0) return -1;
+  if (d == 0 || d == 6) return -1;
   return d - 1; // pon=0
 }
 
@@ -700,10 +700,24 @@ String getDezurniText()
   int s = getCurrentHourIndex();
 
   if (d < 0 || s < 0) return "";
-  String prof = dezurstvo[d][s];
 
-  if (prof == "" || prof == "nema profesora")
-    return " | Dezurni: nema ";
+  String prof = dezurstvo[d][s];
+  prof.trim(); ////////////////////////////////
+
+  /*
+  if (prof.length() == 0 || 
+        prof == "nema profesora" || 
+        prof == "nema" || 
+        prof == "-" || 
+        prof == "—" || 
+        prof == ".") 
+    {
+      return " | dežurni: —";   
+    }
+  */
+
+  if (prof == "" || prof == "nema profesora" || /************/ prof.length() == 0)
+    return " | Dezurni: - ";
   return " | Dezurni: " + prof;
 }
 // ---------------- SETUP I LOOP --------------------
@@ -758,8 +772,8 @@ void setup() {
     }
   }
   // Pročitaj spaseni WiFi, ako ga nema koristi "lamija7" kao rezervu
-  String savedSSID = prefs.getString("wifi_ssid", "Mesic");
-  String savedPASS = prefs.getString("wifi_pass", "alma12345");
+  String savedSSID = prefs.getString("wifi_ssid", "Galaxy A5244CB");
+  String savedPASS = prefs.getString("wifi_pass", "alma1574");
 
   WiFi.begin(savedSSID.c_str(), savedPASS.c_str());
 
@@ -870,9 +884,10 @@ void loop() {
       display->print(getTimeString());
 
       if (bellTestMode) {
-        display->setTextSize(2);
+        applyFont(fontText, false);
+        display->setTextSize(fontTextSize);
         display->setTextColor(display->color565(255, 255, 255));
-        display->setCursor(xPos, 17);
+        display->setCursor(xPos, fontTextY);
         display->print("--- TEST ZVONA ---");
       } else {
         applyFont(fontText, false);
