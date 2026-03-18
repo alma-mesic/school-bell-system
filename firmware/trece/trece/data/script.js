@@ -714,6 +714,36 @@ document.getElementById("save-prof").addEventListener("click", () => {
     alert("Raspored sačuvan!");
     console.log(data);
 });
+
+document.getElementById("posalji-dezurne").addEventListener("click", () => {
+    const matrix = [];
+    for (let i = 1; i < table.rows.length; i++) {
+        const row = table.rows[i];
+        const dayArray = [];
+        for (let j = 2; j < row.cells.length; j++) {
+            let val = row.cells[j].querySelector("input")?.value.trim();
+            if (!val) val = "nema profesora";
+            dayArray.push(val);
+        }
+        matrix.push(dayArray);
+    }
+    const payload = {
+        tip: "dezurstvo",
+        data: matrix
+    };
+    console.log(payload);
+    fetch("/api/data", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(d => alert("Poslano na ESP"))
+    .catch(e => console.error(e));
+
+});
 /*******************RASPORED (slanje)********************/
 function osvjeziStatus() {
     // 1. Provjeri koji je raspored odabran na dugmićima

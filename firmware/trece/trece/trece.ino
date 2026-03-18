@@ -41,6 +41,8 @@ Preferences prefs;
 AsyncWebServer server(80);
 
 // ---------------- GLOBALNE PROMJENLJIVE --------------------
+String dezurstvo[5][12];
+
 enum FontType {
   FONT_DEFAULT,
   FONT_MONO,
@@ -182,6 +184,19 @@ void handleJson(String json) {
     }
     prefs.putString("obavijesti", json);
   } 
+  else if (tip == "dezurstvo")
+  {
+    JsonArray arr = doc["data"];
+    for (int d = 0; d < 5; d++)
+    {
+      for (int s = 0; s < 12; s++)
+      {
+        dezurstvo[d][s] = arr[d][s].as<String>();
+      }
+    }
+    prefs.putString("dezurstvo", json);
+    Serial.println("Dezurstvo primljeno");
+  }
   else if (tip == "emergency") {
     bool stanje = doc["stanje"] | false;
     if (stanje) {
@@ -379,7 +394,7 @@ void buildMainText() {
       int end = timeToMinutes(classes[i].end);
       if (nowMin >= start && nowMin < end) {
         newText = String(classes[i].number) + ". cas | Kraj casa u: " + classes[i].end + " | Jos " + String(end - nowMin) + " min";
-        if (classes[i].dezurni != "") newText += " | Dezurni: " + classes[i].dezurni;
+        if (classes[i].dezurni != "") newText += " | Dezurni: " + getDezurniText();
         inClass = true;
         break;
       }
@@ -393,6 +408,7 @@ void buildMainText() {
       } else {
         newText = "ODMOR";
       }
+      newText += getDezurniText();
     }
 
     String obavijestiDio = "";
@@ -658,6 +674,38 @@ void applyFont(FontType f, bool isClock)
     display->setTextSize(fontTextSize);
   }
 }
+
+// ---------------- DEZURNI ----------------------
+int getCurrentDayIndex()
+{
+  struct tm now;
+  if (!getLocalTime(&now)) return -1;
+  int d = now.tm_wday; // 0 nedjelja
+  if (d == 0) return -1;
+  return d - 1; // pon=0
+}
+
+int getCurrentHourIndex()
+{
+  struct tm now;
+  if (!getLocalTime(&now)) return -1;
+  int h = now.tm_hour;
+  int index = h - 7;
+  if (index < 0 || index >= 12) return -1;
+  return index;
+}
+String getDezurniText()
+{
+  int d = getCurrentDayIndex();
+  int s = getCurrentHourIndex();
+
+  if (d < 0 || s < 0) return "";
+  String prof = dezurstvo[d][s];
+
+  if (prof == "" || prof == "nema profesora")
+    return " | Dezurni: nema ";
+  return " | Dezurni: " + prof;
+}
 // ---------------- SETUP I LOOP --------------------
 
 void setup() {
@@ -785,6 +833,8 @@ void setup() {
   fontText = (FontType)prefs.getInt("fontText", FONT_DEFAULT);
   fontClock = (FontType)prefs.getInt("fontClock", FONT_DEFAULT);
 
+  String dz = prefs.getString("dezurstvo", "");
+  if (dz != "") handleJson(dz);
 }
 
 void loop() {
