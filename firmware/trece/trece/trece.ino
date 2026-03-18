@@ -572,42 +572,42 @@ void applyFont(FontType f, bool isClock)
       case FONT_DEFAULT:
         display->setFont();
         fontClockSize = 2;
-        fontClockX = 28;
+        fontClockX = 32;
         fontClockY = 0;
         break;
 
       case FONT_MONO:
         display->setFont(&FreeMono9pt7b);
         fontClockSize = 1;
-        fontClockX = 5;
+        fontClockX = 37;
         fontClockY = 14;
         break;
 
       case FONT_MONO_BOLD:
         display->setFont(&FreeMonoBold9pt7b);
         fontClockSize = 1;
-        fontClockX = 2;
+        fontClockX = 37;
         fontClockY = 14;
         break;
 
       case FONT_MONO_BOLD_OBLIQUE:
         display->setFont(&FreeMonoBoldOblique9pt7b);
         fontClockSize = 1;
-        fontClockX = 2;
+        fontClockX = 37;
         fontClockY = 14;
         break;
 
       case FONT_SANS:
         display->setFont(&FreeSans9pt7b);
         fontClockSize = 1;
-        fontClockX = 6;
+        fontClockX = 42;
         fontClockY = 14;
         break;
 
       case FONT_SERIF:
         display->setFont(&FreeSerif9pt7b);
         fontClockSize = 1;
-        fontClockX = 4;
+        fontClockX = 42;
         fontClockY = 14;
         break;
     }
