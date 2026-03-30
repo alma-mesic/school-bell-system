@@ -1,6 +1,6 @@
 /**GLOBAL***/
-//const ESP_IP = "http://192.168.1.14";
-const ESP_IP = "http://10.90.198.148";
+const ESP_IP = "http://192.168.1.14";
+//const ESP_IP = "http://10.90.198.148";
 /*****************BRGER MENI*********************/
 const burger = document.getElementById("burger");
 if (burger) {
@@ -833,8 +833,18 @@ function pokreniSveZaTest() {
 
 
 /**********************SYSTEM (slanje)**********************/
-// --- FUNKCIJA ZA LED TRAKU ---
-let ledUpaljen = true;
+// script.js
+let ledUpaljen = true; // globalna varijabla
+
+document.addEventListener("DOMContentLoaded", () => {
+    const dugme = document.getElementById("led_btn");
+    if (!dugme) return;
+
+    dugme.addEventListener("click", () => {
+        upravljajLedTrakom(dugme); 
+    });
+});
+
 function upravljajLedTrakom(dugme) {
     ledUpaljen = !ledUpaljen;
 
@@ -843,23 +853,34 @@ function upravljajLedTrakom(dugme) {
         stanje: ledUpaljen ? "ON" : "OFF"
     };
 
-    fetch(`${ESP_IP}/api/settings`, { // Dodani backtickovi
+    console.log("Šaljem paket:", paket);
+
+    fetch(`${ESP_IP}/api/settings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(paket)
     })
-        .then(() => {
-            if (ledUpaljen) {
-                dugme.textContent = "Ugasi LED traku";
-                dugme.style.backgroundColor = "";
-                alert("LED traka je uključena. Sistem aktivan.");
-            } else {
-                dugme.textContent = "Upali LED traku";
-                dugme.style.backgroundColor = "#2c3e50";
-                alert("LED traka je ugašena. Sistem neaktivan.");
-            }
-        })
-        .catch(err => alert("ESP32 nedostupan za LED kontrolu."));
+    .then(() => {
+        console.log("Response status:", res.status);
+        
+        const stilovi = document.getElementById("stilovi");
+        const colorBox = document.getElementById("letter_color_change");
+        const saveBtn = document.getElementById("ponudjeni-stil");
+
+        if (ledUpaljen) {
+            dugme.textContent = "Ugasi LED traku";
+            if (colorBox) colorBox.disabled = false;
+            if (saveBtn) saveBtn.disabled = false;
+            alert("LED traka je uključena. Sistem aktivan.");
+        } else {
+            dugme.textContent = "Upali LED traku";
+            if (stilovi) stilovi.style.pointerEvents = "none";
+            if (colorBox) colorBox.disabled = true;
+            if (saveBtn) saveBtn.disabled = true;
+            alert("LED traka je ugašena. Sistem neaktivan.");
+        }
+    })
+    .catch(err => alert("ESP32 nedostupan za LED kontrolu."));
 }
 
 async function posaljiBoju(tip, elementId) {
@@ -1035,7 +1056,7 @@ document.getElementById("ponudjeni-stil").addEventListener("click", async () => 
         mode: selected.value
     };
     try {
-        await fetch("/api/settings", {
+        await fetch(`${ESP_IP}/api/settings`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

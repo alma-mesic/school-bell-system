@@ -304,6 +304,24 @@ void setupRoutes() {
       }
       prefs.putInt("ledMode", ledMode); // spremanje u memoriju
     }
+    else if (naredba == "LED_CONTROL") {
+      String stanje = doc["stanje"];
+      if (stanje == "OFF") {
+          ledMode = LED_MODE_OFF;
+      } 
+      else if (stanje == "ON") {
+          ledMode = LED_MODE_RAINBOW;
+      }
+      prefs.putInt("ledMode", ledMode); // Spremi u trajnu memoriju
+
+      /*if (ledMode == LED_MODE_OFF) {
+          strip.clear();
+          strip.show();
+      } else if (ledMode == LED_MODE_RAINBOW) {
+      }*/
+
+      request->send(200, "application/json", "{\"status\":\"ok\"}");
+    }
     else if (naredba == "SET_FONT_LETTER") {
       String f = doc["font_tekst"];
 
@@ -515,9 +533,13 @@ void runLedMode() {
     strip.show();
   }
   else if (ledMode == LED_MODE_RAINBOW) {
-    strip.rainbow(hue);
-    strip.show();
-    hue += 256;
+    for (int i = 0; i < strip.numPixels(); i++) {
+    uint16_t h = hue + (i * 65536L / strip.numPixels());
+    uint32_t c = strip.gamma32(strip.ColorHSV(h));
+    strip.setPixelColor(i, c);
+  }
+  strip.show();
+  hue += 256;
   }
   else if (ledMode == LED_MODE_THEATER) {
     strip.clear();
@@ -772,8 +794,8 @@ void setup() {
     }
   }
   // Pročitaj spaseni WiFi, ako ga nema koristi "lamija7" kao rezervu
-  String savedSSID = prefs.getString("wifi_ssid", "Galaxy A5244CB");
-  String savedPASS = prefs.getString("wifi_pass", "alma1574");
+  String savedSSID = prefs.getString("wifi_ssid", "Mesic");
+  String savedPASS = prefs.getString("wifi_pass", "alma12345");
 
   WiFi.begin(savedSSID.c_str(), savedPASS.c_str());
 
