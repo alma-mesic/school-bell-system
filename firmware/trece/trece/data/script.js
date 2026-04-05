@@ -515,11 +515,13 @@ async function posaljiNaESP(tihoSlanje = false) {
         });
 
         if (response.ok && !tihoSlanje) {
-            alert("Podaci na matrici ažurirani!");
+            //alert("Podaci na matrici ažurirani!");
+            showPopup("Podaci na matrici ažurirani!", true);
         }
         
     } catch (error) {
         alert("ESP32 nedostupan.");
+        //showPopup("ESP32 nedostupan!", false);
     }
 }
 
@@ -669,9 +671,11 @@ document.getElementById("ucitaj-json").addEventListener("click", () => {
                 popuniTabelu(data);
                 // Sačuvaj odmah u localStorage da ostane i nakon zatvaranja
                 localStorage.setItem("dezurniData", JSON.stringify(data));
-                alert("JSON učitan i raspored popunjen!");
+                //alert("JSON učitan i raspored popunjen!");
+                showPopup("JSON učitan i raspored popunjen!", true);                
             } catch (err) {
-                alert("Greška prilikom učitavanja JSON-a: " + err.message);
+                //alert("Greška prilikom učitavanja JSON-a: " + err.message);
+                showPopup("Greška prilikom učitavanja JSON-a: " + err.message, false);
             }
         };
         reader.readAsText(file);
@@ -722,7 +726,8 @@ document.getElementById("save-prof").addEventListener("click", () => {
         }
     }
     localStorage.setItem("dezurniData", JSON.stringify(data));
-    alert("Raspored sačuvan!");
+    //alert("Raspored sačuvan!");
+    showPopup("Raspored sačuvan!", true);
     console.log(data);
 });
 
@@ -751,7 +756,7 @@ document.getElementById("posalji-dezurne").addEventListener("click", () => {
         body: JSON.stringify(payload)
     })
     .then(r => r.json())
-    .then(d => alert("Poslano na ESP"))
+    .then(d => showPopup("Poslano na ESP",true))
     .catch(e => console.error(e));
 
 });
@@ -818,7 +823,7 @@ function posaljiRasporedNaESP() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(paket)
     })
-        .then(() => alert("Raspored poslat na ESP32!"));
+        .then(() => showPopup("Raspored poslat na ESP32!",true));
 }
 
 /**********************ZVONO test (slanje)************************/
@@ -881,16 +886,16 @@ function upravljajLedTrakom(dugme) {
             dugme.textContent = "Ugasi LED traku";
             if (colorBox) colorBox.disabled = false;
             if (saveBtn) saveBtn.disabled = false;
-            alert("LED traka je uključena. Sistem aktivan.");
+            showPopup("LED traka je uključena. Sistem aktivan.",true);
         } else {
             dugme.textContent = "Upali LED traku";
             if (stilovi) stilovi.style.pointerEvents = "none";
             if (colorBox) colorBox.disabled = true;
             if (saveBtn) saveBtn.disabled = true;
-            alert("LED traka je ugašena. Sistem neaktivan.");
+            showPopup("LED traka je ugašena. Sistem neaktivan.",true);
         }
     })
-    .catch(err => alert("ESP32 nedostupan za LED kontrolu."));
+    .catch(err => showPopup("ESP32 nedostupan za LED kontrolu.",false));
 }
 
 async function posaljiBoju(tip, elementId) {
@@ -915,10 +920,11 @@ async function posaljiBoju(tip, elementId) {
                 b: b
             })
         });
-        alert(`Boja za "${tip}" je poslana: R=${r}, G=${g}, B=${b}`);
+        showPopup(`Boja za "${tip}" je poslana: R=${r}, G=${g}, B=${b}`,true);
     } catch (e) {
         console.log("ESP offline ili greška u slanju boje");
-        alert("Neuspjelo slanje boje. Provjeri ESP32.");
+        //alert("Neuspjelo slanje boje. Provjeri ESP32.");
+        showPopup("Neuspjelo slanje boje. Provjeri ESP32.",false);
     }
 }
 /*********************** SETTINGS & BOJE ************************/
@@ -975,10 +981,12 @@ async function posaljiBoju(tip, inputId) {
             else {
                 naziv = tip;
             }
-            alert(`${naziv} sačuvana!\nRGB: ${rgb.r}, ${rgb.g}, ${rgb.b}`);
+            //alert(`${naziv} sačuvana!\nRGB: ${rgb.r}, ${rgb.g}, ${rgb.b}`);
+            showPopup(`${naziv} sačuvana!\nRGB: ${rgb.r}, ${rgb.g}, ${rgb.b}`,true);
         }
     } catch (error) {
-        alert(`Greška pri slanju boje!\nRGB: ${rgb.r}, ${rgb.g}, ${rgb.b}`);
+        //alert(`Greška pri slanju boje!\nRGB: ${rgb.r}, ${rgb.g}, ${rgb.b}`);
+        showPopup(`Greška pri slanju boje!\nRGB: ${rgb.r}, ${rgb.g}, ${rgb.b}`,false);
     }
 }
 function updatePreview() {
@@ -1018,9 +1026,10 @@ async function sacuvajFontSlova() {
         });
 
         if (response.ok) {
-            alert("Font slova poslan: " + letterFont);
+            showPopup("Font slova poslan: " + letterFont, true);
         } else {
-            alert("Greška prilikom slanja fonta slova");
+            //alert("Greška prilikom slanja fonta slova",false);
+            showPopup("Greška prilikom slanja fonta slova",false);
         }
     } catch (error) {
         alert("ESP32 nije dostupan");
@@ -1044,9 +1053,9 @@ async function sacuvajFontSata() {
         });
 
         if (response.ok) {
-            alert("Font sata poslan: " + clockFont);
+            showPopup("Font sata poslan: " + clockFont,true);
         } else {
-            alert("Greška prilikom slanja fonta sata");
+            showPopup("Greška prilikom slanja fonta sata",false);
         }
     } catch (error) {
         alert("ESP32 nije dostupan");
@@ -1081,25 +1090,6 @@ document.getElementById("ponudjeni-stil").addEventListener("click", async () => 
 
 
 /********************** PROFIL & WIFI POSTAVKE **********************/
-function showPopup(message) {
-  const popup = document.createElement('div');
-  popup.textContent = message;
-  popup.style.position = 'fixed';
-  popup.style.bottom = '20px';
-  popup.style.right = '20px';
-  popup.style.backgroundColor = '#4caf50';
-  popup.style.color = '#fff';
-  popup.style.padding = '10px 20px';
-  popup.style.borderRadius = '5px';
-  popup.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
-  popup.style.zIndex = 1000;
-  document.body.appendChild(popup);
-
-  setTimeout(() => {
-    popup.remove();
-  }, 1000); // nestaje nakon 1 sekunde
-}
-
 async function promijeniUsername() {
     console.log("Kliknuto promjeni username");
     const staro = document.getElementById("user-name-old").value;
@@ -1154,8 +1144,8 @@ async function posaljiNaProfilAPI(paket, poruka) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(paket)
         });
-        if (response.ok) showPopup("Promjene sačuvane!");
-        else alert("Greška: Server nije prihvatio promjene.");
+        if (response.ok) showPopup("Promjene sačuvane!",true);
+        else showPopup("Greška: Server nije prihvatio promjene.",false);
     } catch (error) {
         alert("Greška pri komunikaciji sa ESP32.");
     }
@@ -1209,3 +1199,39 @@ document.addEventListener("DOMContentLoaded", function () {
     updatePreview();
 
 });
+
+/** GLOBALNA FUNKCIJA ZA POPUP */
+function showPopup(message, success = true) {
+    // Provjeri postoji li već popup, ako ne kreiraj
+    let popup = document.getElementById("globalPopup");
+    if (!popup) {
+        popup = document.createElement("div");
+        popup.id = "globalPopup";
+        popup.style.position = "fixed";
+        popup.style.top = "20px";
+        popup.style.right = "20px";
+        popup.style.padding = "15px 25px";
+        popup.style.borderRadius = "5px";
+        popup.style.fontFamily = "Arial, sans-serif";
+        popup.style.fontSize = "14px";
+        popup.style.color = "#fff";
+        popup.style.zIndex = 9999;
+        popup.style.boxShadow = "0 2px 8px rgba(0,0,0,0.3)";
+        popup.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+        document.body.appendChild(popup);
+    }
+
+    // Postavi boju i tekst
+    popup.style.backgroundColor = success ? "#2ecc71" : "#E74C3C"; // zelena ili crvena
+    popup.textContent = message;
+
+    // Animacija prikaza
+    popup.style.opacity = "1";
+    popup.style.transform = "translateY(0px)";
+
+    // Automatski sakrij nakon 3 sekunde
+    setTimeout(() => {
+        popup.style.opacity = "0";
+        popup.style.transform = "translateY(-20px)";
+    }, 3000);
+}
