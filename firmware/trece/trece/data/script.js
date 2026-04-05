@@ -415,18 +415,15 @@ function deactivateEmergency() {
 
 
 /******************* OBAVJEŠTENJA (slanje) *******************/
-
-
 setInterval(() => {
     const now = new Date();
     events = events.filter(event => event.time > now);
     renderList();
 }, 60000);
 
-
-
 let listaObavjestenja = JSON.parse(localStorage.getItem("sacuvanaObavjestenja")) || [];
 
+// Pretvara stringove iz localStorage natrag u Date objekte
 listaObavjestenja = listaObavjestenja.map(e => ({
     name: e.name,
     time: new Date(e.time)
@@ -452,12 +449,6 @@ function addEvent() {
 
     azurirajSve();
     document.getElementById("eventName").value = "";
-
-    //  Da ostane tu i nakon osvježavanja stranice
-    /*localStorage.setItem("sacuvanaObavjestenja", JSON.stringify(listaObavjestenja));
-
-    renderList();
-    document.getElementById("eventName").value = "";*/
 }
 
 function renderList() {
@@ -478,11 +469,7 @@ function deleteEvent() {
     if (!list || list.selectedIndex < 0) return;
 
     listaObavjestenja.splice(list.selectedIndex, 1);
-
     azurirajSve();
-    
-    /*localStorage.setItem("sacuvanaObavjestenja", JSON.stringify(listaObavjestenja));
-    renderList();*/
     posaljiNaESP(true);
 }
 
@@ -491,8 +478,7 @@ function azurirajSve() {
     renderList();
 }
 
-/******************* SLANJE NA ESP (DANAS I SUTRA) *******************/
-
+//SLANJE NA ESP (DANAS I SUTRA)
 async function posaljiNaESP(tihoSlanje = false) {
 
     if (listaObavjestenja.length === 0 && !tihoSlanje) {
@@ -500,19 +486,13 @@ async function posaljiNaESP(tihoSlanje = false) {
         return;
     }
 
-    ////////////
     const sada = new Date();
     const krajSutra = new Date();
     krajSutra.setDate(krajSutra.getDate() + 1);
     krajSutra.setHours(23, 59, 59, 999);
-    ///////////
 
     const zaMatricu = listaObavjestenja.filter(e => {
         const t = new Date(e.time);
-        /*const sada = new Date();
-        const krajSutra = new Date();
-        krajSutra.setDate(krajSutra.getDate() + 1);
-        krajSutra.setHours(23, 59, 59, 999);*/
         return t >= sada && t <= krajSutra;
     });
 
@@ -524,17 +504,6 @@ async function posaljiNaESP(tihoSlanje = false) {
                 naziv: e.name,
                 datumVrijeme: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
             };
-    
-            /*const formatiranoVrijeme = d.getFullYear() + "-" + 
-            String(d.getMonth() + 1).padStart(2, '0') + "-" + 
-            String(d.getDate()).padStart(2, '0') + " " + 
-            String(d.getHours()).padStart(2, '0') + ":" + 
-            String(d.getMinutes()).padStart(2, '0');*/
-
-            /*return {
-                naziv: e.name,
-                datumVrijeme: formatiranoVrijeme
-            };*/
         })
     };
 
@@ -548,23 +517,11 @@ async function posaljiNaESP(tihoSlanje = false) {
         if (response.ok && !tihoSlanje) {
             alert("Podaci na matrici ažurirani!");
         }
-        ///////////
-
-        /*if (response.ok) alert("Obavještenja poslana!");
-        else alert("Greška na serveru.");*/
+        
     } catch (error) {
         alert("ESP32 nedostupan.");
     }
 }
-// Inicijalizacija
-/*document.addEventListener("DOMContentLoaded", function () {
-    renderList();
-
-    const sendBtn = document.querySelector(".sendBtn");
-    if (sendBtn) {
-        sendBtn.onclick = posaljiNaESP;
-    }
-});*/
 
 document.addEventListener("DOMContentLoaded", () => {
     renderList();
@@ -581,8 +538,6 @@ setInterval(() => {
     listaObavjestenja = listaObavjestenja.filter(e => new Date(e.time) > now);
 
     if (listaObavjestenja.length !== prethodnaDuzina) {
-        /*localStorage.setItem("sacuvanaObavjestenja", JSON.stringify(listaObavjestenja));
-        renderList();*/
         azurirajSve();
         posaljiNaESP(true);
     }
