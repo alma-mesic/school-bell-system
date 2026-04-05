@@ -698,6 +698,61 @@ function autocomplete(inp, arr) {
     document.addEventListener("click", (e) => closeAllLists(e.target));
 }
 
+document.getElementById("ucitaj-json").addEventListener("click", () => {
+    const inputFile = document.createElement("input");
+    inputFile.type = "file";
+    inputFile.accept = ".json";
+
+    inputFile.addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                popuniTabelu(data);
+                // Sačuvaj odmah u localStorage da ostane i nakon zatvaranja
+                localStorage.setItem("dezurniData", JSON.stringify(data));
+                alert("JSON učitan i raspored popunjen!");
+            } catch (err) {
+                alert("Greška prilikom učitavanja JSON-a: " + err.message);
+            }
+        };
+        reader.readAsText(file);
+    });
+
+    inputFile.click();
+});
+
+function popuniTabelu(data) {
+    // Prođi kroz sve redove tabele osim zaglavlja
+    for (let i = 1; i < table.rows.length; i++) {
+        const row = table.rows[i];
+        const dan = row.cells[0].innerText;
+        if (!data[dan]) continue;
+
+        // Popuni datum
+        const dateInput = row.cells[1].querySelector("input");
+        dateInput.value = data[dan].date || "";
+
+        // Popuni raspored profesora
+        for (let j = 2; j < row.cells.length; j++) {
+            const timeSlot = table.rows[0].cells[j].innerText;
+            const profInput = row.cells[j].querySelector("input");
+            profInput.value = data[dan].schedule[timeSlot] || "";
+        }
+    }
+}
+
+// Automatski učitaj sačuvani podaci iz localStorage pri učitavanju stranice
+window.addEventListener("DOMContentLoaded", () => {
+    const savedData = localStorage.getItem("dezurniData");
+    if (savedData) {
+        popuniTabelu(JSON.parse(savedData));
+    }
+});
+
 document.getElementById("save-prof").addEventListener("click", () => {
     const data = {};
     for (let i = 1; i < table.rows.length; i++) {
