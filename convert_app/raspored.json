@@ -1,0 +1,87 @@
+{
+  "Ponedjeljak": {
+    "date": "2026-04-06",
+    "schedule": {
+      "07:00 do 08:00": "Asmir Mandzukic",
+      "08:00 do 09:00": "Edin Zulfic",
+      "09:00 do 10:00": "Sladjana Pejic",
+      "10:00 do 11:00": "Melisa Zahirovic",
+      "11:00 do 12:00": "Damir Kunosic",
+      "12:00 do 13:00": "Jasmina Omerdic",
+      "13:00 do 14:00": "Naza Dadanovic",
+      "14:00 do 15:00": "Medina Bristic",
+      "15:00 do 16:00": "Radislav Stojak",
+      "16:00 do 17:00": "Samir Tokic",
+      "17:00 do 18:00": "Muamer Halilovic",
+      "18:00 do 19:00": "Muamer Jusic"
+    }
+  },
+  "Utorak": {
+    "date": "2026-04-07",
+    "schedule": {
+      "07:00 do 08:00": "Edin Zulfic",
+      "08:00 do 09:00": "Sladjana Pejic",
+      "09:00 do 10:00": "Melisa Zahirovic",
+      "10:00 do 11:00": "Damir Kunosic",
+      "11:00 do 12:00": "Jasmina Omerdic",
+      "12:00 do 13:00": "Naza Dadanovic",
+      "13:00 do 14:00": "Medina Bristic",
+      "14:00 do 15:00": "Radislav Stojak",
+      "15:00 do 16:00": "Samir Tokic",
+      "16:00 do 17:00": "Muamer Halilovic",
+      "17:00 do 18:00": "Muamer Jusic",
+      "18:00 do 19:00": "Asmir Mandzukic"
+    }
+  },
+  "Srijeda": {
+    "date": "2026-04-08",
+    "schedule": {
+      "07:00 do 08:00": "Sladjana Pejic",
+      "08:00 do 09:00": "Melisa Zahirovic",
+      "09:00 do 10:00": "Damir Kunosic",
+      "10:00 do 11:00": "Jasmina Omerdic",
+      "11:00 do 12:00": "Naza Dadanovic",
+      "12:00 do 13:00": "Medina Bristic",
+      "13:00 do 14:00": "Radislav Stojak",
+      "14:00 do 15:00": "Samir Tokic",
+      "15:00 do 16:00": "Muamer Halilovic",
+      "16:00 do 17:00": "Muamer Jusic",
+      "17:00 do 18:00": "Asmir Mandzukic",
+      "18:00 do 19:00": "Edin Zulfic"
+    }
+  },
+  "Četvrtak": {
+    "date": "2026-04-09",
+    "schedule": {
+      "07:00 do 08:00": "Melisa Zahirovic",
+      "08:00 do 09:00": "Damir Kunosic",
+      "09:00 do 10:00": "Jasmina Omerdic",
+      "10:00 do 11:00": "Naza Dadanovic",
+      "11:00 do 12:00": "Medina Bristic",
+      "12:00 do 13:00": "Radislav Stojak",
+      "13:00 do 14:00": "Samir Tokic",
+      "14:00 do 15:00": "Muamer Halilovic",
+      "15:00 do 16:00": "Muamer Jusic",
+      "16:00 do 17:00": "Asmir Mandzukic",
+      "17:00 do 18:00": "Edin Zulfic",
+      "18:00 do 19:00": "Sladjana Pejic"
+    }
+  },
+  "Petak": {
+    "date": "2026-04-10",
+    "schedule": {
+      "07:00 do 08:00": "Damir Kunosic",
+      "08:00 do 09:00": "Jasmina Omerdic",
+      "09:00 do 10:00": "Naza Dadanovic",
+      "10:00 do 11:00": "Medina Bristic",
+      "11:00 do 12:00": "Radislav Stojak",
+      "12:00 do 13:00": "Samir Tokic",
+      "13:00 do 14:00": "Muamer Halilovic",
+      "14:00 do 15:00": "Muamer Jusic",
+      "15:00 do 16:00": "Asmir Mandzukic",
+      "16:00 do 17:00": "Edin Zulfic",
+      "17:00 do 18:00": "Sladjana Pejic",
+      "18:00 do 19:00": "Melisa Zahirovic"
+    }
+  }
+}
