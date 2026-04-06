@@ -1,5 +1,5 @@
 /**GLOBAL***/
-const ESP_IP = "http://192.168.1.14";
+const ESP_IP = "http://10.132.0.148";
 //const ESP_IP = "http://10.90.198.148";
 /*****************BRGER MENI*********************/
 const burger = document.getElementById("burger");
@@ -875,7 +875,7 @@ function upravljajLedTrakom(dugme) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(paket)
     })
-    .then(() => {
+    .then((res) => {
         console.log("Response status:", res.status);
         
         const stilovi = document.getElementById("stilovi");
@@ -889,10 +889,10 @@ function upravljajLedTrakom(dugme) {
             showPopup("LED traka je uključena. Sistem aktivan.",true);
         } else {
             dugme.textContent = "Upali LED traku";
-            if (stilovi) stilovi.style.pointerEvents = "none";
+            if (stilovi) stilovi.style.pointerEvents = "auto";
             if (colorBox) colorBox.disabled = true;
             if (saveBtn) saveBtn.disabled = true;
-            showPopup("LED traka je ugašena. Sistem neaktivan.",true);
+            showPopup("LED traka je ugašena. Sistem neaktivan.",false);
         }
     })
     .catch(err => showPopup("ESP32 nedostupan za LED kontrolu.",false));

@@ -24,7 +24,7 @@
 #define PANEL_RES_Y 32
 #define PANEL_CHAIN 2
 
-#define LED_PIN 32     // broj pina led trake
+#define LED_PIN 33     // broj pina led trake
 #define LED_COUNT 200  // broj ledica na traci
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
@@ -271,6 +271,11 @@ void setupRoutes() {
         prefs.putInt("ledG", g);
         prefs.putInt("ledB", b);
 
+        Serial.println("LED traka boja:");
+        Serial.println(r);
+        Serial.println(g);
+        Serial.println(b);
+
         strip.show();
       } else if (tip == "boja_sata") {
         satR = r;
@@ -305,23 +310,41 @@ void setupRoutes() {
       prefs.putInt("ledMode", ledMode); // spremanje u memoriju
     }
     else if (naredba == "LED_CONTROL") {
-      String stanje = doc["stanje"];
-      if (stanje == "OFF") {
-          ledMode = LED_MODE_OFF;
-      } 
-      else if (stanje == "ON") {
-          ledMode = LED_MODE_RAINBOW;
-      }
-      prefs.putInt("ledMode", ledMode); // Spremi u trajnu memoriju
+  String stanje = doc["stanje"];
 
-      /*if (ledMode == LED_MODE_OFF) {
-          strip.clear();
-          strip.show();
-      } else if (ledMode == LED_MODE_RAINBOW) {
-      }*/
+  if (stanje == "OFF") {
+    ledMode = LED_MODE_OFF;
+    strip.clear();
+    strip.show();
 
-      request->send(200, "application/json", "{\"status\":\"ok\"}");
+    // ❗ NE SPREMAJ OFF
+  } 
+  else if (stanje == "ON") {
+
+    int savedMode = prefs.getInt("ledMode", LED_MODE_COLOR);
+
+    // ako je slučajno OFF u memoriji → prebaci na COLOR
+    if (savedMode == LED_MODE_OFF) {
+      savedMode = LED_MODE_COLOR;
     }
+
+    ledMode = savedMode;
+
+    // ako je obična boja
+    if (ledMode == LED_MODE_COLOR) {
+      int r = prefs.getInt("ledR", 255);
+      int g = prefs.getInt("ledG", 255);
+      int b = prefs.getInt("ledB", 255);
+
+      for (int i = 0; i < strip.numPixels(); i++) {
+        strip.setPixelColor(i, strip.Color(r, g, b));
+      }
+      strip.show();
+    }
+  }
+
+  request->send(200, "application/json", "{\"status\":\"ok\"}");
+}
     else if (naredba == "SET_FONT_LETTER") {
       String f = doc["font_tekst"];
 
@@ -755,7 +778,7 @@ void setup() {
   configuration();
 
   strip.begin();             // inicijalizacija trake
-  strip.show();              // ugasi sve LED diode na pocetku
+  //strip.show();              // ugasi sve LED diode na pocetku
   strip.setBrightness(100);  // podesi jacinu (0-255)
 
   display = new MatrixPanel_I2S_DMA(mxconfig);
@@ -772,7 +795,7 @@ void setup() {
   textG = prefs.getInt("textG", 255);
   textB = prefs.getInt("textB", 0);
 
-  ledMode = prefs.getInt("ledMode", LED_MODE_OFF);
+  ledMode = prefs.getInt("ledMode", LED_MODE_COLOR);
   ledR = prefs.getInt("ledR", 255);
   ledG = prefs.getInt("ledG", 255);
   ledB = prefs.getInt("ledB", 255);
@@ -794,8 +817,8 @@ void setup() {
     }
   }
   // Pročitaj spaseni WiFi, ako ga nema koristi "lamija7" kao rezervu
-  String savedSSID = prefs.getString("wifi_ssid", "Mesic");
-  String savedPASS = prefs.getString("wifi_pass", "alma12345");
+  String savedSSID = prefs.getString("wifi_ssid", "lamija7");
+  String savedPASS = prefs.getString("wifi_pass", "112345678");
 
   WiFi.begin(savedSSID.c_str(), savedPASS.c_str());
 
