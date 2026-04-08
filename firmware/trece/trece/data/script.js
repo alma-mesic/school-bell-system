@@ -1063,18 +1063,45 @@ async function sacuvajFontSata() {
 }
 
 
-
-document.getElementById("ponudjeni-stil").addEventListener("click", async () => {
+async function ponudjeni_stil(){
     const selected = document.querySelector('input[name="tip"]:checked');
     if (!selected) {
         alert("Izaberi stil");
         return;
     }
-    const json = {
+
+    const paket = {
         naredba: "LED_MODE",
         mode: selected.value
     };
+
     try {
+        const response = await fetch(`${ESP_IP}/api/settings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(paket)
+        });
+
+        if (response.ok) {
+            showPopup("Poslano: " + paket,true);
+        } else {
+            showPopup("Greška prilikom slanja stil",false);
+        }
+    } catch (error) {
+        alert("ESP32 nije dostupan");
+    }
+}
+
+/*document.getElementById("ponudjeni-stil").addEventListener("click", async () => {
+    if (!selected) {
+        alert("Izaberi stil");
+        return;
+    }
+    const paket = {
+        naredba: "LED_MODE",
+        mode: selected.value
+    };
+    /*try {
         await fetch(`${ESP_IP}/api/settings`, {
             method: "POST",
             headers: {
@@ -1086,7 +1113,23 @@ document.getElementById("ponudjeni-stil").addEventListener("click", async () => 
     } catch (err) {
         console.error(err);
     }
-});
+
+    try {
+        const response = await fetch(`${ESP_IP}/api/settings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(paket)
+        });
+
+        if (response.ok) {
+            showPopup("Poslano: " + json,true);
+        } else {
+            showPopup("Greška prilikom slanja stil",false);
+        }
+    } catch (error) {
+        alert("ESP32 nije dostupan");
+    }
+});*/
 
 
 /********************** PROFIL & WIFI POSTAVKE **********************/

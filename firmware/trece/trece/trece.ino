@@ -29,7 +29,6 @@
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 int ledMode = 0;
-#define LED_MODE_OFF 0
 #define LED_MODE_COLOR 1
 #define LED_MODE_RAINBOW 2
 #define LED_MODE_THEATER 3
@@ -304,33 +303,32 @@ void setupRoutes() {
       else if (mode == "theaterChaseRainbow") {
         ledMode = LED_MODE_THEATER_RAINBOW;
       }
-      else if (mode == "off") {
+      /*else if (mode == "off") {
         ledMode = LED_MODE_OFF;
-      }
+      }*/
       prefs.putInt("ledMode", ledMode); // spremanje u memoriju
     }
     else if (naredba == "LED_CONTROL") {
   String stanje = doc["stanje"];
 
-  if (stanje == "OFF") {
+  /*if (stanje == "OFF") {
     ledMode = LED_MODE_OFF;
     strip.clear();
     strip.show();
 
-    // ❗ NE SPREMAJ OFF
   } 
-  else if (stanje == "ON") {
+  else */
+  if (stanje == "ON") {
 
     int savedMode = prefs.getInt("ledMode", LED_MODE_COLOR);
 
     // ako je slučajno OFF u memoriji → prebaci na COLOR
-    if (savedMode == LED_MODE_OFF) {
+    /*if (savedMode == LED_MODE_OFF) {
       savedMode = LED_MODE_COLOR;
-    }
+    }*/
 
     ledMode = savedMode;
 
-    // ako je obična boja
     if (ledMode == LED_MODE_COLOR) {
       int r = prefs.getInt("ledR", 255);
       int g = prefs.getInt("ledG", 255);
@@ -434,8 +432,8 @@ void buildMainText() {
       int start = timeToMinutes(classes[i].start);
       int end = timeToMinutes(classes[i].end);
       if (nowMin >= start && nowMin < end) {
-        newText = String(classes[i].number) + ". cas | Kraj casa u: " + classes[i].end + " | Jos " + String(end - nowMin) + " min";
-        if (classes[i].dezurni != "") newText += " | Dezurni: " + getDezurniText();
+        newText = String(classes[i].number) + ". cas | Kraj casa u: " + classes[i].end + " | Jos " + String(end - nowMin) + " min" + getDezurniText();
+        //if (classes[i].dezurni != "") newText += " | Dezurni prof: " + getDezurniText();
         inClass = true;
         break;
       }
@@ -547,12 +545,12 @@ void runLedMode() {
   static uint16_t hue = 0;
   static int step = 0;
 
-  if (ledMode == LED_MODE_OFF) {
+  /*if (ledMode == LED_MODE_OFF) {
     strip.clear();
     strip.show();
     return;
-  }
-  else if (ledMode == LED_MODE_COLOR) {
+  }*/
+  if (ledMode == LED_MODE_COLOR) {
     strip.show();
   }
   else if (ledMode == LED_MODE_RAINBOW) {
