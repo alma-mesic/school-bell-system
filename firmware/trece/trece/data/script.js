@@ -684,22 +684,42 @@ function autocomplete(inp, arr) {
     inputFile.click();
 });*/
 
-function exporting(){
+function exporting() {
+    const headerRow = ["Dan", "Datum", ...sati]; 
+    const dataForExcel = [headerRow];
 
+    for (let i = 1; i < table.rows.length; i++) {
+        const row = table.rows[i];
+        const dan = row.cells[0].innerText;
+        const datum = row.cells[1].querySelector("input")?.value || "";
+        
+        const currentRow = [dan, datum];
+        
+        for (let j = 2; j < row.cells.length; j++) {
+            const prof = row.cells[j].querySelector("input")?.value || "";
+            currentRow.push(prof);
+        }
+        dataForExcel.push(currentRow);
+    }
+
+    const worksheet = XLSX.utils.aoa_to_sheet(dataForExcel);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Dežurstvo");
+
+    XLSX.writeFile(workbook, "Raspored_Dezurstva_ETS.xlsx");
 }
 
+document.getElementById("exporting").addEventListener("click", exporting);
+
 function popuniTabelu(data) {
-    // Prođi kroz sve redove tabele osim zaglavlja
     for (let i = 1; i < table.rows.length; i++) {
         const row = table.rows[i];
         const dan = row.cells[0].innerText;
         if (!data[dan]) continue;
 
-        // Popuni datum
         const dateInput = row.cells[1].querySelector("input");
         dateInput.value = data[dan].date || "";
 
-        // Popuni raspored profesora
         for (let j = 2; j < row.cells.length; j++) {
             const timeSlot = table.rows[0].cells[j].innerText;
             const profInput = row.cells[j].querySelector("input");
@@ -708,7 +728,6 @@ function popuniTabelu(data) {
     }
 }
 
-// Automatski učitaj sačuvani podaci iz localStorage pri učitavanju stranice
 window.addEventListener("DOMContentLoaded", () => {
     const savedData = localStorage.getItem("dezurniData");
     if (savedData) {
