@@ -655,7 +655,7 @@ function autocomplete(inp, arr) {
     document.addEventListener("click", (e) => closeAllLists(e.target));
 }
 
-document.getElementById("ucitaj-json").addEventListener("click", () => {
+/*document.getElementById("ucitaj-json").addEventListener("click", () => {
     const inputFile = document.createElement("input");
     inputFile.type = "file";
     inputFile.accept = ".json";
@@ -682,7 +682,11 @@ document.getElementById("ucitaj-json").addEventListener("click", () => {
     });
 
     inputFile.click();
-});
+});*/
+
+function exporting(){
+
+}
 
 function popuniTabelu(data) {
     // Prođi kroz sve redove tabele osim zaglavlja
