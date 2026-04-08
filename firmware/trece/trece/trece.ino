@@ -719,17 +719,14 @@ void applyFont(FontType f, bool isClock)
 }
 
 // ---------------- DEZURNI ----------------------
-int getCurrentDayIndex()
-{
+int getCurrentDayIndex(){
   struct tm now;
   if (!getLocalTime(&now)) return -1;
   int d = now.tm_wday; // 0 nedjelja
   if (d == 0 || d == 6) return -1;
   return d - 1; // pon=0
 }
-
-int getCurrentHourIndex()
-{
+int getCurrentHourIndex(){
   struct tm now;
   if (!getLocalTime(&now)) return -1;
   int h = now.tm_hour;
@@ -737,29 +734,16 @@ int getCurrentHourIndex()
   if (index < 0 || index >= 12) return -1;
   return index;
 }
-String getDezurniText()
-{
+String getDezurniText(){
   int d = getCurrentDayIndex();
   int s = getCurrentHourIndex();
 
   if (d < 0 || s < 0) return "";
 
   String prof = dezurstvo[d][s];
-  prof.trim(); ////////////////////////////////
+  prof.trim();
 
-  /*
-  if (prof.length() == 0 || 
-        prof == "nema profesora" || 
-        prof == "nema" || 
-        prof == "-" || 
-        prof == "—" || 
-        prof == ".") 
-    {
-      return " | dežurni: —";   
-    }
-  */
-
-  if (prof == "" || prof == "nema profesora" || /************/ prof.length() == 0)
+  if (prof == "" || prof == "nema profesora" ||  prof.length() == 0)
     return " | Dezurni: - ";
   return " | Dezurni: " + prof;
 }

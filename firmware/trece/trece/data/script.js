@@ -692,7 +692,6 @@ function exporting() {
         const row = table.rows[i];
         const dan = row.cells[0].innerText;
         const datum = row.cells[1].querySelector("input")?.value || "";
-        
         const currentRow = [dan, datum];
         
         for (let j = 2; j < row.cells.length; j++) {
@@ -701,11 +700,9 @@ function exporting() {
         }
         dataForExcel.push(currentRow);
     }
-
     const worksheet = XLSX.utils.aoa_to_sheet(dataForExcel);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Dežurstvo");
-
     XLSX.writeFile(workbook, "Raspored_Dezurstva_ETS.xlsx");
 }
 
