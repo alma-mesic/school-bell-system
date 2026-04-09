@@ -1153,6 +1153,20 @@ async function ponudjeni_stil(){
 
 
 /********************** PROFIL & WIFI POSTAVKE **********************/
+function cancel(type){
+    if (type === "username") {
+        document.getElementById("user-name-old").value = "";
+        document.getElementById("user-name-new").value = "";
+        document.getElementById("user-name-new-confirmation").value = "";
+    }
+
+    if (type === "password") {
+        document.getElementById("password-old").value = "";
+        document.getElementById("password-new").value = "";
+        document.getElementById("password-new-confirmation").value = "";
+    }
+}
+
 async function promijeniUsername() {
     console.log("Kliknuto promjeni username");
     const staro = document.getElementById("user-name-old").value;
@@ -1185,7 +1199,7 @@ async function promijeniSifru() {
 }
 
 
-async function sacuvajWifi() {
+/*async function sacuvajWifi() {
     console.log("Kliknuto Sačuvaj WiFi");
     const ssid = document.getElementById("wifi-name").value;
     const pass = document.getElementById("wifi-password").value;
@@ -1197,7 +1211,7 @@ async function sacuvajWifi() {
 
     const paket = { naredba: "UPDATE_WIFI", ssid: ssid, pass: pass };
     posaljiNaProfilAPI(paket, "WiFi postavke sačuvane! ESP32 će se restartovati.");
-}
+}*/
 
 // Pomoćna funkcija za slanje
 async function posaljiNaProfilAPI(paket, poruka) {
@@ -1239,7 +1253,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const btnUser = document.getElementById("change-user");
     const btnPass = document.getElementById("Promijeni-user");
-    const btnWifi = document.getElementById("save-wifi");
 
     if (btnUser) btnUser.onclick = promijeniUsername;
     if (btnPass) btnPass.onclick = promijeniSifru;
