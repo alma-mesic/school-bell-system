@@ -1184,6 +1184,9 @@ async function promijeniUsername() {
         novo: novo 
     };
     posaljiNaProfilAPI(paket);
+
+    /*localStorage.setItem("username", novo);  
+    showPopup("Username uspješno promijenjen lokalno i na ESP-u!", true);*/
 }
 
 
@@ -1203,7 +1206,10 @@ async function promijeniSifru() {
         stara: stara, 
         nova: nova 
     };
+    
     posaljiNaProfilAPI(paket);
+    /*localStorage.setItem("password", nova);
+    showPopup("Šifra uspješno promijenjena!", true);*/
 }
 
 
