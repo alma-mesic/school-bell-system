@@ -798,8 +798,8 @@ void setup() {
     }
   }
   // Pročitaj spaseni WiFi, ako ga nema koristi "lamija7" kao rezervu
-  String savedSSID = prefs.getString("wifi_ssid", "lamija7");
-  String savedPASS = prefs.getString("wifi_pass", "112345678");
+  String savedSSID = prefs.getString("wifi_ssid", "ets-TM");
+  String savedPASS = prefs.getString("wifi_pass", "CRS_2026_zk");
 
   WiFi.begin(savedSSID.c_str(), savedPASS.c_str());
 
