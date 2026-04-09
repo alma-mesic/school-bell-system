@@ -1178,7 +1178,11 @@ async function promijeniUsername() {
         return;
     }
 
-    const paket = { naredba: "UPDATE_USER", staro: staro, novo: novo };
+    const paket = { 
+        naredba: "UPDATE_USER", 
+        staro: staro, 
+        novo: novo 
+    };
     posaljiNaProfilAPI(paket);
 }
 
@@ -1194,7 +1198,11 @@ async function promijeniSifru() {
         return;
     }
 
-    const paket = { naredba: "UPDATE_PASS", stara: stara, nova: nova };
+    const paket = { 
+        naredba: "UPDATE_PASS", 
+        stara: stara, 
+        nova: nova 
+    };
     posaljiNaProfilAPI(paket);
 }
 
@@ -1254,9 +1262,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const btnUser = document.getElementById("change-user");
     const btnPass = document.getElementById("Promijeni-user");
 
-    if (btnUser) btnUser.onclick = promijeniUsername;
-    if (btnPass) btnPass.onclick = promijeniSifru;
-    if (btnWifi) btnWifi.onclick = sacuvajWifi;
+    ///if (btnUser) btnUser.onclick = promijeniUsername();
+    //if (btnPass) btnPass.onclick = promijeniSifru();
 
     setupColorPreview('letter_color_change', 'letter_color_preview');
     setupColorPreview('marix_time_color_change', 'marix_time_color_preview');

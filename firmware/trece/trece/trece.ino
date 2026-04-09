@@ -356,43 +356,65 @@ void setupRoutes() {
       request->send(200, "application/json", "{\"status\":\"ok\"}");
     });
   server.on(
-    "/api/profile", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL,
-    [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-      StaticJsonDocument<256> doc;
-      deserializeJson(doc, (const char *)data);
+  "/api/profile", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL,
+  [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
 
-      String naredba = doc["naredba"];
+    StaticJsonDocument<256> doc;
+    deserializeJson(doc, data, len);
 
-      if (naredba == "UPDATE_USER") {
-        String noviUser = doc["novo"];
-        prefs.putString("adminUser", noviUser);
-        request->send(200, "application/json", "{\"status\":\"ok\"}");
-      } else if (naredba == "UPDATE_PASS") {
-        // provjera stare šifre
-        if (doc["stara"] != prefs.getString("adminPass", "admin")) {
-          request->send(403, "application/json", "{\"status\":\"fail\"}");
-          return;
-        }
-        String novaSifra = doc["nova"];
-        prefs.putString("adminPass", novaSifra);
-        request->send(200, "application/json", "{\"status\":\"ok\"}");
-      } 
-      /*else if (naredba == "UPDATE_WIFI") {
-          String ssid = doc["ssid"];
-          String pass = doc["pass"];
-          prefs.putString("wifi_ssid", ssid);
-          prefs.putString("wifi_pass", pass);
+    String naredba = doc["naredba"];
 
-          request->send(200, "application/json", "{\"status\":\"restart\"}");
-          delay(2000);
-          ESP.restart();  // restartujemo da bi se povezo na novi WiFi
-        }*/
-    });
+    // ================= USERNAME =================
+    if (naredba == "UPDATE_USER") {
 
-  server.on("/api/get_user", HTTP_GET, [](AsyncWebServerRequest *request) {
-    String user = prefs.getString("adminUser", "admin");
-    request->send(200, "text/plain", user);
-  });
+      String stari = doc["staro"] | "";
+      String novi = doc["novo"] | "";
+      String trenutni = prefs.getString("adminUser", "admin");
+
+      if (stari != trenutni) {
+        request->send(403, "application/json", "{\"status\":\"wrong_old_username\"}");
+        return;
+      }
+
+      if (novi.length() < 3) {
+        request->send(400, "application/json", "{\"status\":\"username_too_short\"}");
+        return;
+      }
+
+      if (novi == trenutni) {
+        request->send(400, "application/json", "{\"status\":\"same_username\"}");
+        return;
+      }
+
+      prefs.putString("adminUser", novi);
+      request->send(200, "application/json", "{\"status\":\"ok\"}");
+    }
+
+    // ================= PASSWORD =================
+    else if (naredba == "UPDATE_PASS") {
+
+      String stara = doc["stara"] | "";
+      String nova = doc["nova"] | "";
+      String trenutna = prefs.getString("adminPass", "admin");
+
+      if (stara != trenutna) {
+        request->send(403, "application/json", "{\"status\":\"wrong_password\"}");
+        return;
+      }
+
+      if (nova.length() < 4) {
+        request->send(400, "application/json", "{\"status\":\"password_too_short\"}");
+        return;
+      }
+
+      prefs.putString("adminPass", nova);
+      request->send(200, "application/json", "{\"status\":\"ok\"}");
+    }
+
+    else {
+      request->send(400, "application/json", "{\"status\":\"unknown_command\"}");
+    }
+});
   //server.begin();
 }
 
