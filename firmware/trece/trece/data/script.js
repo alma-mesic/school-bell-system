@@ -1179,7 +1179,7 @@ async function promijeniUsername() {
     }
 
     const paket = { naredba: "UPDATE_USER", staro: staro, novo: novo };
-    posaljiNaProfilAPI(paket, "Username uspješno promijenjen!");
+    posaljiNaProfilAPI(paket);
 }
 
 
@@ -1195,7 +1195,7 @@ async function promijeniSifru() {
     }
 
     const paket = { naredba: "UPDATE_PASS", stara: stara, nova: nova };
-    posaljiNaProfilAPI(paket, "Šifra uspješno promijenjena!");
+    posaljiNaProfilAPI(paket);
 }
 
 
@@ -1214,7 +1214,7 @@ async function promijeniSifru() {
 }*/
 
 // Pomoćna funkcija za slanje
-async function posaljiNaProfilAPI(paket, poruka) {
+async function posaljiNaProfilAPI(paket) {
     try {
         const response = await fetch(`${ESP_IP}/api/profile`, {
             method: "POST",

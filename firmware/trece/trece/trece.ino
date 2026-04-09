@@ -115,11 +115,11 @@ int textR = 0, textG = 255, textB = 0;   // Boja scroll teksta
 
 void configuration() {
   mxconfig.gpio.r1 = 25;
-  mxconfig.gpio.g1 = 26;//27 zamjenjeno zbog problema prikaza boje (kod racuna RBG umjesto RGB)
-  mxconfig.gpio.b1 = 27;//26
+  mxconfig.gpio.g1 = 26;  //27 zamjenjeno zbog problema prikaza boje (kod racuna RBG umjesto RGB)
+  mxconfig.gpio.b1 = 27;  //26
   mxconfig.gpio.r2 = 14;
-  mxconfig.gpio.g2 = 12;//13
-  mxconfig.gpio.b2 = 13;//12
+  mxconfig.gpio.g2 = 12;  //13
+  mxconfig.gpio.b2 = 13;  //12
   mxconfig.gpio.a = 23;
   mxconfig.gpio.b = 19;
   mxconfig.gpio.c = 5;
@@ -169,8 +169,7 @@ void handleJson(String json) {
       }
     }
     prefs.putString("raspored", json);
-  } 
-  else if (tip == "obavijesti") {
+  } else if (tip == "obavijesti") {
     notificationCount = 0;
     for (JsonObject o : doc["lista"].as<JsonArray>()) {
       String dt = o["datumVrijeme"] | "";
@@ -182,21 +181,16 @@ void handleJson(String json) {
       }
     }
     prefs.putString("obavijesti", json);
-  } 
-  else if (tip == "dezurstvo")
-  {
+  } else if (tip == "dezurstvo") {
     JsonArray arr = doc["data"];
-    for (int d = 0; d < 5; d++)
-    {
-      for (int s = 0; s < 12; s++)
-      {
+    for (int d = 0; d < 5; d++) {
+      for (int s = 0; s < 12; s++) {
         dezurstvo[d][s] = arr[d][s].as<String>();
       }
     }
     prefs.putString("dezurstvo", json);
     Serial.println("Dezurstvo primljeno");
-  }
-  else if (tip == "emergency") {
+  } else if (tip == "emergency") {
     bool stanje = doc["stanje"] | false;
     if (stanje) {
       sosActive = true;
@@ -206,8 +200,7 @@ void handleJson(String json) {
       sosActive = false;
       digitalWrite(RELAY_PIN, LOW);
     }
-  } 
-  else if (tip == "zvono") {
+  } else if (tip == "zvono") {
     String akcija = doc["akcija"] | "";
     Serial.print("Primljena komanda za zvono: ");
     Serial.println(akcija);
@@ -218,8 +211,7 @@ void handleJson(String json) {
       bellTestMode = false;
       digitalWrite(RELAY_PIN, LOW);
     }
-  } 
-  else if (tip == "emergency_stop") {
+  } else if (tip == "emergency_stop") {
     sosActive = false;
     digitalWrite(RELAY_PIN, LOW);
   }
@@ -249,150 +241,143 @@ void setupRoutes() {
   server.on(
     "/api/settings", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL,
     [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-    StaticJsonDocument<256> doc;
-    deserializeJson(doc, (const char *)data);
+      StaticJsonDocument<256> doc;
+      deserializeJson(doc, (const char *)data);
 
-    String naredba = doc["naredba"];
-    String tip = doc["tip"];
-    int r = doc["r"];
-    int g = doc["g"];
-    int b = doc["b"];
+      String naredba = doc["naredba"];
+      String tip = doc["tip"];
+      int r = doc["r"];
+      int g = doc["g"];
+      int b = doc["b"];
 
-    if (naredba == "SET_COLOR") {
-      if (tip == "led_traka") {
-        for (int i = 0; i < strip.numPixels(); i++) {
-          strip.setPixelColor(i, strip.Color(r, g, b));
+      if (naredba == "SET_COLOR") {
+        if (tip == "led_traka") {
+          for (int i = 0; i < strip.numPixels(); i++) {
+            strip.setPixelColor(i, strip.Color(r, g, b));
+          }
+          ledMode = LED_MODE_COLOR;
+
+          prefs.putInt("ledMode", ledMode);
+          prefs.putInt("ledR", r);
+          prefs.putInt("ledG", g);
+          prefs.putInt("ledB", b);
+
+          Serial.println("LED traka boja:");
+          Serial.println(r);
+          Serial.println(g);
+          Serial.println(b);
+
+          strip.show();
+        } else if (tip == "boja_sata") {
+          satR = r;
+          satG = g;
+          satB = b;
+          prefs.putInt("satR", r);
+          prefs.putInt("satG", g);
+          prefs.putInt("satB", b);
+        } else if (tip == "boja_scroll") {
+          textR = r;
+          textG = g;
+          textB = b;
+          prefs.putInt("textR", r);
+          prefs.putInt("textG", g);
+          prefs.putInt("textB", b);
         }
-        ledMode = LED_MODE_COLOR;
-
-        prefs.putInt("ledMode", ledMode);
-        prefs.putInt("ledR", r);
-        prefs.putInt("ledG", g);
-        prefs.putInt("ledB", b);
-
-        Serial.println("LED traka boja:");
-        Serial.println(r);
-        Serial.println(g);
-        Serial.println(b);
-
-        strip.show();
-      } else if (tip == "boja_sata") {
-        satR = r;
-        satG = g;
-        satB = b;
-        prefs.putInt("satR", r);
-        prefs.putInt("satG", g);
-        prefs.putInt("satB", b);
-      } else if (tip == "boja_scroll") {
-        textR = r;
-        textG = g;
-        textB = b;
-        prefs.putInt("textR", r);
-        prefs.putInt("textG", g);
-        prefs.putInt("textB", b);
-      }
-    }
-    else if (naredba == "LED_MODE") {
-      String mode = doc["mode"];
-      if (mode == "rainbow") {
-        ledMode = LED_MODE_RAINBOW;
-      }
-      else if (mode == "theaterChase") {
-        ledMode = LED_MODE_THEATER;
-      }
-      else if (mode == "theaterChaseRainbow") {
-        ledMode = LED_MODE_THEATER_RAINBOW;
-      }
-      /*else if (mode == "off") {
+      } else if (naredba == "LED_MODE") {
+        String mode = doc["mode"];
+        if (mode == "rainbow") {
+          ledMode = LED_MODE_RAINBOW;
+        } else if (mode == "theaterChase") {
+          ledMode = LED_MODE_THEATER;
+        } else if (mode == "theaterChaseRainbow") {
+          ledMode = LED_MODE_THEATER_RAINBOW;
+        }
+        /*else if (mode == "off") {
         ledMode = LED_MODE_OFF;
       }*/
-      prefs.putInt("ledMode", ledMode); // spremanje u memoriju
-    }
-    else if (naredba == "LED_CONTROL") {
-  String stanje = doc["stanje"];
+        prefs.putInt("ledMode", ledMode);  // spremanje u memoriju
+      } else if (naredba == "LED_CONTROL") {
+        String stanje = doc["stanje"];
 
-  /*if (stanje == "OFF") {
+        /*if (stanje == "OFF") {
     ledMode = LED_MODE_OFF;
     strip.clear();
     strip.show();
 
   } 
   else */
-  if (stanje == "ON") {
+        if (stanje == "ON") {
 
-    int savedMode = prefs.getInt("ledMode", LED_MODE_COLOR);
+          int savedMode = prefs.getInt("ledMode", LED_MODE_COLOR);
 
-    // ako je slučajno OFF u memoriji → prebaci na COLOR
-    /*if (savedMode == LED_MODE_OFF) {
+          // ako je slučajno OFF u memoriji → prebaci na COLOR
+          /*if (savedMode == LED_MODE_OFF) {
       savedMode = LED_MODE_COLOR;
     }*/
 
-    ledMode = savedMode;
+          ledMode = savedMode;
 
-    if (ledMode == LED_MODE_COLOR) {
-      int r = prefs.getInt("ledR", 255);
-      int g = prefs.getInt("ledG", 255);
-      int b = prefs.getInt("ledB", 255);
+          if (ledMode == LED_MODE_COLOR) {
+            int r = prefs.getInt("ledR", 255);
+            int g = prefs.getInt("ledG", 255);
+            int b = prefs.getInt("ledB", 255);
 
-      for (int i = 0; i < strip.numPixels(); i++) {
-        strip.setPixelColor(i, strip.Color(r, g, b));
-      }
-      strip.show();
-    }
-  }
-
-  request->send(200, "application/json", "{\"status\":\"ok\"}");
-}
-    else if (naredba == "SET_FONT_LETTER") {
-      String f = doc["font_tekst"];
-
-      if (f == "default") fontText = FONT_DEFAULT;
-      else if (f == "mono") fontText = FONT_MONO;
-      else if (f == "mono-bold") fontText = FONT_MONO_BOLD;
-      else if (f == "mono-bold-oblique") fontText = FONT_MONO_BOLD_OBLIQUE;
-      else if (f == "sans") fontText = FONT_SANS;
-      else if (f == "serif") fontText = FONT_SERIF;
-
-      prefs.putInt("fontText", fontText);
-    }
-    else if (naredba == "SET_FONT_CLOCK") {
-      String f = doc["font_sat"];
-
-      if (f == "default") fontClock = FONT_DEFAULT;
-      else if (f == "mono") fontClock = FONT_MONO;
-      else if (f == "mono-bold") fontClock = FONT_MONO_BOLD;
-      else if (f == "mono-bold-oblique") fontClock = FONT_MONO_BOLD_OBLIQUE;
-      else if (f == "sans") fontClock = FONT_SANS;
-      else if (f == "serif") fontClock = FONT_SERIF;
-
-      prefs.putInt("fontClock", fontClock);
-    }
-    request->send(200, "application/json", "{\"status\":\"ok\"}");
-   
-  });
-    server.on(
-      "/api/profile", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL,
-      [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-        StaticJsonDocument<256> doc;
-        deserializeJson(doc, (const char *)data);
-
-        String naredba = doc["naredba"];
-
-        if (naredba == "UPDATE_USER") {
-          String noviUser = doc["novo"];
-          prefs.putString("adminUser", noviUser);
-          request->send(200, "application/json", "{\"status\":\"ok\"}");
-        } else if (naredba == "UPDATE_PASS") {
-          // provjera stare šifre
-          if (doc["stara"] != prefs.getString("adminPass", "admin")) {
-            request->send(403, "application/json", "{\"status\":\"fail\"}");
-            return;
+            for (int i = 0; i < strip.numPixels(); i++) {
+              strip.setPixelColor(i, strip.Color(r, g, b));
+            }
+            strip.show();
           }
+        }
 
-          String novaSifra = doc["nova"];
-          prefs.putString("adminPass", novaSifra);
-          request->send(200, "application/json", "{\"status\":\"ok\"}");
-        } else if (naredba == "UPDATE_WIFI") {
+        request->send(200, "application/json", "{\"status\":\"ok\"}");
+      } else if (naredba == "SET_FONT_LETTER") {
+        String f = doc["font_tekst"];
+
+        if (f == "default") fontText = FONT_DEFAULT;
+        else if (f == "mono") fontText = FONT_MONO;
+        else if (f == "mono-bold") fontText = FONT_MONO_BOLD;
+        else if (f == "mono-bold-oblique") fontText = FONT_MONO_BOLD_OBLIQUE;
+        else if (f == "sans") fontText = FONT_SANS;
+        else if (f == "serif") fontText = FONT_SERIF;
+
+        prefs.putInt("fontText", fontText);
+      } else if (naredba == "SET_FONT_CLOCK") {
+        String f = doc["font_sat"];
+
+        if (f == "default") fontClock = FONT_DEFAULT;
+        else if (f == "mono") fontClock = FONT_MONO;
+        else if (f == "mono-bold") fontClock = FONT_MONO_BOLD;
+        else if (f == "mono-bold-oblique") fontClock = FONT_MONO_BOLD_OBLIQUE;
+        else if (f == "sans") fontClock = FONT_SANS;
+        else if (f == "serif") fontClock = FONT_SERIF;
+
+        prefs.putInt("fontClock", fontClock);
+      }
+      request->send(200, "application/json", "{\"status\":\"ok\"}");
+    });
+  server.on(
+    "/api/profile", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL,
+    [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+      StaticJsonDocument<256> doc;
+      deserializeJson(doc, (const char *)data);
+
+      String naredba = doc["naredba"];
+
+      if (naredba == "UPDATE_USER") {
+        String noviUser = doc["novo"];
+        prefs.putString("adminUser", noviUser);
+        request->send(200, "application/json", "{\"status\":\"ok\"}");
+      } else if (naredba == "UPDATE_PASS") {
+        // provjera stare šifre
+        if (doc["stara"] != prefs.getString("adminPass", "admin")) {
+          request->send(403, "application/json", "{\"status\":\"fail\"}");
+          return;
+        }
+        String novaSifra = doc["nova"];
+        prefs.putString("adminPass", novaSifra);
+        request->send(200, "application/json", "{\"status\":\"ok\"}");
+      } 
+      /*else if (naredba == "UPDATE_WIFI") {
           String ssid = doc["ssid"];
           String pass = doc["pass"];
           prefs.putString("wifi_ssid", ssid);
@@ -401,142 +386,142 @@ void setupRoutes() {
           request->send(200, "application/json", "{\"status\":\"restart\"}");
           delay(2000);
           ESP.restart();  // restartujemo da bi se povezo na novi WiFi
-        }
-      });
-
-    server.on("/api/get_user", HTTP_GET, [](AsyncWebServerRequest *request) {
-      String user = prefs.getString("adminUser", "admin");
-      request->send(200, "text/plain", user);
+        }*/
     });
-    //server.begin();
+
+  server.on("/api/get_user", HTTP_GET, [](AsyncWebServerRequest *request) {
+    String user = prefs.getString("adminUser", "admin");
+    request->send(200, "text/plain", user);
+  });
+  //server.begin();
 }
 
 // ----------------ISPIS I RAD--------------------
 void buildMainText() {
-    struct tm now;
-    if (!getLocalTime(&now)) return;
+  struct tm now;
+  if (!getLocalTime(&now)) return;
 
-    long danas = (now.tm_year + 1900) * 10000L + (now.tm_mon + 1) * 100 + now.tm_mday;
-    int currentTotalMinutes = now.tm_hour * 60 + now.tm_min;
+  long danas = (now.tm_year + 1900) * 10000L + (now.tm_mon + 1) * 100 + now.tm_mday;
+  int currentTotalMinutes = now.tm_hour * 60 + now.tm_min;
 
-    struct tm sutraTm = now;
-    sutraTm.tm_mday += 1;
-    mktime(&sutraTm);
-    long sutra = (sutraTm.tm_year + 1900) * 10000L + (sutraTm.tm_mon + 1) * 100 + sutraTm.tm_mday;
+  struct tm sutraTm = now;
+  sutraTm.tm_mday += 1;
+  mktime(&sutraTm);
+  long sutra = (sutraTm.tm_year + 1900) * 10000L + (sutraTm.tm_mon + 1) * 100 + sutraTm.tm_mday;
 
-    String newText = "";
-    int nowMin = currentTotalMinutes;
-    bool inClass = false;
+  String newText = "";
+  int nowMin = currentTotalMinutes;
+  bool inClass = false;
 
-    for (int i = 0; i < classCount; i++) {
-      int start = timeToMinutes(classes[i].start);
-      int end = timeToMinutes(classes[i].end);
-      if (nowMin >= start && nowMin < end) {
-        newText = String(classes[i].number) + ". cas | Kraj casa u: " + classes[i].end + " | Jos " + String(end - nowMin) + " min" + getDezurniText();
-        //if (classes[i].dezurni != "") newText += " | Dezurni prof: " + getDezurniText();
-        inClass = true;
-        break;
-      }
+  for (int i = 0; i < classCount; i++) {
+    int start = timeToMinutes(classes[i].start);
+    int end = timeToMinutes(classes[i].end);
+    if (nowMin >= start && nowMin < end) {
+      newText = String(classes[i].number) + ". cas | Kraj casa u: " + classes[i].end + " | Jos " + String(end - nowMin) + " min" + getDezurniText();
+      //if (classes[i].dezurni != "") newText += " | Dezurni prof: " + getDezurniText();
+      inClass = true;
+      break;
+    }
+  }
+
+  if (!inClass) {
+    if (classCount > 0 && nowMin < timeToMinutes(classes[0].start)) {
+      newText = "PRIPREMA ZA NASTAVU";
+    } else if (classCount > 0 && nowMin > timeToMinutes(classes[classCount - 1].end)) {
+      newText = "KRAJ NASTAVE";
+    } else {
+      newText = "ODMOR";
+    }
+    newText += getDezurniText();
+  }
+
+  String obavijestiDio = "";
+  for (int i = 0; i < notificationCount; i++) {
+    long datumObavijesti = notifications[i].year * 10000L + notifications[i].month * 100 + notifications[i].day;
+    int notifTotalMinutes = notifications[i].hour * 60 + notifications[i].minute;
+
+    if (datumObavijesti < danas) continue;
+    if (datumObavijesti == danas) {
+      if (currentTotalMinutes > (notifTotalMinutes + 1)) continue;
     }
 
-    if (!inClass) {
-      if (classCount > 0 && nowMin < timeToMinutes(classes[0].start)) {
-        newText = "PRIPREMA ZA NASTAVU";
-      } else if (classCount > 0 && nowMin > timeToMinutes(classes[classCount - 1].end)) {
-        newText = "KRAJ NASTAVE";
-      } else {
-        newText = "ODMOR";
-      }
-      newText += getDezurniText();
+    if (datumObavijesti == danas || datumObavijesti == sutra) {
+      String prefiks = (datumObavijesti == danas) ? " DANAS " : " SUTRA ";
+      obavijestiDio += " |" + prefiks + notifications[i].text + " u ";
+      if (notifications[i].hour < 10) obavijestiDio += "0";
+      obavijestiDio += String(notifications[i].hour) + ":";
+      if (notifications[i].minute < 10) obavijestiDio += "0";
+      obavijestiDio += String(notifications[i].minute);
     }
+  }
+  newText += obavijestiDio;
 
-    String obavijestiDio = "";
-    for (int i = 0; i < notificationCount; i++) {
-      long datumObavijesti = notifications[i].year * 10000L + notifications[i].month * 100 + notifications[i].day;
-      int notifTotalMinutes = notifications[i].hour * 60 + notifications[i].minute;
-
-      if (datumObavijesti < danas) continue;
-      if (datumObavijesti == danas) {
-        if (currentTotalMinutes > (notifTotalMinutes + 1)) continue;
-      }
-
-      if (datumObavijesti == danas || datumObavijesti == sutra) {
-        String prefiks = (datumObavijesti == danas) ? " DANAS " : " SUTRA ";
-        obavijestiDio += " |" + prefiks + notifications[i].text + " u ";
-        if (notifications[i].hour < 10) obavijestiDio += "0";
-        obavijestiDio += String(notifications[i].hour) + ":";
-        if (notifications[i].minute < 10) obavijestiDio += "0";
-        obavijestiDio += String(notifications[i].minute);
-      }
-    }
-    newText += obavijestiDio;
-
-    if (newText != lastText) {
-      text = newText;
-      lastText = newText;
-      xPos = 128;
-    }
+  if (newText != lastText) {
+    text = newText;
+    lastText = newText;
+    xPos = 128;
+  }
 }
 
 void checkBell() {
-    if (sosActive) return;
+  if (sosActive) return;
 
-    struct tm now;
-    if (!getLocalTime(&now) || bellTestMode) return;
-    int nowMin = now.tm_hour * 60 + now.tm_min;
-    if (nowMin == lastBellMinute) return;
+  struct tm now;
+  if (!getLocalTime(&now) || bellTestMode) return;
+  int nowMin = now.tm_hour * 60 + now.tm_min;
+  if (nowMin == lastBellMinute) return;
 
-    for (int i = 0; i < classCount; i++) {
-      if (nowMin == timeToMinutes(classes[i].start) || nowMin == timeToMinutes(classes[i].end)) {
-        digitalWrite(RELAY_PIN, HIGH);
-        bellActive = true;
-        bellStart = millis();
-        lastBellMinute = nowMin;
-        break;
-      }
+  for (int i = 0; i < classCount; i++) {
+    if (nowMin == timeToMinutes(classes[i].start) || nowMin == timeToMinutes(classes[i].end)) {
+      digitalWrite(RELAY_PIN, HIGH);
+      bellActive = true;
+      bellStart = millis();
+      lastBellMinute = nowMin;
+      break;
     }
+  }
 }
 
 void removeExpiredNotifications() {
-    time_t now;
-    struct tm timeinfo;
-    if (!getLocalTime(&timeinfo)) return;
+  time_t now;
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) return;
 
-    now = mktime(&timeinfo);
+  now = mktime(&timeinfo);
 
-    int j = 0;
-    for (int i = 0; i < notificationCount; i++) {
-      struct tm notifTime;
-      notifTime.tm_year = notifications[i].year - 1900;
-      notifTime.tm_mon = notifications[i].month - 1;
-      notifTime.tm_mday = notifications[i].day;
-      notifTime.tm_hour = notifications[i].hour;
-      notifTime.tm_min = notifications[i].minute;
-      notifTime.tm_sec = 0;
-      time_t notifEpoch = mktime(&notifTime);
+  int j = 0;
+  for (int i = 0; i < notificationCount; i++) {
+    struct tm notifTime;
+    notifTime.tm_year = notifications[i].year - 1900;
+    notifTime.tm_mon = notifications[i].month - 1;
+    notifTime.tm_mday = notifications[i].day;
+    notifTime.tm_hour = notifications[i].hour;
+    notifTime.tm_min = notifications[i].minute;
+    notifTime.tm_sec = 0;
+    time_t notifEpoch = mktime(&notifTime);
 
-      if (difftime(notifEpoch, now) > 0) {
-        // Notifikacija još traje, čuvamo je
-        notifications[j++] = notifications[i];
-      }
+    if (difftime(notifEpoch, now) > 0) {
+      // Notifikacija još traje, čuvamo je
+      notifications[j++] = notifications[i];
     }
-    notificationCount = j;  // update count
+  }
+  notificationCount = j;  // update count
 }
 
 void promijeniUsername(String noviUsername) {
-    prefs.putString("username", noviUsername);
+  prefs.putString("username", noviUsername);
 }
 
 void promijeniSifru(String novaSifra) {
-    prefs.putString("password", novaSifra);
+  prefs.putString("password", novaSifra);
 }
 
 String ucitajUsername() {
-    return prefs.getString("username", "defaultUser");
+  return prefs.getString("username", "defaultUser");
 }
 
 String ucitajSifru() {
-    return prefs.getString("password", "1234");
+  return prefs.getString("password", "1234");
 }
 
 
@@ -552,17 +537,15 @@ void runLedMode() {
   }*/
   if (ledMode == LED_MODE_COLOR) {
     strip.show();
-  }
-  else if (ledMode == LED_MODE_RAINBOW) {
+  } else if (ledMode == LED_MODE_RAINBOW) {
     for (int i = 0; i < strip.numPixels(); i++) {
-    uint16_t h = hue + (i * 65536L / strip.numPixels());
-    uint32_t c = strip.gamma32(strip.ColorHSV(h));
-    strip.setPixelColor(i, c);
-  }
-  strip.show();
-  hue += 256;
-  }
-  else if (ledMode == LED_MODE_THEATER) {
+      uint16_t h = hue + (i * 65536L / strip.numPixels());
+      uint32_t c = strip.gamma32(strip.ColorHSV(h));
+      strip.setPixelColor(i, c);
+    }
+    strip.show();
+    hue += 256;
+  } else if (ledMode == LED_MODE_THEATER) {
     strip.clear();
     for (int i = step; i < strip.numPixels(); i += 3) {
       strip.setPixelColor(i, strip.Color(255, 255, 255));
@@ -587,18 +570,18 @@ void runLedMode() {
 }
 
 void colorWipe(uint32_t color, int wait) {
-    for (int i = 0; i < strip.numPixels(); i++) {
-      strip.setPixelColor(i, color);
-      strip.show();
-      delay(wait);
-    }
+  for (int i = 0; i < strip.numPixels(); i++) {
+    strip.setPixelColor(i, color);
+    strip.show();
+    delay(wait);
+  }
 }
 // --------------------- FONT ----------------------
 void setMatrixFont(FontType f) {
   switch (f) {
 
     case FONT_DEFAULT:
-      display->setFont(); // built-in
+      display->setFont();  // built-in
       break;
 
     case FONT_MONO:
@@ -622,12 +605,9 @@ void setMatrixFont(FontType f) {
       break;
   }
 }
-void applyFont(FontType f, bool isClock)
-{
-  if (isClock)
-  {
-    switch (f)
-    {
+void applyFont(FontType f, bool isClock) {
+  if (isClock) {
+    switch (f) {
       case FONT_DEFAULT:
         display->setFont();
         fontClockSize = 2;
@@ -672,11 +652,8 @@ void applyFont(FontType f, bool isClock)
     }
 
     display->setTextSize(fontClockSize);
-  }
-  else
-  {
-    switch (f)
-    {
+  } else {
+    switch (f) {
       case FONT_DEFAULT:
         display->setFont();
         fontTextSize = 2;
@@ -719,14 +696,14 @@ void applyFont(FontType f, bool isClock)
 }
 
 // ---------------- DEZURNI ----------------------
-int getCurrentDayIndex(){
+int getCurrentDayIndex() {
   struct tm now;
   if (!getLocalTime(&now)) return -1;
-  int d = now.tm_wday; // 0 nedjelja
+  int d = now.tm_wday;  // 0 nedjelja
   if (d == 0 || d == 6) return -1;
-  return d - 1; // pon=0
+  return d - 1;  // pon=0
 }
-int getCurrentHourIndex(){
+int getCurrentHourIndex() {
   struct tm now;
   if (!getLocalTime(&now)) return -1;
   int h = now.tm_hour;
@@ -734,7 +711,7 @@ int getCurrentHourIndex(){
   if (index < 0 || index >= 12) return -1;
   return index;
 }
-String getDezurniText(){
+String getDezurniText() {
   int d = getCurrentDayIndex();
   int s = getCurrentHourIndex();
 
@@ -743,7 +720,7 @@ String getDezurniText(){
   String prof = dezurstvo[d][s];
   prof.trim();
 
-  if (prof == "" || prof == "nema profesora" ||  prof.length() == 0)
+  if (prof == "" || prof == "nema profesora" || prof.length() == 0)
     return " | Dezurni: - ";
   return " | Dezurni: " + prof;
 }
@@ -752,14 +729,14 @@ String getDezurniText(){
 void setup() {
   Serial.begin(115200);
 
-  #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
-    clock_prescale_set(clock_div_1);
-  #endif
+#if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
+  clock_prescale_set(clock_div_1);
+#endif
 
   pinMode(RELAY_PIN, OUTPUT);
   configuration();
 
-  strip.begin();             // inicijalizacija trake
+  strip.begin();  // inicijalizacija trake
   //strip.show();              // ugasi sve LED diode na pocetku
   strip.setBrightness(100);  // podesi jacinu (0-255)
 
@@ -879,83 +856,83 @@ void setup() {
 }
 
 void loop() {
-    if (Serial.available()) {
-      String podaciIzKabla = Serial.readStringUntil('\n');
-      handleJson(podaciIzKabla);
+  if (Serial.available()) {
+    String podaciIzKabla = Serial.readStringUntil('\n');
+    handleJson(podaciIzKabla);
+  }
+
+  display->fillScreen(0);
+
+  if (startup) {
+    display->setTextSize(2);
+    display->setTextColor(display->color565(255, 150, 0));
+    display->setCursor(45, 8);
+    display->print("ETS");
+    if (millis() - startTime > 3000) startup = false;
+  } else if (sosActive) {
+    display->fillScreen(((millis() / 300) % 2) ? 0 : display->color565(255, 0, 0));
+    if (millis() - sosBellTimer > sosPattern[sosStep]) {
+      sosBellTimer = millis();
+      digitalWrite(RELAY_PIN, !digitalRead(RELAY_PIN));
+      sosStep = (sosStep + 1) % sosLen;
     }
+    if (millis() - sosStartTime > 15000) {
+      sosActive = false;
+      digitalWrite(RELAY_PIN, LOW);
+    }
+  } else {
+    applyFont(fontClock, true);
+    display->setTextSize(fontClockSize);
+    display->setTextColor(display->color565(satR, satG, satB));  // boja sata
+    display->setCursor(fontClockX, fontClockY);
+    display->print(getTimeString());
 
-    display->fillScreen(0);
-
-    if (startup) {
-      display->setTextSize(2);
-      display->setTextColor(display->color565(255, 150, 0));
-      display->setCursor(45, 8);
-      display->print("ETS");
-      if (millis() - startTime > 3000) startup = false;
-    } else if (sosActive) {
-      display->fillScreen(((millis() / 300) % 2) ? 0 : display->color565(255, 0, 0));
-      if (millis() - sosBellTimer > sosPattern[sosStep]) {
-        sosBellTimer = millis();
-        digitalWrite(RELAY_PIN, !digitalRead(RELAY_PIN));
-        sosStep = (sosStep + 1) % sosLen;
-      }
-      if (millis() - sosStartTime > 15000) {
-        sosActive = false;
-        digitalWrite(RELAY_PIN, LOW);
-      }
+    if (bellTestMode) {
+      applyFont(fontText, false);
+      display->setTextSize(fontTextSize);
+      display->setTextColor(display->color565(255, 255, 255));
+      display->setCursor(xPos, fontTextY);
+      display->print("--- TEST ZVONA ---");
     } else {
-      applyFont(fontClock, true);
-      display->setTextSize(fontClockSize);
-      display->setTextColor(display->color565(satR, satG, satB));  // boja sata
-      display->setCursor(fontClockX, fontClockY);
-      display->print(getTimeString());
-
-      if (bellTestMode) {
-        applyFont(fontText, false);
-        display->setTextSize(fontTextSize);
-        display->setTextColor(display->color565(255, 255, 255));
-        display->setCursor(xPos, fontTextY);
-        display->print("--- TEST ZVONA ---");
-      } else {
-        applyFont(fontText, false);
-        display->setTextSize(fontTextSize);
-        display->setTextColor(display->color565(textR, textG, textB));
-        display->setCursor(xPos, fontTextY);
-        display->print(text);
-      }
-
-
-      xPos--;
-
-      int textWidth = text.length() * 12;
-      if (xPos < -textWidth) {
-        xPos = 128;
-      }
-
-      //if (xPos < -((int)text.length() * 12)) xPos = 128;
-
-      //checkBell();
-      struct tm now;
-      if (getLocalTime(&now)) {
-        if (now.tm_min != lastMinuteChecked) {
-          lastMinuteChecked = now.tm_min;
-          checkBell();
-        }
-      }
-
-      if (bellActive && millis() - bellStart > 2000) {
-        digitalWrite(RELAY_PIN, LOW);
-        bellActive = false;
-      }
-      buildMainText();
+      applyFont(fontText, false);
+      display->setTextSize(fontTextSize);
+      display->setTextColor(display->color565(textR, textG, textB));
+      display->setCursor(xPos, fontTextY);
+      display->print(text);
     }
 
-    static unsigned long lastBuildTime = 0;
-    if (millis() - lastBuildTime > 2000) {  // Ažuriraj tekst svake 2 sekunde
-      buildMainText();
-      lastBuildTime = millis();
+
+    xPos--;
+
+    int textWidth = text.length() * 12;
+    if (xPos < -textWidth) {
+      xPos = 128;
     }
 
-    runLedMode();
-    delay(20);
+    //if (xPos < -((int)text.length() * 12)) xPos = 128;
+
+    //checkBell();
+    struct tm now;
+    if (getLocalTime(&now)) {
+      if (now.tm_min != lastMinuteChecked) {
+        lastMinuteChecked = now.tm_min;
+        checkBell();
+      }
+    }
+
+    if (bellActive && millis() - bellStart > 2000) {
+      digitalWrite(RELAY_PIN, LOW);
+      bellActive = false;
+    }
+    buildMainText();
+  }
+
+  static unsigned long lastBuildTime = 0;
+  if (millis() - lastBuildTime > 2000) {  // Ažuriraj tekst svake 2 sekunde
+    buildMainText();
+    lastBuildTime = millis();
+  }
+
+  runLedMode();
+  delay(20);
 }
