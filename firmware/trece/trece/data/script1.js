@@ -1,12 +1,12 @@
 /************************LOGIN************************/ 
- const loginBtn = document.getElementById("loginBtn");
+const loginBtn = document.getElementById("loginBtn");
 const usernameInput = document.getElementById("username");
 const passwordInput = document.getElementById("password");
 const togglePassword = document.getElementById("togglePassword");
 const errorMsg = document.getElementById("errorMsg");
 
-const ADMIN_USER = "admin";
-const ADMIN_PASS = "1234";
+let ADMIN_USER = "admin";
+let ADMIN_PASS = "1234";
 
 // Toggle password visibility
 togglePassword.addEventListener("click", () => {

@@ -1173,6 +1173,7 @@ async function promijeniUsername() {
     const novo = document.getElementById("user-name-new").value;
     const potvrda = document.getElementById("user-name-new-confirmation").value;
 
+    console.log(staro + " " + novo + " " + potvrda);
     if (novo !== potvrda) {
         alert("Novi username i potvrda se ne podudaraju!");
         return;
@@ -1185,8 +1186,8 @@ async function promijeniUsername() {
     };
     posaljiNaProfilAPI(paket);
 
-    /*localStorage.setItem("username", novo);  
-    showPopup("Username uspješno promijenjen lokalno i na ESP-u!", true);*/
+    localStorage.setItem("username", novo);  
+    showPopup("Username uspješno promijenjen lokalno i na ESP-u!", true);
 }
 
 
@@ -1208,8 +1209,8 @@ async function promijeniSifru() {
     };
     
     posaljiNaProfilAPI(paket);
-    /*localStorage.setItem("password", nova);
-    showPopup("Šifra uspješno promijenjena!", true);*/
+    localStorage.setItem("password", nova);
+    showPopup("Šifra uspješno promijenjena!", true);
 }
 
 

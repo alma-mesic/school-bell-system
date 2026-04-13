@@ -369,14 +369,17 @@ void setupRoutes() {
 
       String stari = doc["staro"] | "";
       String novi = doc["novo"] | "";
-      String trenutni = prefs.getString("adminUser", "admin");
+      String trenutni = prefs.getString("adminUser", "");
 
-      if (stari != trenutni) {
+      Serial.println(stari);
+      Serial.println(novi);
+
+      if (trenutni == "" && stari != trenutni) {
         request->send(403, "application/json", "{\"status\":\"wrong_old_username\"}");
         return;
       }
 
-      if (novi.length() < 3) {
+      /*if (novi.length() < 3) {
         request->send(400, "application/json", "{\"status\":\"username_too_short\"}");
         return;
       }
@@ -384,7 +387,7 @@ void setupRoutes() {
       if (novi == trenutni) {
         request->send(400, "application/json", "{\"status\":\"same_username\"}");
         return;
-      }
+      }*/
 
       prefs.putString("adminUser", novi);
       request->send(200, "application/json", "{\"status\":\"ok\"}");
@@ -395,7 +398,7 @@ void setupRoutes() {
 
       String stara = doc["stara"] | "";
       String nova = doc["nova"] | "";
-      String trenutna = prefs.getString("adminPass", "admin");
+      String trenutna = prefs.getString("adminPass", "");
 
       if (stara != trenutna) {
         request->send(403, "application/json", "{\"status\":\"wrong_password\"}");
@@ -531,19 +534,19 @@ void removeExpiredNotifications() {
 }
 
 void promijeniUsername(String noviUsername) {
-  prefs.putString("username", noviUsername);
+  prefs.putString("adminUser", noviUsername);
 }
 
 void promijeniSifru(String novaSifra) {
-  prefs.putString("password", novaSifra);
+  prefs.putString("adminPass", novaSifra);
 }
 
 String ucitajUsername() {
-  return prefs.getString("username", "defaultUser");
+  return prefs.getString("adminUser", "admin");
 }
 
 String ucitajSifru() {
-  return prefs.getString("password", "1234");
+  return prefs.getString("adminPass", "1234");
 }
 
 
@@ -743,8 +746,8 @@ String getDezurniText() {
   prof.trim();
 
   if (prof == "" || prof == "nema profesora" || prof.length() == 0)
-    return " | Dezurni: - ";
-  return " | Dezurni: " + prof;
+    return " | Dezurni prof: - ";
+  return " | Dezurni prof: " + prof;
 }
 // ---------------- SETUP I LOOP --------------------
 
@@ -757,6 +760,15 @@ void setup() {
 
   pinMode(RELAY_PIN, OUTPUT);
   configuration();
+  prefs.begin("schoolbell", false);
+
+    if (!prefs.isKey("adminUser")) {
+      prefs.putString("adminUser", "admin");
+    }
+
+    if (!prefs.isKey("adminPass")) {
+      prefs.putString("adminPass", "1234");
+    }
 
   strip.begin();  // inicijalizacija trake
   //strip.show();              // ugasi sve LED diode na pocetku
@@ -766,7 +778,7 @@ void setup() {
   display->begin();
   display->setBrightness8(120);
 
-  prefs.begin("schoolbell", false);
+
   //prefs.begin("user-data", false);
 
   satR = prefs.getInt("satR", 255);
@@ -836,8 +848,8 @@ void setup() {
     String user = request->getParam("username", true)->value();
     String pass = request->getParam("password", true)->value();
 
-    String savedUser = prefs.getString("adminUser", "admin");
-    String savedPass = prefs.getString("adminPass", "admin");
+    String savedUser = prefs.getString("adminUser", "admin");//**
+    String savedPass = prefs.getString("adminPass", "1234");//**
 
     if (user == savedUser && pass == savedPass) {
       request->send(200, "text/plain", "OK");
