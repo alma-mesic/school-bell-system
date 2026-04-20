@@ -810,8 +810,8 @@ void setup() {
     }
   }
   // Pročitaj spaseni WiFi, ako ga nema koristi "lamija7" kao rezervu
-  String savedSSID = prefs.getString("wifi_ssid", "ets-TM");
-  String savedPASS = prefs.getString("wifi_pass", "CRS_2026_zk");
+  String savedSSID = prefs.getString("wifi_ssid", "Galaxy A5244CB");
+  String savedPASS = prefs.getString("wifi_pass", "alma1574");
 
   WiFi.begin(savedSSID.c_str(), savedPASS.c_str());
 
